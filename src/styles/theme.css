@@ -1,0 +1,11 @@
+:root {
+  --color-surface-base: #f4eee2;
+  --color-panel: rgb(255 255 255 / 0.74);
+  --color-panel-muted: rgb(248 243 235 / 0.88);
+  --color-border: rgb(115 85 48 / 0.14);
+  --color-brand: #9d5a1b;
+  --color-brand-soft: #f1d1af;
+  --color-ink-strong: #241a12;
+  --color-ink-muted: #68594b;
+  --shadow-panel: 0 18px 48px rgb(36 26 18 / 0.08);
+}
