@@ -56,7 +56,23 @@ export function AccountSummary({
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid gap-6 lg:grid-cols-3">
+        <article className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
+          <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
+            Orders
+          </p>
+          <p className="text-ink-muted mt-3 text-sm leading-7">
+            Customer order history now reads from pending-order snapshots instead
+            of live catalog records.
+          </p>
+          <Link
+            href="/orders"
+            className="text-brand mt-5 inline-flex text-sm font-medium"
+          >
+            Open order history
+          </Link>
+        </article>
+
         <article className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
           <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
             Seller area

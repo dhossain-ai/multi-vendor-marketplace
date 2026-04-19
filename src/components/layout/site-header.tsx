@@ -4,8 +4,6 @@ import { AuthNav } from "@/features/auth/components/auth-nav";
 import { CartNav } from "@/features/cart/components/cart-nav";
 import { siteConfig } from "@/lib/config/site";
 
-const upcomingAreas = ["Checkout"];
-
 export function SiteHeader() {
   return (
     <header className="border-border/80 sticky top-0 z-20 border-b bg-white/70 backdrop-blur-xl">
@@ -30,14 +28,12 @@ export function SiteHeader() {
             Catalog
           </Link>
           <CartNav />
-          {upcomingAreas.map((item) => (
-            <span
-              key={item}
-              className="border-border bg-panel text-ink-muted rounded-full border px-4 py-2 text-sm"
-            >
-              {item}
-            </span>
-          ))}
+          <Link
+            href="/checkout"
+            className="border-border bg-panel text-foreground rounded-full border px-4 py-2 text-sm font-medium"
+          >
+            Checkout
+          </Link>
           <AuthNav />
         </nav>
       </Container>

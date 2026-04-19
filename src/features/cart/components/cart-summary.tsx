@@ -35,8 +35,8 @@ export function CartSummary({ cart }: CartSummaryProps) {
         </div>
 
         <p className="text-ink-muted text-sm leading-7">
-          Checkout is not implemented yet. Final pricing, availability, and any
-          discount logic will be revalidated on the server during the next phase.
+          Checkout now validates the cart on the server before creating a pending
+          order. Final payment confirmation is still deferred to the next phase.
         </p>
 
         {cart.hasUnavailableItems ? (
@@ -47,6 +47,18 @@ export function CartSummary({ cart }: CartSummaryProps) {
         ) : null}
 
         <div className="flex flex-col gap-3">
+          {cart.hasUnavailableItems ? (
+            <span className="border-border bg-panel-muted text-ink-muted inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium">
+              Resolve cart issues before checkout
+            </span>
+          ) : (
+            <Link
+              href="/checkout"
+              className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
+            >
+              Continue to checkout
+            </Link>
+          )}
           <Link
             href="/"
             className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium"

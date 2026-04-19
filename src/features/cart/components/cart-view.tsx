@@ -47,8 +47,8 @@ export function CartView({ cart, notice, error }: CartViewProps) {
             </h1>
             <p className="text-ink-muted max-w-3xl text-sm leading-7">
               Cart reads and writes are now server-scoped to the authenticated
-              user. This page intentionally stops short of checkout so the next
-              phase can focus on server-side order and payment validation.
+              user. Checkout now revalidates the latest cart state on the server
+              before creating a pending order.
             </p>
           </div>
           {notice ? <AuthMessage tone="success" message={notice} /> : null}
