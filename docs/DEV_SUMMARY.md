@@ -34,3 +34,39 @@ Initialized the repository as a new Next.js 16 App Router application and shaped
 - product detail route and data access
 - auth and role foundation
 - generated Supabase database typings once schema work begins
+
+## 2026-04-20 - Phase 2 Catalog Foundation
+
+### Summary
+
+Implemented the first real public marketplace slice: a catalog landing page, slug-based product detail pages, and a dedicated repository layer for catalog reads.
+
+### Added
+
+- catalog product types for lightweight listing and richer detail reads
+- public catalog repository functions for:
+  - product listing
+  - product lookup by slug
+  - related products
+  - static slug generation
+- public visibility rules enforced in server-side catalog reads
+- demo catalog fallback dataset for environments without live Supabase catalog data
+- reusable catalog UI:
+  - hero
+  - product card grid
+  - detail view
+  - loading state
+  - unavailable-product state
+- local catalog artwork assets under `public/catalog`
+
+### Notes
+
+- listing and detail queries are intentionally separated
+- hidden states such as draft and unapproved-seller products are excluded from public output
+- current public catalog is intentionally simple: no auth, cart, checkout, or dashboard behavior was added
+
+### Next Recommended Slice
+
+- auth and role foundation
+- generated Supabase database types
+- profile and seller-status groundwork for future protected routes

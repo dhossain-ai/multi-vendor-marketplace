@@ -39,21 +39,17 @@ The goal is to expand it into a realistic commerce system with:
 - Next.js App Router setup
 - TypeScript + Tailwind CSS
 - ESLint + Prettier
-- Vitest + React Testing Library
-- search UI shell and result grid
-- Supabase PostgreSQL schema and seed data
-- repository/data layer
-- `/list` API route
-- autocomplete/typeahead interaction
-- fuzzy search via RPC using `pg_trgm`
-- alias-based search normalization
-- Vercel deployment verification
-- lint/test/build verification
+- Supabase client scaffolding
+- public catalog landing page
+- public product detail page by slug
+- catalog repository/data layer for listing, slug lookup, related products, and static slugs
+- visibility-safe public catalog behavior
+- demo catalog fallback dataset when live catalog data is unavailable
+- lint/typecheck/build verification
 
 ### Not Yet Implemented
 
 - authentication
-- product details page
 - cart
 - checkout flow
 - payment provider integration
@@ -71,7 +67,7 @@ The goal is to expand it into a realistic commerce system with:
 
 ## Current Product Positioning
 
-Treat the project as a **catalog/discovery foundation** that will become a marketplace platform.
+Treat the project as a **catalog/discovery foundation with a public product slice** that will become a marketplace platform.
 
 Do **not** describe the current implementation as a full e-commerce product yet.
 
@@ -280,7 +276,6 @@ A strong next step should:
 
 Examples:
 
-- product details page
 - auth/role scaffolding
 - cart state and checkout prep
 - order schema planning

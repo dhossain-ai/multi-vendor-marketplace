@@ -78,7 +78,39 @@ This phase reduces rework, improves AI-assisted continuity, and prevents weak ar
 
 ---
 
-# Phase 1 — Product Detail and Catalog Hardening
+# Phase 1 — Repository Bootstrap and Baseline Setup
+
+## Goal
+
+Establish a clean application baseline before business features are added.
+
+## Scope
+
+- initialize the Next.js App Router application
+- configure TypeScript and Tailwind CSS
+- add ESLint and Prettier
+- define scalable `src/` folder boundaries
+- add minimal app shell and shared utilities
+- scaffold Supabase clients and environment setup
+- update README and project status docs
+
+## Deliverables
+
+- running Next.js app
+- shared layout shell
+- repository tooling and formatting
+- Supabase scaffolding
+- updated onboarding docs
+
+## Exit Criteria
+
+- repo builds cleanly
+- baseline architecture is in place for domain slices
+- future catalog, auth, and commerce work can build on the same structure
+
+---
+
+# Phase 2 — Product Detail and Catalog Hardening
 
 ## Goal
 
@@ -118,7 +150,7 @@ Evolve the current search/listing experience into a more realistic storefront di
 
 ---
 
-# Phase 2 — Authentication and Role Foundation
+# Phase 3 — Authentication and Role Foundation
 
 ## Goal
 
@@ -156,7 +188,7 @@ Introduce identity and role boundaries needed for marketplace workflows.
 
 ---
 
-# Phase 3 — Cart and Checkout Foundation
+# Phase 4 — Cart and Checkout Foundation
 
 ## Goal
 
@@ -197,7 +229,7 @@ Implement the core buyer purchase flow up to payment session creation.
 
 ---
 
-# Phase 4 — Payment Integration and Order Lifecycle
+# Phase 5 — Payment Integration and Order Lifecycle
 
 ## Goal
 
@@ -237,7 +269,7 @@ Turn checkout into a real transaction-aware flow.
 
 ---
 
-# Phase 5 — Seller Dashboard and Vendor Workflows
+# Phase 6 — Seller Dashboard and Vendor Workflows
 
 ## Goal
 
@@ -275,7 +307,7 @@ Introduce the seller-facing side of the marketplace.
 
 ---
 
-# Phase 6 — Admin Dashboard and Platform Controls
+# Phase 7 — Admin Dashboard and Platform Controls
 
 ## Goal
 
@@ -315,7 +347,7 @@ Introduce platform-level operational controls.
 
 ---
 
-# Phase 7 — Marketplace Refinement Features
+# Phase 8 — Marketplace Refinement Features
 
 ## Goal
 
@@ -352,7 +384,7 @@ Add features that improve realism and buyer/seller experience after the core flo
 
 ---
 
-# Phase 8 — Reliability, Performance, and Production Hardening
+# Phase 9 — Reliability, Performance, and Production Hardening
 
 ## Goal
 
@@ -392,7 +424,7 @@ Strengthen the system for realistic usage patterns and better engineering credib
 
 ---
 
-# Phase 9 — Portfolio and Presentation Hardening
+# Phase 10 — Portfolio and Presentation Hardening
 
 ## Goal
 

@@ -11,57 +11,40 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Move from repository bootstrap into the first marketplace implementation slice.
+Move from catalog foundation into authentication and role groundwork.
 
 ---
 
 ## Immediate Next Tasks
 
-### 1. Reconcile phase naming in planning docs
-
-- current implementation completed a bootstrap baseline
-- roadmap still labels product detail/catalog hardening as Phase 1
-- decide whether to renumber the roadmap or treat bootstrap as Phase 0.5
-
-### 2. Build the product detail slice
-
-- define route shape
-- implement server-side visibility rules
-- add detail query path
-- replace homepage-only placeholder behavior with a real product detail flow
-
-### 3. Start auth and role groundwork
+### 1. Start auth and role groundwork
 
 - connect Supabase auth
 - create profile synchronization approach
 - define role loading strategy
 - prepare protected route patterns for future seller/admin areas
 
-### 4. Replace placeholder database types
+### 2. Replace placeholder database types
 
 - generate Supabase database types once schema work starts
 - wire generated types into `src/lib/supabase/*`
 
-### 5. Decide whether to add test tooling in the next slice
+### 3. Decide whether to add test tooling in the next slice
 
-- add Vitest and React Testing Library when the first real business logic arrives
+- add Vitest and React Testing Library when auth and role logic arrives
 - avoid adding empty test scaffolding with no meaningful coverage target
+
+### 4. Expand the catalog read path only where it supports the next phases
+
+- decide whether `/` remains the main catalog landing page long-term
+- add filter/sort/search UI only if it supports auth/cart work and does not duplicate effort
+- decide when to switch from fallback catalog data to fully live Supabase catalog reads
 
 ---
 
 ## First Build Sequence
 
-### Step 1 - Product Detail Page
-
-Build:
-
-- product detail route
-- product detail query
-- public visibility checks
-- product detail UI
-- related products section if simple enough
-
-### Step 2 - Auth Foundation
+### Step 1 - Auth Foundation
 
 Build:
 
@@ -71,7 +54,7 @@ Build:
 - role loading
 - protected route foundation
 
-### Step 3 - Seller/Profile Foundations
+### Step 2 - Seller/Profile Foundations
 
 Build:
 
@@ -79,7 +62,7 @@ Build:
 - seller status handling
 - server-side role/status checks
 
-### Step 4 - Cart Foundation
+### Step 3 - Cart Foundation
 
 Build:
 
@@ -88,7 +71,7 @@ Build:
 - cart read endpoint
 - basic cart UI
 
-### Step 5 - Checkout Foundation
+### Step 4 - Checkout Foundation
 
 Build:
 
@@ -123,12 +106,12 @@ Build:
 
 ## Open Questions To Resolve During Implementation
 
-- exact slug strategy for product detail pages
 - whether seller approval is mandatory before any product creation or only before publishing
 - how much stock logic is needed in MVP
 - whether cart requires guest-cart support now or later
 - whether initial checkout should create pending orders immediately or create an order intent first
-- when to add formal test tooling relative to the first product-detail and auth slice
+- when to add formal test tooling relative to the auth and cart slices
+- whether public catalog filters/search UI should return in the next two phases or wait until auth/cart are stable
 
 ---
 
@@ -152,14 +135,13 @@ Only take one major implementation slice at a time.
 
 Recommended order:
 
-1. product detail
-2. auth + roles
-3. cart
-4. checkout
-5. payments
-6. orders
-7. seller dashboard
-8. admin dashboard
+1. auth + roles
+2. cart
+3. checkout
+4. payments
+5. orders
+6. seller dashboard
+7. admin dashboard
 
 ---
 

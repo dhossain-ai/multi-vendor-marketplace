@@ -2,24 +2,25 @@
 
 Production-minded full-stack multi-vendor marketplace foundation.
 
-This repository is currently in a bootstrap state focused on establishing a clean baseline for future marketplace implementation. The documentation in [`docs/`](docs) remains the source of truth for product direction and architecture.
+This repository currently includes a public catalog foundation with listing and product detail pages. The documentation in [`docs/`](docs) remains the source of truth for product direction and architecture.
 
-## Phase 1 Scope
+## Current Scope
 
-Completed in this bootstrap phase:
+Completed so far:
 
 - Next.js App Router with TypeScript
 - Tailwind CSS v4 baseline
 - ESLint and Prettier configuration
 - scalable `src/` folder structure
-- minimal application shell and placeholder homepage
+- public catalog landing page
+- slug-based product detail pages
+- catalog repository/data-access layer
 - Supabase client scaffolding
 - environment example file
 - updated project docs for current state
 
 Not implemented yet:
 
-- product detail flow
 - authentication and role enforcement
 - cart and checkout
 - payment integration
@@ -42,8 +43,7 @@ src/
   app/                  App Router entrypoints, layout, and global styles
   components/           Reusable layout and UI primitives
   features/
-    catalog/            Catalog-specific presentation scaffolding
-    shared/             Cross-feature shared components
+    catalog/            Catalog types, repository logic, and public catalog UI
   lib/
     auth/               Role and access-related primitives
     config/             Site and environment configuration
@@ -102,7 +102,7 @@ The repo currently includes scaffold files for:
 - admin client creation for server-only privileged work
 - placeholder database typings to replace with generated schema types later
 
-This is intentionally infrastructure-only for now. No auth, data fetching, or business features are implemented in this phase.
+This is intentionally limited to public catalog reads right now. Auth, cart, checkout, payments, and dashboard behavior are still deferred.
 
 ## Documentation Map
 
@@ -115,7 +115,3 @@ This is intentionally infrastructure-only for now. No auth, data fetching, or bu
 - [`docs/STATUS.md`](docs/STATUS.md)
 - [`docs/NEXT_STEPS.md`](docs/NEXT_STEPS.md)
 - [`docs/architecture/ARCHITECTURE_OVERVIEW.md`](docs/architecture/ARCHITECTURE_OVERVIEW.md)
-
-## Notes
-
-The current roadmap document still labels product detail/catalog hardening as "Phase 1." This implementation follows the explicit bootstrap request for this repository setup, and the naming mismatch is called out in the status docs so the next planning pass can reconcile it cleanly.

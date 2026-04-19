@@ -2,14 +2,14 @@
 
 ## Current Phase
 
-Bootstrap foundation completed for the new repository baseline.
+Product detail and catalog foundation completed.
 
 ---
 
 ## Project State Summary
 
-The repository now has a fresh Next.js application baseline aligned to the marketplace docs.
-This phase focused on setup, structure, and tooling rather than business feature implementation.
+The repository now includes the first real marketplace product slice for public catalog browsing.
+The homepage acts as a public catalog landing page, product detail pages resolve by slug, and catalog reads are routed through a dedicated repository/data-access layer.
 
 ---
 
@@ -19,18 +19,23 @@ This phase focused on setup, structure, and tooling rather than business feature
 - TypeScript and Tailwind CSS v4 configured
 - ESLint configured and Prettier added
 - `src/` folder structure established for app, components, features, lib, styles, and types
-- baseline application shell added with shared header, footer, and placeholder homepage
+- public catalog landing page built on the homepage
+- product detail route implemented at `/products/[slug]`
+- reusable product card and detail presentation components added
+- catalog repository/data-access layer added for listing, slug lookup, related products, and public slug generation
+- server-side public visibility filtering applied for listing and detail reads
+- MVP-safe local catalog fallback dataset added for environments without live Supabase catalog data
 - Supabase client scaffolding added for browser, server, and admin usage
 - environment template created with Supabase-related setup variables
-- README replaced with project-specific setup and structure guidance
+- README updated to reflect the live catalog foundation
 - `STATUS.md`, `NEXT_STEPS.md`, and `DEV_SUMMARY.md` updated for the new baseline
 
 ---
 
 ## In Progress
 
-- preparing for the first real implementation slice on top of the new baseline
-- keeping roadmap sequencing and actual repo phase naming aligned
+- preparing the repository for auth and role integration
+- keeping generated database types and live schema work aligned for future Supabase-backed features
 
 ---
 
@@ -38,7 +43,6 @@ This phase focused on setup, structure, and tooling rather than business feature
 
 ### Product / UX
 
-- product detail page
 - authentication and role enforcement
 - cart UI/state and persistence
 - checkout UI
@@ -51,8 +55,6 @@ This phase focused on setup, structure, and tooling rather than business feature
 
 - role-aware auth integration
 - customer/seller/admin access enforcement
-- catalog data access layer
-- product detail queries
 - cart endpoints
 - checkout endpoint
 - coupon system
@@ -62,17 +64,16 @@ This phase focused on setup, structure, and tooling rather than business feature
 
 ## Known Gaps
 
-- current implementation is only a structural baseline, not a marketplace feature slice yet
-- Supabase is scaffolded but not connected to live application flows
-- no product detail, auth, cart, checkout, or dashboard behavior exists yet
+- catalog uses an MVP-safe fallback dataset when live Supabase catalog data is unavailable
 - placeholder database types still need to be replaced with generated schema types once schema work begins
-- the roadmap currently labels product detail/catalog hardening as Phase 1, while this repository setup was requested as a bootstrap phase before that work
+- auth, cart, checkout, and dashboard behavior remain intentionally unimplemented
+- public listing currently ships a simple default browse state without filters, sorting controls, or search UI
 
 ---
 
 ## Current Priority
 
-Move from bootstrap into the first user-facing implementation slice without weakening the architecture direction.
+Move from public catalog foundation into auth and role groundwork without weakening the catalog boundaries already in place.
 
 ---
 
@@ -80,18 +81,18 @@ Move from bootstrap into the first user-facing implementation slice without weak
 
 The next implementation focus should be:
 
-- product detail flow
 - auth and role model
 - cart and checkout foundation
+- generated Supabase schema typing for repository-safe queries
 
 ---
 
 ## Risks
 
-- building placeholder pages that imply business behavior before server rules exist
+- letting public catalog logic leak into future protected seller/admin paths
 - docs drifting away from code once implementation starts
-- overbuilding framework layers before real feature slices are implemented
-- leaving the roadmap phase naming mismatch unresolved for too long
+- overcomplicating the catalog read path before auth/cart work begins
+- delaying replacement of placeholder database types once schema-backed queries become more important
 
 ---
 
@@ -100,5 +101,5 @@ The next implementation focus should be:
 The project is ready to move into implementation once:
 
 - Supabase project credentials are configured locally
-- the next slice is limited to catalog detail and auth groundwork
+- the next slice is limited to auth and role groundwork
 - docs continue to be updated alongside implementation
