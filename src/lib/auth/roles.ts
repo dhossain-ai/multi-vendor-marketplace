@@ -14,7 +14,10 @@ export const isAppRole = (value: string): value is AppRole =>
 export const isSellerStatus = (value: string): value is SellerStatus =>
   sellerStatuses.includes(value as SellerStatus);
 
+export const isApprovedSellerStatus = (value?: SellerStatus) =>
+  value === "approved";
+
 export const canAccessSellerWorkspace = (
   role: AppRole,
   sellerStatus?: SellerStatus,
-) => role === "seller" && sellerStatus === "approved";
+) => role === "seller" && isApprovedSellerStatus(sellerStatus);
