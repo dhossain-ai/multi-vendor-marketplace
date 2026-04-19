@@ -27,7 +27,6 @@ Initialized the repository as a new Next.js 16 App Router application and shaped
 ### Notes
 
 - This was a repository bootstrap phase, not a commerce feature phase.
-- The roadmap currently still describes product detail/catalog hardening as Phase 1, so planning docs should reconcile that naming in the next documentation pass.
 
 ### Next Recommended Slice
 
@@ -159,4 +158,48 @@ Implemented the first authenticated commerce workflow: server-authoritative cart
 
 - checkout foundation
 - pending-order creation strategy
+- generated Supabase types once the live schema is ready
+
+## 2026-04-20 - Phase 5 Checkout and Pending Orders
+
+### Summary
+
+Implemented the first server-authoritative checkout slice: cart revalidation, pending unpaid order creation, snapshot-backed order items, and customer order history built from durable order records.
+
+### Added
+
+- order schema migration for:
+  - `orders`
+  - `order_items`
+  - `payments` placeholder support for the next phase
+- checkout types for:
+  - validated checkout items
+  - server-calculated totals
+  - validation result state
+- checkout services for:
+  - cart reload from the server
+  - checkout validation
+  - pending-order creation
+  - cart clearing after successful pending-order creation
+- checkout UI:
+  - protected `/checkout`
+  - validation feedback for stale or invalid cart state
+  - pending-order submission flow
+- order history foundation:
+  - `/orders`
+  - `/orders/[id]`
+  - snapshot-backed order detail rendering
+
+### Notes
+
+- checkout is server-authoritative and does not trust cart totals from the client
+- order history now reads from snapshots instead of live product data
+- cart is cleared after successful pending-order creation to reduce accidental duplicate submissions from the same cart
+- pending-order creation currently uses application-side compensation rather than a single database transaction
+- payment provider integration, webhook handling, and payment reconciliation remain deferred to the next phase
+
+### Next Recommended Slice
+
+- payment integration in test mode
+- payment record and status handling
 - generated Supabase types once the live schema is ready

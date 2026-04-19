@@ -18,14 +18,14 @@ The roadmap should be updated as scope changes, but phase order should remain de
 
 ## Current Status
 
-The project currently has a strong **search and catalog foundation**:
+The project currently has a strong **catalog, auth, cart, and checkout foundation**:
 
 - Next.js frontend
 - Supabase/PostgreSQL data layer
-- list/search API
-- autocomplete
-- fuzzy search with `pg_trgm`
-- deployment and testing setup
+- public catalog browsing
+- authenticated cart flow
+- pending-order creation
+- snapshot-backed customer order history foundation
 
 The next work should build on this foundation instead of replacing it.
 
@@ -41,7 +41,8 @@ Examples:
 
 - search and discovery
 - product details and product validity
-- checkout and order creation
+- checkout and pending order creation
+- payment integration
 - seller product operations
 - admin platform controls
 
@@ -71,10 +72,6 @@ Establish clear product rules, data modeling direction, and technical constraint
 - seller/customer/admin boundaries are clear
 - checkout and order assumptions are documented
 - core schema direction is stable enough to start implementation
-
-## Why This Phase Matters
-
-This phase reduces rework, improves AI-assisted continuity, and prevents weak architectural decisions from leaking into later implementation.
 
 ---
 
@@ -114,7 +111,7 @@ Establish a clean application baseline before business features are added.
 
 ## Goal
 
-Evolve the current search/listing experience into a more realistic storefront discovery layer.
+Evolve the current listing experience into a more realistic storefront discovery layer.
 
 ## Scope
 
@@ -140,13 +137,6 @@ Evolve the current search/listing experience into a more realistic storefront di
 - users can browse search results and land on a product detail page
 - product detail state is reliable and documented
 - catalog behavior is realistic enough to support commerce flows
-
-## Risks
-
-- weak product identity design
-- poor slug strategy
-- unstable product metadata shape
-- search/listing queries that do not scale well with future product growth
 
 ---
 
@@ -180,96 +170,104 @@ Introduce identity and role boundaries needed for marketplace workflows.
 - protected areas are structured for later seller/admin features
 - unauthorized access paths are blocked correctly
 
-## Risks
-
-- relying only on client-side role checks
-- unclear separation between seller and admin permissions
-- hard-to-evolve auth design
-
 ---
 
-# Phase 4 — Cart and Checkout Foundation
+# Phase 4 — Cart Foundation
 
 ## Goal
 
-Implement the core buyer purchase flow up to payment session creation.
+Implement the authenticated customer cart and prepare the app for checkout work.
 
 ## Scope
 
 - cart management
 - quantity updates
-- server-side cart validation
-- coupon validation rules
-- checkout page
-- pricing/totals calculation
-- order pre-creation or pending order creation strategy
-- payment provider integration plan finalized
+- server-side cart validation basics
+- protected cart page
+- add-to-cart flow from product detail
+- provisional cart summary behavior
 
 ## Deliverables
 
 - add/remove/update cart flows
-- checkout summary UI
-- server-side total recalculation
-- pending order creation strategy
-- API contracts for checkout
+- cart summary UI
+- server-scoped cart ownership enforcement
+- docs updated for cart behavior
 
 ## Exit Criteria
 
-- a signed-in user can build a cart and initiate checkout
-- totals are calculated server-side
-- invalid items/coupons are handled safely
-- duplicate checkout submission risks are addressed in design
-
-## Risks
-
-- trusting client-side totals
-- weak coupon validation
-- no plan for idempotency
-- missing order snapshot strategy
+- a signed-in user can build and manage a cart
+- cart reads and writes are scoped server-side
+- cart totals are clearly marked as provisional
 
 ---
 
-# Phase 5 — Payment Integration and Order Lifecycle
+# Phase 5 — Checkout and Pending Order Flow
 
 ## Goal
 
-Turn checkout into a real transaction-aware flow.
+Convert a validated cart into a snapshot-backed pending order without adding real payment integration yet.
+
+## Scope
+
+- checkout page
+- server-side cart revalidation
+- server-side totals calculation
+- pending-order creation strategy
+- order item snapshot persistence
+- customer order history foundation
+- payment schema preparation if useful for the next phase
+
+## Deliverables
+
+- checkout validation flow
+- pending order creation
+- `orders` and `order_items` schema support
+- customer order list/detail foundation
+- docs updated to reflect checkout and order behavior
+
+## Exit Criteria
+
+- a signed-in user can move from cart to a pending order
+- totals are calculated server-side
+- order history reads from snapshot-backed records
+- invalid cart states are handled safely
+
+---
+
+# Phase 6 — Payment Integration and Order Lifecycle
+
+## Goal
+
+Turn pending checkout into a transaction-aware payment flow.
 
 ## Scope
 
 - payment provider integration in test mode
 - payment session creation
 - payment confirmation handling
-- webhook handling strategy
-- order persistence
-- order status and payment status separation
-- order history for customer
+- webhook or callback strategy
+- payment records
+- order status and payment status transition handling
 
 ## Deliverables
 
 - payment session integration
 - webhook or callback handling design/implementation
-- `orders`, `order_items`, and `payments` schema support
-- order history page
+- `payments` schema usage
+- customer payment-aware order follow-up UX
 - status transitions documented and enforced
 
 ## Exit Criteria
 
 - a customer can complete a realistic end-to-end purchase flow
-- orders persist safely
+- payments persist safely
 - payment and order states are modeled separately
 - duplicate or retried payment events are accounted for in design
 
-## Risks
-
-- coupling payment success only to client redirect
-- duplicate order creation
-- status model too simplistic
-- historical order data depending on mutable product rows
-
 ---
 
-# Phase 6 — Seller Dashboard and Vendor Workflows
+# Phase 7 — Seller Dashboard and Vendor Workflows
 
 ## Goal
 
@@ -299,15 +297,9 @@ Introduce the seller-facing side of the marketplace.
 - a seller can view only their own relevant orders and sales data
 - seller-facing flows feel like a real marketplace system
 
-## Risks
-
-- cross-seller data leakage
-- weak ownership checks
-- confusing product/order ownership semantics
-
 ---
 
-# Phase 7 — Admin Dashboard and Platform Controls
+# Phase 8 — Admin Dashboard and Platform Controls
 
 ## Goal
 
@@ -339,15 +331,9 @@ Introduce platform-level operational controls.
 - admin actions are clearly separated from seller abilities
 - platform oversight is visible and useful
 
-## Risks
-
-- untracked manual changes
-- overly broad admin mutation permissions
-- coupling current settings to historical order calculations
-
 ---
 
-# Phase 8 — Marketplace Refinement Features
+# Phase 9 — Marketplace Refinement Features
 
 ## Goal
 
@@ -376,15 +362,9 @@ Add features that improve realism and buyer/seller experience after the core flo
 - secondary features do not compromise core reliability
 - portfolio presentation value increases meaningfully
 
-## Risks
-
-- adding polish before core behavior is reliable
-- accumulating inconsistent feature rules
-- weak moderation strategy for user-generated content such as reviews
-
 ---
 
-# Phase 9 — Reliability, Performance, and Production Hardening
+# Phase 10 — Reliability, Performance, and Production Hardening
 
 ## Goal
 
@@ -416,15 +396,9 @@ Strengthen the system for realistic usage patterns and better engineering credib
 - the docs clearly explain performance and reliability decisions
 - core workflows are more resilient to concurrency and failure scenarios
 
-## Risks
-
-- deferring performance thinking too long
-- overengineering before real bottlenecks are understood
-- inconsistent retry behavior across endpoints
-
 ---
 
-# Phase 10 — Portfolio and Presentation Hardening
+# Phase 11 — Portfolio and Presentation Hardening
 
 ## Goal
 

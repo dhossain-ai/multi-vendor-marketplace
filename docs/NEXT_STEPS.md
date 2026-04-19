@@ -11,67 +11,67 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Move from cart foundation into checkout groundwork.
+Move from checkout and pending-order groundwork into payment integration.
 
 ---
 
 ## Immediate Next Tasks
 
-### 1. Start checkout foundation
+### 1. Start payment integration groundwork
 
-- define the server-side checkout validation flow
-- load the authenticated cart from the repository layer
-- revalidate product availability and quantities at checkout time
-- define the provisional-to-final totals boundary clearly
+- choose the first payment provider in test mode
+- create payment session creation flow attached to pending orders
+- persist payment tracking identifiers safely
+- keep payment creation server-authoritative
 
-### 2. Define pending-order creation strategy
+### 2. Add payment status handling
 
-- decide when the first durable order record should be created
-- align order status and payment status defaults with the docs
-- prepare snapshot fields for order items
-- keep payment session creation deferred until checkout contracts are stable
+- create payment records for pending orders
+- keep payment status separate from order status
+- define initial transition rules for payment success and failure
+- prepare idempotent attachment points for callbacks or webhooks
 
 ### 3. Replace hand-written schema types with generated Supabase types
 
 - generate database types from the real Supabase schema
 - wire generated types into `src/lib/supabase/*` and repository helpers
-- keep current auth/cart typing aligned while the schema evolves
+- keep current auth/cart/checkout typing aligned while the schema evolves
 
-### 4. Add test tooling when checkout rules exist
+### 4. Add test tooling when payment-sensitive logic exists
 
-- add Vitest and React Testing Library when cart and checkout rules create meaningful coverage targets
-- prioritize tests for cart mutation rules, checkout validation, and access-sensitive logic
+- add Vitest and React Testing Library when checkout and payment rules create meaningful coverage targets
+- prioritize tests for checkout validation, pending-order creation, and payment status transitions
 - avoid adding empty scaffolding with no exercised business behavior
 
 ---
 
 ## First Build Sequence
 
-### Step 1 - Checkout Foundation
+### Step 1 - Payment Session Foundation
 
 Build:
 
-- server-side cart revalidation
-- provisional totals to final totals boundary
-- checkout page contract
-- clear error handling for invalid cart state
+- payment record creation
+- payment session request contract
+- pending order to payment attachment flow
+- safe redirect target planning
 
-### Step 2 - Pending Order Groundwork
-
-Build:
-
-- pending order creation strategy
-- order item snapshot contract
-- order/payment status defaults
-- retry-safe checkout initiation approach
-
-### Step 3 - Payment Preparation
+### Step 2 - Payment Confirmation Foundation
 
 Build:
 
-- payment provider integration plan in test mode
-- payment session creation contract
-- callback/webhook handling approach
+- provider callback or webhook contract
+- payment status updates
+- initial order status transitions after payment confirmation
+- duplicate-event protection strategy
+
+### Step 3 - Customer Order Follow-Through
+
+Build:
+
+- order detail updates after payment state changes
+- customer-facing payment state messaging
+- retry-safe handling for failed or abandoned payment attempts
 
 ---
 
@@ -80,10 +80,10 @@ Build:
 ### Commerce Core
 
 - payment provider integration in test mode
-- order persistence
-- order items snapshot logic
-- payment status + order status handling
-- customer order history
+- richer order persistence and lifecycle handling
+- payment status + order status transitions
+- customer order follow-up UX
+- coupon groundwork if it supports checkout
 
 ### Marketplace Core
 
@@ -100,11 +100,11 @@ Build:
 
 ## Open Questions To Resolve During Implementation
 
-- whether guest cart support should remain out of scope until after checkout is stable
-- how much stock enforcement is needed before payment integration
-- whether initial checkout should create pending orders immediately or create an order intent first
-- when to add formal test tooling relative to the checkout and payment slices
-- whether public catalog filters/search UI should return before orders are stable
+- whether payment records should be created before or during provider session creation
+- what the first idempotency strategy should be for payment session creation
+- whether cart-clearing behavior needs additional recovery handling if payment session creation fails later
+- when to add formal test tooling relative to the payment and order-status slices
+- whether public catalog filters/search UI should return before payment and orders are stable
 
 ---
 
@@ -112,8 +112,7 @@ Build:
 
 Avoid doing these before the first commerce slice is stable:
 
-- payment integration before checkout validation exists
-- deep admin tooling
+- seller/admin dashboard depth
 - advanced analytics
 - payout automation
 - recommendation engine
@@ -128,11 +127,10 @@ Only take one major implementation slice at a time.
 
 Recommended order:
 
-1. checkout
-2. payments
-3. orders
-4. seller onboarding/dashboard
-5. admin dashboard
+1. payments
+2. seller onboarding/dashboard
+3. admin dashboard
+4. refinement features
 
 ---
 

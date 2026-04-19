@@ -16,9 +16,9 @@ The current application already provides:
 
 - public catalog/listing UI
 - product detail pages by slug
-- Supabase-backed catalog, auth, and cart scaffolding
+- Supabase-backed catalog, auth, cart, and checkout scaffolding
 - server-side auth/session/profile loading
-- protected route foundations for account, seller, admin, and cart access
+- protected route foundations for account, seller, admin, cart, checkout, and orders
 - build, lint, and typecheck verification
 
 The goal is to expand it into a realistic commerce system with:
@@ -52,14 +52,16 @@ The goal is to expand it into a realistic commerce system with:
 - cart migration and typed cart schema support
 - server-side cart repository and mutation actions
 - protected `/cart` page and add-to-cart flow from product detail
-- header cart item count and provisional cart summary behavior
+- checkout validation and pending-order creation flow
+- order schema support and snapshot-backed order history foundation
+- `/checkout`, `/orders`, and `/orders/[id]`
 - lint/typecheck/build verification
 
 ### Not Yet Implemented
 
-- checkout flow
-- payment provider integration
-- order persistence and lifecycle
+- real payment provider integration
+- payment callback/webhook handling
+- richer order lifecycle transitions
 - seller onboarding submission UI
 - seller dashboard features
 - admin dashboard features
@@ -74,13 +76,13 @@ The goal is to expand it into a realistic commerce system with:
 
 ## Current Product Positioning
 
-Treat the project as a **catalog, auth, and cart foundation** that will become a full marketplace platform.
+Treat the project as a **catalog, auth, cart, and checkout foundation** that will become a full marketplace platform.
 
-Do **not** describe the current implementation as a full e-commerce product yet.
+Do **not** describe the current implementation as a finished e-commerce product yet.
 
 Acceptable descriptions:
 
-- product catalog and customer account foundation
+- product catalog and checkout foundation
 - marketplace-ready full-stack base
 - phased multi-vendor marketplace implementation
 
@@ -138,14 +140,14 @@ Critical rules must be enforced on the server:
 - authorization
 - role access
 - cart ownership
-- cart and checkout totals
+- checkout totals
 - stock/availability checks
 - order creation
 - payment confirmation handling
 
 ### 2. Preserve historical correctness
 
-Order data must not depend on mutable product records after purchase. Use order snapshots for titles/prices relevant to completed orders.
+Order data must not depend on mutable product records after purchase. Use order snapshots for titles, prices, seller information, and relevant metadata that must survive later catalog changes.
 
 ### 3. Separate payment state from order state
 
@@ -154,7 +156,7 @@ Do not collapse everything into a single status field.
 Examples:
 
 - `payment_status`: unpaid, processing, paid, failed, refunded
-- `order_status`: pending, confirmed, completed, cancelled, refunded
+- `order_status`: pending, confirmed, processing, completed, cancelled, refunded
 
 ### 4. Prefer idempotent write paths
 
@@ -185,10 +187,11 @@ These rules should shape future implementation:
 
 - role enforcement must be server-side
 - cart ownership and mutation checks must be server-side
+- checkout totals must be calculated on the server
+- pending orders must use snapshot-backed order items
 - seller data access must be isolated to seller-owned resources
 - admin capabilities must be explicit and auditable
-- order totals must be revalidated server-side at checkout
-- coupons must be validated server-side
+- coupons must be validated server-side when introduced
 - payment success from client-side redirect alone is not enough for final order completion
 - important mutations should be resistant to duplicate submissions
 - old orders must remain readable even if product data changes later
@@ -232,13 +235,12 @@ When extending the codebase:
 The next major work should generally follow this order:
 
 1. lock down product rules and documentation
-2. add checkout flow
-3. integrate payment provider in test mode
-4. add order persistence and status model
-5. build seller onboarding and seller dashboard foundation
-6. build admin dashboard foundation
-7. add coupon, review, wishlist, and reporting layers
-8. harden for reliability and scaling
+2. integrate payment provider in test mode
+3. add payment-aware order status handling
+4. build seller onboarding and seller dashboard foundation
+5. build admin dashboard foundation
+6. add coupon, review, wishlist, and reporting layers
+7. harden for reliability and scaling
 
 ---
 
@@ -249,6 +251,8 @@ A new AI session should assume:
 - the search and catalog foundation already exists
 - auth and role foundations already exist
 - the authenticated cart foundation already exists
+- checkout creates snapshot-backed pending orders
+- customer order history now reads from durable order records
 - the project is transitioning to marketplace architecture
 - documentation-first planning is part of the workflow
 - schema design, role boundaries, checkout rules, and historical correctness matter more than adding random UI features
@@ -280,8 +284,8 @@ A strong next step should:
 
 Examples:
 
-- checkout validation and totals revalidation
-- order schema planning
+- payment session integration
+- payment status transition planning
 - seller/admin dashboard shell after commerce foundations are in place
 
 ---

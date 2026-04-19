@@ -2,14 +2,14 @@
 
 ## Current Phase
 
-Cart foundation completed.
+Checkout and pending-order foundation completed.
 
 ---
 
 ## Project State Summary
 
-The repository now includes the first authenticated commerce slice on top of the public catalog and auth foundations.
-Signed-in customers can add eligible products to a server-scoped cart, review cart contents, update quantities, remove items, and see a provisional subtotal without implementing checkout yet.
+The repository now includes the first end-to-end authenticated checkout foundation on top of the public catalog, auth, and cart slices.
+Signed-in customers can validate a cart on the server, create a pending unpaid order with snapshot-backed order items, clear the cart after successful order creation, and review order history without relying on live product records.
 
 ---
 
@@ -39,24 +39,35 @@ Signed-in customers can add eligible products to a server-scoped cart, review ca
   - update quantity
   - remove item
   - clear cart
-- server-side cart validation added for:
+- protected `/cart` page added with empty state, line items, quantity updates, remove actions, subtotal summary, and checkout entry point
+- order schema migration added for:
+  - `orders`
+  - `order_items`
+  - `payments` placeholder support for the next phase
+- typed schema subset expanded to cover order and payment tables plus status enums
+- checkout validation service added for:
   - authenticated ownership
-  - positive quantity rules
-  - publicly purchasable product status
-  - seller approval state
-  - MVP-safe stock checks when limited stock is known
-- protected `/cart` page added with empty state, line items, quantity updates, remove actions, and subtotal summary
-- product detail pages now support add-to-cart
-- header cart navigation now exposes cart access and signed-in item count
-- environment template created with Supabase-related setup variables
-- README updated to reflect the catalog, auth, and cart foundation
-- `STATUS.md`, `NEXT_STEPS.md`, `DEV_SUMMARY.md`, and `AI_CONTEXT.md` updated for the new baseline
+  - cart reload from the server
+  - product visibility and seller approval checks
+  - quantity and MVP-safe stock checks
+  - server-side totals calculation
+- pending-order creation flow added with:
+  - `order_status = pending`
+  - `payment_status = unpaid`
+  - snapshot-backed `order_items`
+  - cart clearing after successful pending-order creation
+- protected `/checkout` page added with validation feedback and pending-order submission
+- customer order history foundation added at `/orders` and `/orders/[id]`
+- order history UI now reads from snapshot-backed order data instead of live catalog rows
+- header and account surfaces updated to expose checkout and order-history paths
+- README updated to reflect the catalog, auth, cart, and checkout foundation
+- `STATUS.md`, `NEXT_STEPS.md`, `DEV_SUMMARY.md`, `AI_CONTEXT.md`, and `ROADMAP.md` updated for the new baseline
 
 ---
 
 ## In Progress
 
-- preparing the repository for checkout validation and pending-order groundwork
+- preparing the repository for payment session integration on top of the new pending-order flow
 - keeping generated database types and live schema work aligned for future Supabase-backed features
 
 ---
@@ -65,18 +76,18 @@ Signed-in customers can add eligible products to a server-scoped cart, review ca
 
 ### Product / UX
 
-- checkout UI
-- payment integration
-- order persistence and lifecycle
+- real payment provider integration
 - seller onboarding flow
 - seller dashboard features
 - admin dashboard features
+- coupon experience
 
 ### Backend / Business Logic
 
-- checkout endpoint
-- coupon system
-- order creation flow
+- payment session creation
+- payment reconciliation and webhook handling
+- richer order lifecycle transitions
+- commission logic
 - review/wishlist system
 
 ---
@@ -84,17 +95,17 @@ Signed-in customers can add eligible products to a server-scoped cart, review ca
 ## Known Gaps
 
 - catalog still uses an MVP-safe fallback dataset when live Supabase catalog data is unavailable
-- cart depends on the real Supabase schema for `carts` and `cart_items`; the included migration still needs to be applied in the target project
-- current database typing is a maintainable hand-written subset and should still be replaced with generated Supabase types later
-- cart totals are intentionally provisional and must be recalculated again during checkout
-- unavailable items can remain visible in cart for cleanup, but checkout rules are not implemented yet
+- the included cart and order migrations still need to be applied in the target Supabase project
+- current database typing is still a hand-written subset and should later be replaced with generated Supabase types
+- pending-order creation currently uses application-side compensation instead of a single database transaction
+- checkout does not yet support coupons, taxes, addresses, or payment session attachment
 - seller/admin routes remain protected placeholders only and do not include product or order management
 
 ---
 
 ## Current Priority
 
-Move from cart foundation into checkout groundwork without weakening the catalog, auth, or ownership boundaries already in place.
+Move from checkout and pending-order groundwork into payment integration without weakening the cart, order snapshot, or ownership boundaries already in place.
 
 ---
 
@@ -102,17 +113,18 @@ Move from cart foundation into checkout groundwork without weakening the catalog
 
 The next implementation focus should be:
 
-- checkout validation and pending-order groundwork
-- payment/session planning after checkout contracts are stable
+- payment session integration
+- payment record creation and status handling
+- provider callback/webhook groundwork
 - generated Supabase schema typing for repository-safe queries
 
 ---
 
 ## Risks
 
-- letting cart totals look final before checkout revalidation exists
-- letting product-detail UI imply checkout is already implemented
-- duplicating pricing or availability rules between cart and future checkout code
+- letting pending-order UX imply payment is already confirmed
+- duplicating checkout totals logic when payment attachment is introduced
+- skipping idempotency planning once provider callbacks arrive
 - docs drifting away from code once implementation starts
 - delaying replacement of hand-written schema types once schema-backed queries become more important
 
@@ -123,6 +135,6 @@ The next implementation focus should be:
 The project is ready to move into implementation once:
 
 - Supabase project credentials are configured locally
-- the cart migration has been applied to the target database
-- the next slice is limited to checkout groundwork
+- the cart and order migrations have been applied to the target database
+- the next slice is limited to payment integration and status handling
 - docs continue to be updated alongside implementation

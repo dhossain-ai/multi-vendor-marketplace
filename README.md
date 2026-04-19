@@ -2,7 +2,7 @@
 
 Production-minded full-stack multi-vendor marketplace foundation.
 
-This repository currently includes a public catalog foundation plus authentication, role, and cart scaffolding. The documentation in [`docs/`](docs) remains the source of truth for product direction and architecture.
+This repository currently includes a public catalog foundation plus authentication, role, cart, and checkout scaffolding. The documentation in [`docs/`](docs) remains the source of truth for product direction and architecture.
 
 ## Current Scope
 
@@ -20,6 +20,8 @@ Completed so far:
 - role-aware route protection foundations
 - authenticated cart reads/writes with server-side ownership checks
 - protected `/cart` page and add-to-cart from product detail
+- server-authoritative checkout validation and pending-order creation
+- snapshot-backed customer order history at `/orders`
 - minimal authenticated account page and protected seller/admin placeholders
 - Supabase client scaffolding
 - environment example file
@@ -27,7 +29,6 @@ Completed so far:
 
 Not implemented yet:
 
-- cart and checkout
 - payment integration
 - seller onboarding flow
 - seller or admin dashboards
@@ -50,7 +51,9 @@ src/
   components/           Reusable layout and UI primitives
   features/
     auth/               Auth UI building blocks for account and protected placeholders
+    checkout/           Checkout validation and pending-order creation flow
     catalog/            Catalog types, repository logic, and public catalog UI
+    orders/             Snapshot-based customer order history
   lib/
     auth/               Session, profile, action, and guard primitives
     config/             Site and environment configuration
@@ -109,7 +112,7 @@ The repo currently includes scaffold files for:
 - admin client creation for server-only privileged work
 - hand-written schema typings to replace with generated Supabase types later
 
-This now covers catalog reads plus auth/session/cart foundations. Checkout, payments, and real seller/admin product features are still deferred.
+This now covers catalog reads plus auth/session/cart/checkout foundations. Payment integration and real seller/admin product features are still deferred.
 
 ## Documentation Map
 
