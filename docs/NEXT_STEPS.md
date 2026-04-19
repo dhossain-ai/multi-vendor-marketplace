@@ -11,74 +11,67 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Move from catalog foundation into authentication and role groundwork.
+Move from cart foundation into checkout groundwork.
 
 ---
 
 ## Immediate Next Tasks
 
-### 1. Start auth and role groundwork
+### 1. Start checkout foundation
 
-- connect Supabase auth
-- create profile synchronization approach
-- define role loading strategy
-- prepare protected route patterns for future seller/admin areas
+- define the server-side checkout validation flow
+- load the authenticated cart from the repository layer
+- revalidate product availability and quantities at checkout time
+- define the provisional-to-final totals boundary clearly
 
-### 2. Replace placeholder database types
+### 2. Define pending-order creation strategy
 
-- generate Supabase database types once schema work starts
-- wire generated types into `src/lib/supabase/*`
+- decide when the first durable order record should be created
+- align order status and payment status defaults with the docs
+- prepare snapshot fields for order items
+- keep payment session creation deferred until checkout contracts are stable
 
-### 3. Decide whether to add test tooling in the next slice
+### 3. Replace hand-written schema types with generated Supabase types
 
-- add Vitest and React Testing Library when auth and role logic arrives
-- avoid adding empty test scaffolding with no meaningful coverage target
+- generate database types from the real Supabase schema
+- wire generated types into `src/lib/supabase/*` and repository helpers
+- keep current auth/cart typing aligned while the schema evolves
 
-### 4. Expand the catalog read path only where it supports the next phases
+### 4. Add test tooling when checkout rules exist
 
-- decide whether `/` remains the main catalog landing page long-term
-- add filter/sort/search UI only if it supports auth/cart work and does not duplicate effort
-- decide when to switch from fallback catalog data to fully live Supabase catalog reads
+- add Vitest and React Testing Library when cart and checkout rules create meaningful coverage targets
+- prioritize tests for cart mutation rules, checkout validation, and access-sensitive logic
+- avoid adding empty scaffolding with no exercised business behavior
 
 ---
 
 ## First Build Sequence
 
-### Step 1 - Auth Foundation
+### Step 1 - Checkout Foundation
 
 Build:
 
-- sign in / sign up flow
-- session-aware server checks
-- profile creation or synchronization
-- role loading
-- protected route foundation
+- server-side cart revalidation
+- provisional totals to final totals boundary
+- checkout page contract
+- clear error handling for invalid cart state
 
-### Step 2 - Seller/Profile Foundations
-
-Build:
-
-- seller profile model
-- seller status handling
-- server-side role/status checks
-
-### Step 3 - Cart Foundation
+### Step 2 - Pending Order Groundwork
 
 Build:
 
-- cart data model
-- add/remove/update cart behavior
-- cart read endpoint
-- basic cart UI
-
-### Step 4 - Checkout Foundation
-
-Build:
-
-- server-side cart validation
-- coupon validation rules
 - pending order creation strategy
-- checkout endpoint contract
+- order item snapshot contract
+- order/payment status defaults
+- retry-safe checkout initiation approach
+
+### Step 3 - Payment Preparation
+
+Build:
+
+- payment provider integration plan in test mode
+- payment session creation contract
+- callback/webhook handling approach
 
 ---
 
@@ -94,6 +87,7 @@ Build:
 
 ### Marketplace Core
 
+- seller onboarding submission UI
 - seller dashboard shell
 - seller product CRUD
 - seller order view
@@ -106,12 +100,11 @@ Build:
 
 ## Open Questions To Resolve During Implementation
 
-- whether seller approval is mandatory before any product creation or only before publishing
-- how much stock logic is needed in MVP
-- whether cart requires guest-cart support now or later
+- whether guest cart support should remain out of scope until after checkout is stable
+- how much stock enforcement is needed before payment integration
 - whether initial checkout should create pending orders immediately or create an order intent first
-- when to add formal test tooling relative to the auth and cart slices
-- whether public catalog filters/search UI should return in the next two phases or wait until auth/cart are stable
+- when to add formal test tooling relative to the checkout and payment slices
+- whether public catalog filters/search UI should return before orders are stable
 
 ---
 
@@ -119,11 +112,11 @@ Build:
 
 Avoid doing these before the first commerce slice is stable:
 
-- fake seller/admin shell pages with no protected routing
+- payment integration before checkout validation exists
+- deep admin tooling
 - advanced analytics
 - payout automation
 - recommendation engine
-- deep admin tooling
 - complex notification system
 - microservice refactor
 
@@ -135,13 +128,11 @@ Only take one major implementation slice at a time.
 
 Recommended order:
 
-1. auth + roles
-2. cart
-3. checkout
-4. payments
-5. orders
-6. seller dashboard
-7. admin dashboard
+1. checkout
+2. payments
+3. orders
+4. seller onboarding/dashboard
+5. admin dashboard
 
 ---
 

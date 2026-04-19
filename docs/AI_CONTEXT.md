@@ -10,16 +10,16 @@ This file should be updated whenever the project direction, architecture, priori
 
 ## Project Mission
 
-This repository is evolving from a game search/catalog application into a full-stack multi-vendor marketplace platform.
+This repository is a production-minded full-stack multi-vendor marketplace platform under active phased implementation.
 
 The current application already provides:
 
-- catalog/listing UI
-- search API
-- autocomplete/typeahead
-- fuzzy search using PostgreSQL `pg_trgm`
-- Supabase-backed data layer
-- test and deployment setup
+- public catalog/listing UI
+- product detail pages by slug
+- Supabase-backed catalog, auth, and cart scaffolding
+- server-side auth/session/profile loading
+- protected route foundations for account, seller, admin, and cart access
+- build, lint, and typecheck verification
 
 The goal is to expand it into a realistic commerce system with:
 
@@ -45,17 +45,24 @@ The goal is to expand it into a realistic commerce system with:
 - catalog repository/data layer for listing, slug lookup, related products, and static slugs
 - visibility-safe public catalog behavior
 - demo catalog fallback dataset when live catalog data is unavailable
+- sign-in, sign-up, sign-out, and auth callback flow
+- server-side session/profile/seller-profile loading
+- role-aware route guard utilities
+- minimal authenticated account UI and protected seller/admin placeholders
+- cart migration and typed cart schema support
+- server-side cart repository and mutation actions
+- protected `/cart` page and add-to-cart flow from product detail
+- header cart item count and provisional cart summary behavior
 - lint/typecheck/build verification
 
 ### Not Yet Implemented
 
-- authentication
-- cart
 - checkout flow
 - payment provider integration
 - order persistence and lifecycle
-- seller dashboard
-- admin dashboard
+- seller onboarding submission UI
+- seller dashboard features
+- admin dashboard features
 - commission logic
 - coupon system
 - reviews
@@ -67,16 +74,15 @@ The goal is to expand it into a realistic commerce system with:
 
 ## Current Product Positioning
 
-Treat the project as a **catalog/discovery foundation with a public product slice** that will become a marketplace platform.
+Treat the project as a **catalog, auth, and cart foundation** that will become a full marketplace platform.
 
 Do **not** describe the current implementation as a full e-commerce product yet.
 
 Acceptable descriptions:
 
-- search-driven marketplace foundation
-- product catalog and discovery platform
+- product catalog and customer account foundation
 - marketplace-ready full-stack base
-- catalog/search app being expanded into a multi-vendor marketplace
+- phased multi-vendor marketplace implementation
 
 Avoid overstating current scope.
 
@@ -94,15 +100,12 @@ Avoid overstating current scope.
 
 - Supabase
 - PostgreSQL
-- Supabase RPC for fuzzy search
 - repository/data access layer
 
 ### Tooling
 
 - ESLint
 - Prettier
-- Vitest
-- React Testing Library
 
 ### Deployment
 
@@ -134,8 +137,8 @@ Critical rules must be enforced on the server:
 
 - authorization
 - role access
-- coupon validation
-- checkout totals
+- cart ownership
+- cart and checkout totals
 - stock/availability checks
 - order creation
 - payment confirmation handling
@@ -181,6 +184,7 @@ When the implementation changes meaningfully, update the relevant docs:
 These rules should shape future implementation:
 
 - role enforcement must be server-side
+- cart ownership and mutation checks must be server-side
 - seller data access must be isolated to seller-owned resources
 - admin capabilities must be explicit and auditable
 - order totals must be revalidated server-side at checkout
@@ -228,15 +232,13 @@ When extending the codebase:
 The next major work should generally follow this order:
 
 1. lock down product rules and documentation
-2. add product details page
-3. add authentication and role model
-4. add cart and checkout flow
-5. integrate payment provider in test mode
-6. add order persistence and status model
-7. build seller dashboard foundation
-8. build admin dashboard foundation
-9. add coupon, review, wishlist, and reporting layers
-10. harden for reliability and scaling
+2. add checkout flow
+3. integrate payment provider in test mode
+4. add order persistence and status model
+5. build seller onboarding and seller dashboard foundation
+6. build admin dashboard foundation
+7. add coupon, review, wishlist, and reporting layers
+8. harden for reliability and scaling
 
 ---
 
@@ -245,9 +247,11 @@ The next major work should generally follow this order:
 A new AI session should assume:
 
 - the search and catalog foundation already exists
+- auth and role foundations already exist
+- the authenticated cart foundation already exists
 - the project is transitioning to marketplace architecture
 - documentation-first planning is part of the workflow
-- schema design, role boundaries, and checkout rules matter more than adding random UI features
+- schema design, role boundaries, checkout rules, and historical correctness matter more than adding random UI features
 - the implementation should stay realistic and portfolio-grade
 - decisions should favor future maintainability and real-world behavior
 
@@ -271,15 +275,14 @@ A strong next step should:
 - preserve clean architecture
 - be easy to explain in docs
 - fit the roadmap
-- not break the existing search foundation
+- not break the existing foundation
 - add meaningful portfolio value
 
 Examples:
 
-- auth/role scaffolding
-- cart state and checkout prep
+- checkout validation and totals revalidation
 - order schema planning
-- seller/admin dashboard shell
+- seller/admin dashboard shell after commerce foundations are in place
 
 ---
 

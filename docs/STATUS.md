@@ -2,14 +2,14 @@
 
 ## Current Phase
 
-Product detail and catalog foundation completed.
+Cart foundation completed.
 
 ---
 
 ## Project State Summary
 
-The repository now includes the first real marketplace product slice for public catalog browsing.
-The homepage acts as a public catalog landing page, product detail pages resolve by slug, and catalog reads are routed through a dedicated repository/data-access layer.
+The repository now includes the first authenticated commerce slice on top of the public catalog and auth foundations.
+Signed-in customers can add eligible products to a server-scoped cart, review cart contents, update quantities, remove items, and see a provisional subtotal without implementing checkout yet.
 
 ---
 
@@ -26,15 +26,37 @@ The homepage acts as a public catalog landing page, product detail pages resolve
 - server-side public visibility filtering applied for listing and detail reads
 - MVP-safe local catalog fallback dataset added for environments without live Supabase catalog data
 - Supabase client scaffolding added for browser, server, and admin usage
+- Supabase auth flow wired for sign up, sign in, sign out, and auth callback handling
+- server-side session loading added with application profile and seller profile lookup
+- role and seller-status guards added for authenticated, seller, approved-seller, and admin checks
+- minimal authenticated account experience added in the header and `/account`
+- protected placeholder routes added for `/seller` and `/admin`
+- cart schema migration added for `carts` and `cart_items`
+- typed schema subset expanded to cover cart tables
+- cart repository/data-access layer added for:
+  - current cart reads
+  - add item
+  - update quantity
+  - remove item
+  - clear cart
+- server-side cart validation added for:
+  - authenticated ownership
+  - positive quantity rules
+  - publicly purchasable product status
+  - seller approval state
+  - MVP-safe stock checks when limited stock is known
+- protected `/cart` page added with empty state, line items, quantity updates, remove actions, and subtotal summary
+- product detail pages now support add-to-cart
+- header cart navigation now exposes cart access and signed-in item count
 - environment template created with Supabase-related setup variables
-- README updated to reflect the live catalog foundation
-- `STATUS.md`, `NEXT_STEPS.md`, and `DEV_SUMMARY.md` updated for the new baseline
+- README updated to reflect the catalog, auth, and cart foundation
+- `STATUS.md`, `NEXT_STEPS.md`, `DEV_SUMMARY.md`, and `AI_CONTEXT.md` updated for the new baseline
 
 ---
 
 ## In Progress
 
-- preparing the repository for auth and role integration
+- preparing the repository for checkout validation and pending-order groundwork
 - keeping generated database types and live schema work aligned for future Supabase-backed features
 
 ---
@@ -43,37 +65,36 @@ The homepage acts as a public catalog landing page, product detail pages resolve
 
 ### Product / UX
 
-- authentication and role enforcement
-- cart UI/state and persistence
 - checkout UI
 - payment integration
 - order persistence and lifecycle
-- seller dashboard foundation
-- admin dashboard foundation
+- seller onboarding flow
+- seller dashboard features
+- admin dashboard features
 
 ### Backend / Business Logic
 
-- role-aware auth integration
-- customer/seller/admin access enforcement
-- cart endpoints
 - checkout endpoint
 - coupon system
+- order creation flow
 - review/wishlist system
 
 ---
 
 ## Known Gaps
 
-- catalog uses an MVP-safe fallback dataset when live Supabase catalog data is unavailable
-- placeholder database types still need to be replaced with generated schema types once schema work begins
-- auth, cart, checkout, and dashboard behavior remain intentionally unimplemented
-- public listing currently ships a simple default browse state without filters, sorting controls, or search UI
+- catalog still uses an MVP-safe fallback dataset when live Supabase catalog data is unavailable
+- cart depends on the real Supabase schema for `carts` and `cart_items`; the included migration still needs to be applied in the target project
+- current database typing is a maintainable hand-written subset and should still be replaced with generated Supabase types later
+- cart totals are intentionally provisional and must be recalculated again during checkout
+- unavailable items can remain visible in cart for cleanup, but checkout rules are not implemented yet
+- seller/admin routes remain protected placeholders only and do not include product or order management
 
 ---
 
 ## Current Priority
 
-Move from public catalog foundation into auth and role groundwork without weakening the catalog boundaries already in place.
+Move from cart foundation into checkout groundwork without weakening the catalog, auth, or ownership boundaries already in place.
 
 ---
 
@@ -81,18 +102,19 @@ Move from public catalog foundation into auth and role groundwork without weaken
 
 The next implementation focus should be:
 
-- auth and role model
-- cart and checkout foundation
+- checkout validation and pending-order groundwork
+- payment/session planning after checkout contracts are stable
 - generated Supabase schema typing for repository-safe queries
 
 ---
 
 ## Risks
 
-- letting public catalog logic leak into future protected seller/admin paths
+- letting cart totals look final before checkout revalidation exists
+- letting product-detail UI imply checkout is already implemented
+- duplicating pricing or availability rules between cart and future checkout code
 - docs drifting away from code once implementation starts
-- overcomplicating the catalog read path before auth/cart work begins
-- delaying replacement of placeholder database types once schema-backed queries become more important
+- delaying replacement of hand-written schema types once schema-backed queries become more important
 
 ---
 
@@ -101,5 +123,6 @@ The next implementation focus should be:
 The project is ready to move into implementation once:
 
 - Supabase project credentials are configured locally
-- the next slice is limited to auth and role groundwork
+- the cart migration has been applied to the target database
+- the next slice is limited to checkout groundwork
 - docs continue to be updated alongside implementation

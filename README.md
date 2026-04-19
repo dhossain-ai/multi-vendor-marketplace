@@ -2,7 +2,7 @@
 
 Production-minded full-stack multi-vendor marketplace foundation.
 
-This repository currently includes a public catalog foundation with listing and product detail pages. The documentation in [`docs/`](docs) remains the source of truth for product direction and architecture.
+This repository currently includes a public catalog foundation plus authentication, role, and cart scaffolding. The documentation in [`docs/`](docs) remains the source of truth for product direction and architecture.
 
 ## Current Scope
 
@@ -15,15 +15,21 @@ Completed so far:
 - public catalog landing page
 - slug-based product detail pages
 - catalog repository/data-access layer
+- sign up, sign in, sign out, and callback handling
+- server-side session, profile, and seller-profile loading
+- role-aware route protection foundations
+- authenticated cart reads/writes with server-side ownership checks
+- protected `/cart` page and add-to-cart from product detail
+- minimal authenticated account page and protected seller/admin placeholders
 - Supabase client scaffolding
 - environment example file
 - updated project docs for current state
 
 Not implemented yet:
 
-- authentication and role enforcement
 - cart and checkout
 - payment integration
+- seller onboarding flow
 - seller or admin dashboards
 
 ## Stack
@@ -43,9 +49,10 @@ src/
   app/                  App Router entrypoints, layout, and global styles
   components/           Reusable layout and UI primitives
   features/
+    auth/               Auth UI building blocks for account and protected placeholders
     catalog/            Catalog types, repository logic, and public catalog UI
   lib/
-    auth/               Role and access-related primitives
+    auth/               Session, profile, action, and guard primitives
     config/             Site and environment configuration
     supabase/           Browser/server/admin Supabase client factories
     utils/              Generic utility helpers
@@ -100,9 +107,9 @@ The repo currently includes scaffold files for:
 - browser client creation
 - server client creation with Next cookies
 - admin client creation for server-only privileged work
-- placeholder database typings to replace with generated schema types later
+- hand-written schema typings to replace with generated Supabase types later
 
-This is intentionally limited to public catalog reads right now. Auth, cart, checkout, payments, and dashboard behavior are still deferred.
+This now covers catalog reads plus auth/session/cart foundations. Checkout, payments, and real seller/admin product features are still deferred.
 
 ## Documentation Map
 
