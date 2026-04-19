@@ -9,6 +9,7 @@ import {
 
 type ProductDetailPageProps = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateStaticParams() {
@@ -37,8 +38,10 @@ export async function generateMetadata({
 
 export default async function ProductDetailPage({
   params,
+  searchParams,
 }: ProductDetailPageProps) {
   const { slug } = await params;
+  const search = await searchParams;
   const productResult = await getPublicProductBySlug(slug);
 
   if (!productResult.product) {
@@ -54,6 +57,10 @@ export default async function ProductDetailPage({
     <ProductDetailView
       product={productResult.product}
       relatedProducts={relatedProductsResult.products}
+      nextPath={`/products/${productResult.product.slug}`}
+      cartError={
+        typeof search.error === "string" ? search.error : null
+      }
     />
   );
 }

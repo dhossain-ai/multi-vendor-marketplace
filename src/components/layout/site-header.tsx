@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
+import { AuthNav } from "@/features/auth/components/auth-nav";
+import { CartNav } from "@/features/cart/components/cart-nav";
 import { siteConfig } from "@/lib/config/site";
 
-const upcomingAreas = ["Auth", "Cart", "Checkout"];
+const upcomingAreas = ["Checkout"];
 
 export function SiteHeader() {
   return (
@@ -27,6 +29,7 @@ export function SiteHeader() {
           >
             Catalog
           </Link>
+          <CartNav />
           {upcomingAreas.map((item) => (
             <span
               key={item}
@@ -35,6 +38,7 @@ export function SiteHeader() {
               {item}
             </span>
           ))}
+          <AuthNav />
         </nav>
       </Container>
     </header>

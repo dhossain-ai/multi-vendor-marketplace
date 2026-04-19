@@ -3,16 +3,21 @@ import { Container } from "@/components/ui/container";
 import { ProductGrid } from "@/features/catalog/components/cards/product-grid";
 import { ProductVisual } from "@/features/catalog/components/product-visual";
 import { formatPrice } from "@/features/catalog/lib/format-price";
+import { AddToCartForm } from "@/features/cart/components/add-to-cart-form";
 import type { ProductDetail, ProductSummary } from "@/features/catalog/types";
 
 type ProductDetailViewProps = {
   product: ProductDetail;
   relatedProducts: ProductSummary[];
+  nextPath: string;
+  cartError?: string | null;
 };
 
 export function ProductDetailView({
   product,
   relatedProducts,
+  nextPath,
+  cartError,
 }: ProductDetailViewProps) {
   return (
     <div className="py-14 md:py-20">
@@ -91,11 +96,12 @@ export function ProductDetailView({
               </div>
 
               <div className="bg-panel-muted rounded-[1.5rem] p-5">
-                <p className="text-ink-muted text-sm leading-7">
-                  This product page is intentionally public-only for now. Cart,
-                  checkout, and account-aware actions will arrive in later
-                  phases once auth and commerce rules are in place.
-                </p>
+                <AddToCartForm productId={product.id} nextPath={nextPath} />
+                {cartError ? (
+                  <p className="mt-3 text-sm leading-6 text-rose-700">
+                    {cartError}
+                  </p>
+                ) : null}
               </div>
             </div>
           </div>
