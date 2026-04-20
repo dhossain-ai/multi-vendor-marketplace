@@ -67,10 +67,34 @@ export function OrdersListView({ orders, notice }: OrdersListViewProps) {
                   <h2 className="text-foreground text-2xl font-semibold tracking-tight">
                     {order.itemCount} item{order.itemCount === 1 ? "" : "s"}
                   </h2>
-                  <div className="text-ink-muted flex flex-wrap items-center gap-3 text-sm">
-                    <span className="capitalize">Order: {order.orderStatus}</span>
-                    <span className="capitalize">Payment: {order.paymentStatus}</span>
-                    <span>
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        order.orderStatus === "confirmed" || order.orderStatus === "completed"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : order.orderStatus === "cancelled"
+                            ? "bg-red-100 text-red-800"
+                            : order.orderStatus === "processing"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {order.orderStatus.replace(/_/g, " ")}
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        order.paymentStatus === "paid"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : order.paymentStatus === "failed"
+                            ? "bg-red-100 text-red-800"
+                            : order.paymentStatus === "processing"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {order.paymentStatus.replace(/_/g, " ")}
+                    </span>
+                    <span className="text-ink-muted">
                       {new Date(order.placedAt ?? order.createdAt).toLocaleString()}
                     </span>
                   </div>

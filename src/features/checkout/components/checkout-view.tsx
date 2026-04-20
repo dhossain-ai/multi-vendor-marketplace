@@ -26,11 +26,11 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
               Checkout
             </p>
             <h1 className="text-foreground text-4xl font-semibold tracking-tight">
-              Validate cart items before payment
+              Review and pay
             </h1>
             <p className="text-ink-muted max-w-3xl text-sm leading-7">
-              This phase creates a snapshot-backed pending order with server-side
-              totals. Payment provider integration still arrives in the next phase.
+              Review your cart items and server-calculated totals below. When
+              ready, proceed to secure payment powered by Stripe.
             </p>
           </div>
           {messageTone && error ? (
@@ -145,7 +145,7 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
                     Order summary
                   </p>
                   <h2 className="text-foreground text-2xl font-semibold tracking-tight">
-                    Server-calculated pending order totals
+                    Server-calculated totals
                   </h2>
                 </div>
 
@@ -195,9 +195,9 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
                 </div>
 
                 <p className="text-ink-muted text-sm leading-7">
-                  Checkout creates a pending order and snapshot-backed order items.
-                  Payment remains out of scope for this phase, so the new order will
-                  stay in an unpaid pending state.
+                  Checkout creates a pending order with snapshot-backed items, then
+                  redirects you to Stripe for secure payment. Your order is only
+                  confirmed after the payment provider verifies the transaction.
                 </p>
 
                 {checkout.errors.length > 0 ? (
@@ -215,8 +215,8 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
                   {checkout.canSubmit ? (
                     <form action={submitCheckoutAction}>
                       <CartSubmitButton
-                        idleLabel="Create pending order"
-                        pendingLabel="Creating..."
+                        idleLabel="Proceed to payment"
+                        pendingLabel="Redirecting to Stripe..."
                         className="bg-brand inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
                       />
                     </form>

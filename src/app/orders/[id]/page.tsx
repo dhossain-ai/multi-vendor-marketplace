@@ -37,6 +37,7 @@ export default async function OrderDetailPage({
     <OrderDetailView
       order={order}
       notice={readSearchParam(search.notice)}
+      error={readSearchParam(search.error)}
     />
   );
 }
