@@ -367,6 +367,91 @@ Defer:
 
 ---
 
+## D-015: Stripe Test-Mode Payment Transition Model
+
+### Date
+
+2026-04-20
+
+### Decision
+
+Payment status transitions for the MVP Stripe integration follow a server-authoritative model:
+
+| Event | `payments.status` | `orders.payment_status` | `orders.order_status` |
+|---|---|---|---|
+| Pending order created | _(no row)_ | `unpaid` | `pending` |
+| Stripe session created | `processing` | `unpaid` | `pending` |
+| Webhook: `checkout.session.completed` | `paid` | `paid` | `confirmed` |
+| Webhook: `checkout.session.expired` | `failed` | `failed` | `pending` |
+
+### Why
+
+- Only the Stripe webhook (server-side) transitions to `paid`/`confirmed`. Client-side redirect is for UX only.
+- Webhook handling is idempotent. A payment already in a terminal state (`paid`, `refunded`, `partially_refunded`) won't be re-processed.
+- Cart is cleared immediately after pending-order creation (before payment) per Phase 5 behavior. This avoids complexity around cart-recovery if payment fails, at the cost of needing a fresh cart if the user cancels. Acceptable for MVP.
+- An existing `processing` payment record with a still-open Stripe session is reused to prevent duplicate Stripe sessions for the same order.
+- Stripe env vars are optional: when not configured, checkout falls back to Phase 5 behavior (redirect to order detail with pending/unpaid status).
+
+### Consequences
+
+- Failed payments leave the order in `pending`/`failed` state. The customer can retry from the order detail page.
+- Refund and partial-refund status values exist in the schema but are not exercised until a future refund workflow phase.
+- The webhook endpoint requires HTTPS in production and Stripe CLI for local development testing.
+
+---
+
+## D-016: Seller Dashboard Ownership and Status Model
+
+### Date
+
+2026-04-20
+
+### Decision
+
+Seller dashboard access follows a four-layer authorization model:
+
+1. **Authenticated user** — must be signed in
+2. **Seller role** — `profile.role === "seller"` (enforced at layout level)
+3. **Seller profile exists** — a `seller_profiles` record must exist
+4. **Approved status** — `seller_profile.status === "approved"` (enforced per-page for mutations)
+
+Ownership enforcement:
+
+- Every seller repository function takes `sellerProfileId` as its first argument
+- `sellerProfileId` is derived from the authenticated session, never from client input
+- All product queries filter by `seller_id = sellerProfileId`
+- Sellers cannot access, view, or modify other sellers' data
+
+Product lifecycle rules for sellers:
+
+| Action | Allowed statuses | Result status |
+|---|---|---|
+| Create | — | `draft` or `active` |
+| Publish | `draft` | `active` |
+| Archive | `draft`, `active` | `archived` |
+| Suspend | (admin only) | `suspended` |
+
+Seller order visibility:
+
+- Sellers see only their own `order_items` rows
+- Parent order status/payment data is joined via a second query
+- Other sellers' line items from multi-vendor orders are never exposed
+
+### Why
+
+- Server-authoritative ownership prevents cross-seller data leakage
+- Status gating at layout level prevents pending/suspended sellers from accessing operational features
+- Product lifecycle rules align with FEATURE_SPEC.md and DATABASE_SCHEMA.md
+- Two-query approach for order data works around missing Relationships metadata in hand-written Database types
+
+### Consequences
+
+- Sellers must be created/approved via database seed or admin tools until seller onboarding UI is built
+- Hand-written Database types prevent Supabase join syntax — requires two-query workarounds
+- Category selection in seller product form uses raw UUID input until category management is available
+
+---
+
 ## Update Rule
 
 Add a new decision when:

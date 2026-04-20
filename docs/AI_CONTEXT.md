@@ -55,15 +55,28 @@ The goal is to expand it into a realistic commerce system with:
 - checkout validation and pending-order creation flow
 - order schema support and snapshot-backed order history foundation
 - `/checkout`, `/orders`, and `/orders/[id]`
+- Stripe test-mode payment integration:
+  - payment feature boundary at `src/features/payments/`
+  - Stripe Checkout Session creation with idempotent payment records
+  - webhook endpoint at `/api/webhooks/stripe` with signature verification
+  - server-authoritative order/payment status transitions
+  - post-checkout success and cancel pages
+  - order detail "Pay now" and "Retry payment" flows
+  - color-coded payment/order status badges throughout order views
+- seller dashboard foundation:
+  - `src/features/seller/` boundary with types, repositories, actions, and components
+  - seller dashboard shell with layout-level role guard and status gate
+  - seller product management: list, create, edit, archive with ownership enforcement
+  - seller-scoped order items view with status badges and product snapshots
+  - dashboard summary metrics (product counts, paid orders, gross sales)
+  - four-layer auth: authenticated → seller role → seller profile → approved status
+  - strict ownership: seller_id derived from session, never from client
 - lint/typecheck/build verification
 
 ### Not Yet Implemented
 
-- real payment provider integration
-- payment callback/webhook handling
-- richer order lifecycle transitions
-- seller onboarding submission UI
-- seller dashboard features
+- richer order lifecycle transitions (refunds, partial refunds)
+- seller onboarding application UI
 - admin dashboard features
 - commission logic
 - coupon system
@@ -76,15 +89,15 @@ The goal is to expand it into a realistic commerce system with:
 
 ## Current Product Positioning
 
-Treat the project as a **catalog, auth, cart, and checkout foundation** that will become a full marketplace platform.
+Treat the project as a **catalog, auth, cart, checkout, payment, and seller dashboard foundation** that will become a full marketplace platform.
 
 Do **not** describe the current implementation as a finished e-commerce product yet.
 
 Acceptable descriptions:
 
-- product catalog and checkout foundation
-- marketplace-ready full-stack base
-- phased multi-vendor marketplace implementation
+- multi-vendor marketplace with seller dashboard and payment integration
+- phased marketplace implementation with buyer and seller surfaces
+- full-stack marketplace platform with server-authoritative ownership and payment flow
 
 Avoid overstating current scope.
 
