@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { requireSellerRole, requireApprovedSeller } from "@/lib/auth/guards";
+import { requireSellerRole } from "@/lib/auth/guards";
 import { readSearchParam } from "@/lib/auth/navigation";
+import { SellerStatusGate } from "@/features/seller/components/seller-status-gate";
 import { getSellerProductById } from "@/features/seller/lib/seller-product-repository";
 import { updateProductAction } from "@/features/seller/lib/seller-actions";
 import { SellerProductForm } from "@/features/seller/components/seller-product-form";
+import { getActiveCategoryOptions } from "@/features/shared/lib/category-repository";
 
 type EditProductPageProps = {
   params: Promise<{ id: string }>;
@@ -26,17 +28,17 @@ export default async function EditProductPage({
   searchParams,
 }: EditProductPageProps) {
   const session = await requireSellerRole("/seller/products");
-  requireApprovedSeller(session);
-
   const { id } = await params;
   const search = await searchParams;
   const sellerProfileId = session.sellerProfile?.id;
+  const sellerStatus = session.sellerProfile?.status ?? null;
 
-  if (!sellerProfileId) {
-    notFound();
+  if (sellerStatus !== "approved" || !sellerProfileId) {
+    return <SellerStatusGate status={sellerStatus} />;
   }
 
   const product = await getSellerProductById(sellerProfileId, id);
+  const categories = await getActiveCategoryOptions();
 
   if (!product) {
     notFound();
@@ -51,6 +53,7 @@ export default async function EditProductPage({
     <SellerProductForm
       mode="edit"
       product={product}
+      categories={categories}
       error={readSearchParam(search.error)}
       action={boundUpdateAction}
     />

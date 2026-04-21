@@ -1,12 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useFormStatus } from "react-dom";
 import { AuthMessage } from "@/features/auth/components/auth-message";
-import type { SellerProduct } from "@/features/seller/types";
+import type {
+  SellerProduct,
+  SellerProductFormCategory,
+} from "@/features/seller/types";
 
 type SellerProductFormProps = {
   mode: "create" | "edit";
   product?: SellerProduct | null;
+  categories: SellerProductFormCategory[];
   error?: string | null;
   action: (formData: FormData) => Promise<void>;
 };
@@ -34,9 +39,16 @@ function SubmitButton({ mode }: { mode: "create" | "edit" }) {
 export function SellerProductForm({
   mode,
   product,
+  categories,
   error,
   action,
 }: SellerProductFormProps) {
+  const hasActiveCategories = categories.length > 0;
+  const selectedCategoryMissing =
+    Boolean(product?.categoryId) &&
+    !categories.some((category) => category.id === product?.categoryId);
+  const galleryDefaults = product?.galleryImages.map((image) => image.url).join("\n") ?? "";
+
   return (
     <div className="space-y-8">
       <div className="space-y-3">
@@ -48,8 +60,8 @@ export function SellerProductForm({
         </h1>
         <p className="text-ink-muted max-w-3xl text-sm leading-7">
           {mode === "create"
-            ? "Fill in the details below. You can save as draft or publish immediately."
-            : "Update your product details. Price changes only affect future purchases."}
+            ? "Fill in the details below to launch a new listing. You can save as draft or publish right away."
+            : "Update your listing details. Price changes only affect future purchases."}
         </p>
       </div>
 
@@ -141,9 +153,14 @@ export function SellerProductForm({
 
         <div className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
           <div className="space-y-5">
-            <h2 className="text-foreground text-xl font-semibold">
-              Pricing and stock
-            </h2>
+            <div className="space-y-2">
+              <h2 className="text-foreground text-xl font-semibold">
+                Pricing and stock
+              </h2>
+              <p className="text-ink-muted text-sm leading-7">
+                Set the price customers will see and the stock rules that control whether an item can keep selling.
+              </p>
+            </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -204,22 +221,30 @@ export function SellerProductForm({
                   className="border-border bg-panel-muted text-foreground block w-full rounded-xl border px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
                   placeholder="100"
                 />
+                <p className="text-ink-muted text-xs">
+                  Use a numeric stock count for limited inventory. Leave unlimited stock on for made-to-order or always-available items.
+                </p>
               </div>
 
-              <div className="flex items-end gap-3 pb-1">
-                <input
-                  type="checkbox"
-                  id="isUnlimitedStock"
-                  name="isUnlimitedStock"
-                  defaultChecked={product?.isUnlimitedStock ?? true}
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-                <label
-                  htmlFor="isUnlimitedStock"
-                  className="text-foreground text-sm font-medium"
-                >
-                  Unlimited stock
-                </label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 rounded-xl border border-border bg-panel-muted px-4 py-3">
+                  <input
+                    type="checkbox"
+                    id="isUnlimitedStock"
+                    name="isUnlimitedStock"
+                    defaultChecked={product?.isUnlimitedStock ?? true}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <label
+                    htmlFor="isUnlimitedStock"
+                    className="text-foreground text-sm font-medium"
+                  >
+                    Unlimited stock
+                  </label>
+                </div>
+                <p className="text-ink-muted text-xs">
+                  Turn this on if you do not want stock levels to limit purchases.
+                </p>
               </div>
             </div>
           </div>
@@ -227,9 +252,14 @@ export function SellerProductForm({
 
         <div className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
           <div className="space-y-5">
-            <h2 className="text-foreground text-xl font-semibold">
-              Visibility
-            </h2>
+            <div className="space-y-2">
+              <h2 className="text-foreground text-xl font-semibold">
+                Merchandising
+              </h2>
+              <p className="text-ink-muted text-sm leading-7">
+                Place the product in the right category and add images shoppers can trust before you publish it.
+              </p>
+            </div>
 
             <div className="space-y-2">
               <label
@@ -252,9 +282,46 @@ export function SellerProductForm({
                 </option>
               </select>
               <p className="text-ink-muted text-xs">
-                Draft products are only visible in your seller dashboard. Active
-                products appear in the public catalog.
+                Draft products stay private to your store tools. Active products appear in the storefront for customers.
               </p>
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="categoryId"
+                className="text-foreground text-sm font-medium"
+              >
+                Category
+              </label>
+              <select
+                id="categoryId"
+                name="categoryId"
+                defaultValue={product?.categoryId ?? ""}
+                className="border-border bg-panel-muted text-foreground block w-full rounded-xl border px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+              >
+                <option value="">
+                  {hasActiveCategories ? "Choose a category" : "No active categories available"}
+                </option>
+                {selectedCategoryMissing ? (
+                  <option value={product?.categoryId ?? ""}>
+                    {product?.categoryName ?? "Current category"} (inactive)
+                  </option>
+                ) : null}
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              {hasActiveCategories ? (
+                <p className="text-ink-muted text-xs">
+                  Categories come from the active marketplace category list. Active products should always be filed into the right category.
+                </p>
+              ) : (
+                <p className="text-ink-muted text-xs">
+                  No active categories are available right now. You can still save a draft, then publish after a marketplace admin enables categories.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -262,7 +329,7 @@ export function SellerProductForm({
                 htmlFor="thumbnailUrl"
                 className="text-foreground text-sm font-medium"
               >
-                Thumbnail URL
+                Thumbnail image URL
               </label>
               <input
                 type="url"
@@ -276,22 +343,21 @@ export function SellerProductForm({
 
             <div className="space-y-2">
               <label
-                htmlFor="categoryId"
+                htmlFor="galleryImageUrls"
                 className="text-foreground text-sm font-medium"
               >
-                Category ID
+                Gallery image URLs
               </label>
-              <input
-                type="text"
-                id="categoryId"
-                name="categoryId"
-                defaultValue={product?.categoryId ?? ""}
+              <textarea
+                id="galleryImageUrls"
+                name="galleryImageUrls"
+                rows={5}
+                defaultValue={galleryDefaults}
                 className="border-border bg-panel-muted text-foreground block w-full rounded-xl border px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
-                placeholder="Category UUID (optional)"
+                placeholder={"https://example.com/image-1.jpg\nhttps://example.com/image-2.jpg"}
               />
               <p className="text-ink-muted text-xs">
-                Enter a valid category ID if applicable. Leave blank for
-                uncategorized.
+                Add one image URL per line. Use up to 6 gallery images to show alternate views or product details.
               </p>
             </div>
           </div>
@@ -299,12 +365,12 @@ export function SellerProductForm({
 
         <div className="flex flex-wrap items-center gap-3">
           <SubmitButton mode={mode} />
-          <a
+          <Link
             href="/seller/products"
             className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium"
           >
             Cancel
-          </a>
+          </Link>
         </div>
       </form>
     </div>

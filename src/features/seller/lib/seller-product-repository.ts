@@ -4,6 +4,17 @@ import { hasSupabaseServiceRoleEnv } from "@/lib/config/env";
 import type { Database, Json } from "@/types/database";
 import type { SellerProduct, SellerProductFormData } from "@/features/seller/types";
 
+type CategoryRow = {
+  name?: string | null;
+  slug?: string | null;
+};
+
+type ProductImageRow = {
+  image_url?: string | null;
+  alt_text?: string | null;
+  sort_order?: number | null;
+};
+
 type ProductRow = {
   id?: string | null;
   seller_id?: string | null;
@@ -22,6 +33,8 @@ type ProductRow = {
   published_at?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  categories?: CategoryRow | CategoryRow[] | null;
+  product_images?: ProductImageRow[] | null;
 };
 
 const getSellerClient = async () =>
@@ -36,7 +49,17 @@ export class SellerProductError extends Error {
   }
 }
 
+const normalizeJoinedRecord = <T>(value: T | T[] | null | undefined) => {
+  if (!value) {
+    return null;
+  }
+
+  return Array.isArray(value) ? (value[0] ?? null) : value;
+};
+
 const mapProductRow = (row: ProductRow): SellerProduct | null => {
+  const category = normalizeJoinedRecord(row.categories);
+
   if (
     !row.id ||
     !row.seller_id ||
@@ -55,6 +78,8 @@ const mapProductRow = (row: ProductRow): SellerProduct | null => {
     id: row.id,
     sellerId: row.seller_id,
     categoryId: row.category_id ?? null,
+    categoryName: category?.name ?? null,
+    categorySlug: category?.slug ?? null,
     title: row.title,
     slug: row.slug,
     description: row.description ?? null,
@@ -65,12 +90,61 @@ const mapProductRow = (row: ProductRow): SellerProduct | null => {
     isUnlimitedStock: row.is_unlimited_stock ?? false,
     status: row.status as SellerProduct["status"],
     thumbnailUrl: row.thumbnail_url ?? null,
+    galleryImages: (row.product_images ?? [])
+      .slice()
+      .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
+      .flatMap((image) => {
+        if (!image.image_url) {
+          return [];
+        }
+
+        return [
+          {
+            url: image.image_url,
+            alt: image.alt_text ?? "Product image",
+            sortOrder: image.sort_order ?? 0,
+          },
+        ];
+      }),
     metadata: row.metadata ?? {},
     publishedAt: row.published_at ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 };
+
+async function syncProductImages(
+  client: Awaited<ReturnType<typeof getSellerClient>>,
+  productId: string,
+  title: string,
+  imageUrls: string[],
+) {
+  const { error: deleteError } = await client
+    .from("product_images")
+    .delete()
+    .eq("product_id", productId);
+
+  if (deleteError) {
+    throw new SellerProductError("Unable to update product images.");
+  }
+
+  if (imageUrls.length === 0) {
+    return;
+  }
+
+  const { error: insertError } = await client.from("product_images").insert(
+    imageUrls.map((url, index) => ({
+      product_id: productId,
+      image_url: url,
+      alt_text: `${title} image ${index + 1}`,
+      sort_order: index,
+    })),
+  );
+
+  if (insertError) {
+    throw new SellerProductError("Unable to save product images.");
+  }
+}
 
 /**
  * List all products owned by the seller (any status).
@@ -82,7 +156,15 @@ export async function getSellerProducts(
 
   const { data, error } = await client
     .from("products")
-    .select("*")
+    .select(
+      `
+        *,
+        categories (
+          name,
+          slug
+        )
+      `,
+    )
     .eq("seller_id", sellerProfileId)
     .order("created_at", { ascending: false });
 
@@ -106,7 +188,20 @@ export async function getSellerProductById(
 
   const { data, error } = await client
     .from("products")
-    .select("*")
+    .select(
+      `
+        *,
+        categories (
+          name,
+          slug
+        ),
+        product_images (
+          image_url,
+          alt_text,
+          sort_order
+        )
+      `,
+    )
     .eq("id", productId)
     .eq("seller_id", sellerProfileId)
     .maybeSingle();
@@ -127,6 +222,7 @@ export async function createSellerProduct(
   formData: SellerProductFormData,
 ): Promise<SellerProduct> {
   const client = await getSellerClient();
+  type InsertedProductIdRow = { id: string };
 
   const { data, error } = await client
     .from("products")
@@ -145,7 +241,7 @@ export async function createSellerProduct(
       thumbnail_url: formData.thumbnailUrl,
       published_at: formData.status === "active" ? new Date().toISOString() : null,
     })
-    .select("*")
+    .select("id")
     .single();
 
   if (error) {
@@ -155,13 +251,20 @@ export async function createSellerProduct(
     throw new SellerProductError("Unable to create product.");
   }
 
-  const mapped = mapProductRow(data as ProductRow);
+  const inserted = data as InsertedProductIdRow | null;
 
-  if (!mapped) {
+  if (!inserted?.id) {
+    throw new SellerProductError("Created product id could not be read.");
+  }
+
+  await syncProductImages(client, inserted.id, formData.title, formData.galleryImageUrls);
+
+  const created = await getSellerProductById(sellerProfileId, inserted.id);
+  if (!created) {
     throw new SellerProductError("Created product could not be read.");
   }
 
-  return mapped;
+  return created;
 }
 
 /**
@@ -174,6 +277,17 @@ export async function updateSellerProduct(
   formData: SellerProductFormData,
 ): Promise<SellerProduct> {
   const client = await getSellerClient();
+  const currentProduct = await getSellerProductById(sellerProfileId, productId);
+
+  if (!currentProduct) {
+    throw new SellerProductError("Product not found.");
+  }
+
+  if (currentProduct.status === "suspended") {
+    throw new SellerProductError(
+      "Suspended products can only be reactivated by an admin.",
+    );
+  }
 
   type ProductUpdate = Database["public"]["Tables"]["products"]["Update"];
 
@@ -189,20 +303,17 @@ export async function updateSellerProduct(
     status: formData.status,
     category_id: formData.categoryId,
     thumbnail_url: formData.thumbnailUrl,
+    published_at:
+      formData.status === "active"
+        ? currentProduct.publishedAt ?? new Date().toISOString()
+        : null,
   };
 
-  // Set published_at when transitioning to active
-  if (formData.status === "active") {
-    updateData.published_at = new Date().toISOString();
-  }
-
-  const { data, error } = await client
+  const { error } = await client
     .from("products")
     .update(updateData)
     .eq("id", productId)
-    .eq("seller_id", sellerProfileId)
-    .select("*")
-    .single();
+    .eq("seller_id", sellerProfileId);
 
   if (error) {
     if (error.code === "23505") {
@@ -211,13 +322,14 @@ export async function updateSellerProduct(
     throw new SellerProductError("Unable to update product.");
   }
 
-  const mapped = mapProductRow(data as ProductRow);
+  await syncProductImages(client, productId, formData.title, formData.galleryImageUrls);
 
-  if (!mapped) {
+  const updated = await getSellerProductById(sellerProfileId, productId);
+  if (!updated) {
     throw new SellerProductError("Updated product could not be read.");
   }
 
-  return mapped;
+  return updated;
 }
 
 /**
@@ -228,10 +340,24 @@ export async function archiveSellerProduct(
   productId: string,
 ): Promise<void> {
   const client = await getSellerClient();
+  const currentProduct = await getSellerProductById(sellerProfileId, productId);
+
+  if (!currentProduct) {
+    throw new SellerProductError("Product not found.");
+  }
+
+  if (currentProduct.status === "suspended") {
+    throw new SellerProductError(
+      "Suspended products cannot be archived from the seller dashboard.",
+    );
+  }
 
   const { error } = await client
     .from("products")
-    .update({ status: "archived" } as Database["public"]["Tables"]["products"]["Update"])
+    .update({
+      status: "archived",
+      published_at: null,
+    } as Database["public"]["Tables"]["products"]["Update"])
     .eq("id", productId)
     .eq("seller_id", sellerProfileId);
 
