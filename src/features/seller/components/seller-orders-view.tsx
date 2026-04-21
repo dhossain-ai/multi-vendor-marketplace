@@ -1,33 +1,40 @@
+import Link from "next/link";
 import { formatPrice } from "@/features/catalog/lib/format-price";
-import type { SellerOrderItem } from "@/features/seller/types";
+import {
+  getOperationalStageTone,
+  getOrderOperationalStageLabel,
+} from "@/features/orders/lib/order-progress";
+import type { SellerOrderSummary } from "@/features/seller/types";
 
 type SellerOrdersViewProps = {
-  orders: SellerOrderItem[];
+  orders: SellerOrderSummary[];
 };
 
-const getStatusColor = (status: string): string => {
-  switch (status) {
-    case "paid":
-    case "confirmed":
-    case "completed":
+const getStatusColor = (tone: ReturnType<typeof getOperationalStageTone>): string => {
+  switch (tone) {
+    case "success":
       return "bg-emerald-100 text-emerald-800";
-    case "processing":
+    case "info":
       return "bg-blue-100 text-blue-800";
-    case "unpaid":
-    case "pending":
+    case "warning":
       return "bg-amber-100 text-amber-800";
-    case "failed":
-    case "cancelled":
+    case "danger":
       return "bg-red-100 text-red-800";
     default:
       return "bg-gray-100 text-gray-700";
   }
 };
 
-function StatusBadge({ label }: { label: string }) {
+function StatusBadge({
+  label,
+  tone,
+}: {
+  label: string;
+  tone: ReturnType<typeof getOperationalStageTone>;
+}) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(label)}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(tone)}`}
     >
       {label.replace(/_/g, " ")}
     </span>
@@ -39,79 +46,90 @@ export function SellerOrdersView({ orders }: SellerOrdersViewProps) {
     <div className="space-y-8">
       <div className="space-y-3">
         <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-          Your orders
+          Store orders
         </p>
         <h1 className="text-foreground text-4xl font-semibold tracking-tight">
-          Seller order history
+          Fulfillment
         </h1>
         <p className="text-ink-muted max-w-3xl text-sm leading-7">
-          These are line items from customer orders that contain your products.
-          You only see items belonging to your store — other sellers&apos; items
-          are not shown.
+          Review the orders that include your products, move paid orders through
+          fulfillment, and keep shipment updates customer-friendly.
         </p>
       </div>
 
       {orders.length === 0 ? (
         <div className="border-border bg-panel rounded-[2rem] border p-10 text-center shadow-[var(--shadow-panel)]">
           <h2 className="text-foreground text-3xl font-semibold tracking-tight">
-            No orders yet
+            No sales yet
           </h2>
           <p className="text-ink-muted mx-auto mt-4 max-w-2xl text-sm leading-7">
-            Orders for your products will appear here once customers purchase
-            from your store.
+            Paid orders for your products will appear here once customers begin
+            purchasing from your store.
           </p>
         </div>
       ) : (
         <div className="space-y-3">
-          {orders.map((item) => (
-            <div
-              key={item.id}
-              className="border-border bg-panel rounded-[1.75rem] border p-5 shadow-[var(--shadow-panel)]"
+          {orders.map((order) => (
+            <Link
+              key={order.id}
+              href={`/seller/orders/${order.id}`}
+              className="border-border bg-panel block rounded-[1.75rem] border p-5 shadow-[var(--shadow-panel)] transition hover:border-foreground/25"
             >
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-brand text-xs font-semibold tracking-[0.12em] uppercase">
-                      {item.orderNumber}
+                      {order.orderNumber}
                     </span>
-                    <StatusBadge label={item.orderStatus} />
-                    <StatusBadge label={item.paymentStatus} />
+                    <StatusBadge
+                      label={getOrderOperationalStageLabel(order.operationalStage)}
+                      tone={getOperationalStageTone(order.operationalStage)}
+                    />
+                    <StatusBadge
+                      label={order.paymentStatus.replace(/_/g, " ")}
+                      tone={
+                        order.paymentStatus === "paid"
+                          ? "success"
+                          : order.paymentStatus === "processing"
+                            ? "info"
+                            : order.paymentStatus === "failed"
+                              ? "danger"
+                              : "warning"
+                      }
+                    />
                   </div>
                   <h2 className="text-foreground text-xl font-semibold tracking-tight">
-                    {item.productTitle}
+                    {order.itemCount} item{order.itemCount === 1 ? "" : "s"} from your store
                   </h2>
-                  {item.productSlug ? (
-                    <p className="text-ink-muted text-xs">
-                      Snapshot slug: {item.productSlug}
-                    </p>
-                  ) : null}
+                  <p className="text-ink-muted text-xs">
+                    {order.totalQuantity} unit{order.totalQuantity === 1 ? "" : "s"} across this order
+                  </p>
                 </div>
 
                 <div className="text-right">
-                  <p className="text-ink-muted text-sm">Line total</p>
+                  <p className="text-ink-muted text-sm">Store total</p>
                   <p className="text-foreground mt-1 text-xl font-semibold">
-                    {formatPrice(item.lineTotalAmount, item.currencyCode)}
+                    {formatPrice(order.grossSalesAmount, order.currencyCode)}
                   </p>
-                  <p className="text-ink-muted mt-1 text-xs">
-                    {formatPrice(item.unitPriceAmount, item.currencyCode)} ×{" "}
-                    {item.quantity}
-                  </p>
+                  <p className="text-ink-muted mt-1 text-xs">Open order details</p>
                 </div>
               </div>
 
               <div className="text-ink-muted mt-3 flex flex-wrap items-center gap-4 text-xs">
-                <span>Qty: {item.quantity}</span>
-                {item.orderPlacedAt ? (
+                <span>
+                  Stage: {getOrderOperationalStageLabel(order.operationalStage)}
+                </span>
+                {order.placedAt ? (
                   <span>
-                    Placed: {new Date(item.orderPlacedAt).toLocaleString()}
+                    Placed: {new Date(order.placedAt).toLocaleString()}
                   </span>
                 ) : (
                   <span>
-                    Created: {new Date(item.createdAt).toLocaleString()}
+                    Created: {new Date(order.createdAt).toLocaleString()}
                   </span>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
