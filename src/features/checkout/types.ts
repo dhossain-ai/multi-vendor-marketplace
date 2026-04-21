@@ -1,3 +1,5 @@
+import type { AppliedCoupon } from "@/features/checkout/lib/coupon-service";
+
 export type CheckoutItemStatus = "ready" | "invalid";
 
 export type CheckoutSellerSummary = {
@@ -21,6 +23,8 @@ export type CheckoutItem = {
   quantity: number;
   unitPriceAmount: number;
   lineSubtotalAmount: number;
+  discountAmount: number;
+  lineTotalAmount: number;
   currencyCode: string;
   seller: CheckoutSellerSummary;
   category: CheckoutCategorySummary | null;
@@ -50,6 +54,7 @@ export type CheckoutValidationResult = {
   cartId: string | null;
   items: CheckoutItem[];
   totals: CheckoutTotals;
+  appliedCoupon: AppliedCoupon | null;
   errors: string[];
   canSubmit: boolean;
 };

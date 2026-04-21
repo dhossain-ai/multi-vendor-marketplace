@@ -2,6 +2,10 @@ import { randomUUID } from "node:crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabaseServiceRoleEnv } from "@/lib/config/env";
+import {
+  evaluateCoupon,
+  type AppliedCoupon,
+} from "@/features/checkout/lib/coupon-service";
 import type { Json } from "@/types/database";
 import type {
   CheckoutItem,
@@ -13,6 +17,7 @@ import type {
 type CartRow = {
   id?: string | null;
   user_id?: string | null;
+  coupon_id?: string | null;
 };
 
 type CheckoutCategoryRow = {
@@ -112,6 +117,8 @@ const getEmptyTotals = (): CheckoutTotals => ({
   totalAmount: 0,
 });
 
+const roundCurrency = (value: number) => Math.round(value * 100) / 100;
+
 const getAvailabilityLabel = (input: {
   productStatus?: string | null;
   sellerStatus?: string | null;
@@ -210,6 +217,8 @@ const mapCheckoutItem = (row: CheckoutCartItemRow): CheckoutItem | null => {
     quantity: row.quantity,
     unitPriceAmount: Number(product.price_amount),
     lineSubtotalAmount: Number(product.price_amount) * row.quantity,
+    discountAmount: 0,
+    lineTotalAmount: Number(product.price_amount) * row.quantity,
     currencyCode: product.currency_code,
     seller: {
       id: seller.id,
@@ -236,20 +245,87 @@ const mapCheckoutItem = (row: CheckoutCartItemRow): CheckoutItem | null => {
   };
 };
 
-const buildTotals = (items: CheckoutItem[]): CheckoutTotals => {
+const buildTotals = (
+  items: CheckoutItem[],
+  appliedCoupon: AppliedCoupon | null,
+): CheckoutTotals => {
   const subtotalAmount = items.reduce(
     (total, item) => total + item.lineSubtotalAmount,
     0,
   );
+  const discountAmount = appliedCoupon?.isValid ? appliedCoupon.discountAmount : 0;
 
   return {
     itemCount: items.reduce((count, item) => count + item.quantity, 0),
     currencyCode: items[0]?.currencyCode ?? "USD",
     subtotalAmount,
-    discountAmount: 0,
+    discountAmount,
     taxAmount: 0,
-    totalAmount: subtotalAmount,
+    totalAmount: subtotalAmount - discountAmount,
   };
+};
+
+const applyCouponDiscountsToItems = (
+  items: CheckoutItem[],
+  appliedCoupon: AppliedCoupon | null,
+) => {
+  if (!appliedCoupon?.isValid || appliedCoupon.discountAmount <= 0) {
+    return items.map((item) => ({
+      ...item,
+      discountAmount: 0,
+      lineTotalAmount: item.lineSubtotalAmount,
+    }));
+  }
+
+  const eligibleItems = items.filter(
+    (item) =>
+      !appliedCoupon.sellerId || item.sellerId === appliedCoupon.sellerId,
+  );
+
+  if (eligibleItems.length === 0 || appliedCoupon.applicableSubtotalAmount <= 0) {
+    return items.map((item) => ({
+      ...item,
+      discountAmount: 0,
+      lineTotalAmount: item.lineSubtotalAmount,
+    }));
+  }
+
+  const eligibleItemIds = new Set(eligibleItems.map((item) => item.cartItemId));
+  let remainingDiscount = appliedCoupon.discountAmount;
+
+  return items.map((item, index, source) => {
+    if (!eligibleItemIds.has(item.cartItemId)) {
+      return {
+        ...item,
+        discountAmount: 0,
+        lineTotalAmount: item.lineSubtotalAmount,
+      };
+    }
+
+    const remainingEligible = source.filter(
+      (candidate, candidateIndex) =>
+        candidateIndex >= index && eligibleItemIds.has(candidate.cartItemId),
+    );
+
+    const discountAmount =
+      remainingEligible.length === 1
+        ? roundCurrency(Math.max(remainingDiscount, 0))
+        : roundCurrency(
+            Math.min(
+              item.lineSubtotalAmount,
+              (item.lineSubtotalAmount / appliedCoupon.applicableSubtotalAmount) *
+                appliedCoupon.discountAmount,
+            ),
+          );
+
+    remainingDiscount = roundCurrency(remainingDiscount - discountAmount);
+
+    return {
+      ...item,
+      discountAmount,
+      lineTotalAmount: roundCurrency(item.lineSubtotalAmount - discountAmount),
+    };
+  });
 };
 
 export class CheckoutOperationError extends Error {
@@ -263,7 +339,7 @@ async function findCartByUserId(userId: string) {
   const client = await getCheckoutClient();
   const { data, error } = await client
     .from("carts")
-    .select("id, user_id")
+    .select("id, user_id, coupon_id")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -329,6 +405,7 @@ export async function validateCheckout(userId: string): Promise<CheckoutValidati
       cartId: null,
       items: [],
       totals: getEmptyTotals(),
+      appliedCoupon: null,
       errors: ["Your cart is empty."],
       canSubmit: false,
     };
@@ -342,30 +419,56 @@ export async function validateCheckout(userId: string): Promise<CheckoutValidati
       cartId: cart.id,
       items: [],
       totals: getEmptyTotals(),
+      appliedCoupon: null,
       errors: ["Your cart is empty."],
       canSubmit: false,
     };
   }
 
-  const items = rows
+  const mappedItems = rows
     .map(mapCheckoutItem)
     .filter((item): item is CheckoutItem => Boolean(item));
-  const totals = buildTotals(items);
   const errors: string[] = [];
 
-  if (items.length !== rows.length) {
+  if (mappedItems.length !== rows.length) {
     errors.push("One or more cart items could not be resolved against the current product catalog.");
   }
 
-  const distinctCurrencies = [...new Set(items.map((item) => item.currencyCode))];
+  const distinctCurrencies = [...new Set(mappedItems.map((item) => item.currencyCode))];
 
   if (distinctCurrencies.length > 1) {
     errors.push("Checkout currently supports a single currency per order.");
   }
 
-  items.forEach((item) => {
+  mappedItems.forEach((item) => {
     errors.push(...item.issues);
   });
+
+  const appliedCoupon = cart.coupon_id
+    ? await evaluateCoupon({
+        userId,
+        couponId: cart.coupon_id,
+        items: mappedItems.map((item) => ({
+          cartItemId: item.cartItemId,
+          sellerId: item.sellerId,
+          lineSubtotalAmount: item.lineSubtotalAmount,
+        })),
+        subtotalAmount: mappedItems.reduce(
+          (total, item) => total + item.lineSubtotalAmount,
+          0,
+        ),
+      }).catch(() => null)
+    : null;
+
+  if (cart.coupon_id && (!appliedCoupon || !appliedCoupon.isValid)) {
+    errors.push(
+      appliedCoupon?.message ??
+        "The saved coupon is no longer valid for the current cart.",
+    );
+  }
+
+  const items = applyCouponDiscountsToItems(mappedItems, appliedCoupon);
+  const totals = buildTotals(items, appliedCoupon);
 
   const uniqueErrors = [...new Set(errors)];
 
@@ -379,6 +482,7 @@ export async function validateCheckout(userId: string): Promise<CheckoutValidati
     cartId: cart.id,
     items,
     totals,
+    appliedCoupon,
     errors: uniqueErrors,
     canSubmit: items.length > 0 && uniqueErrors.length === 0,
   };
@@ -423,8 +527,8 @@ const buildOrderItemInserts = (
     unit_price_amount: item.unitPriceAmount,
     quantity: item.quantity,
     line_subtotal_amount: item.lineSubtotalAmount,
-    discount_amount: 0,
-    line_total_amount: item.lineSubtotalAmount,
+    discount_amount: item.discountAmount,
+    line_total_amount: item.lineTotalAmount,
     currency_code: item.currencyCode,
     product_metadata_snapshot: item.snapshotMetadata,
   }));
@@ -468,7 +572,7 @@ export async function createPendingOrder(userId: string): Promise<PendingOrderRe
     discount_amount: checkout.totals.discountAmount,
     tax_amount: checkout.totals.taxAmount,
     total_amount: checkout.totals.totalAmount,
-    coupon_id: null,
+    coupon_id: checkout.appliedCoupon?.isValid ? checkout.appliedCoupon.id : null,
     shipping_address_snapshot: null,
     billing_address_snapshot: null,
     placed_at: new Date().toISOString(),
@@ -490,6 +594,13 @@ export async function createPendingOrder(userId: string): Promise<PendingOrderRe
     }
 
     await clearCartAfterOrder(checkout.cartId);
+
+    if (checkout.appliedCoupon?.isValid) {
+      await client
+        .from("carts")
+        .update({ coupon_id: null })
+        .eq("id", checkout.cartId);
+    }
   } catch (error) {
     await rollbackPendingOrder(order.id);
 
