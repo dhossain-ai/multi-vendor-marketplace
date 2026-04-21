@@ -2,6 +2,7 @@ import type { Json } from "@/types/database";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabaseServiceRoleEnv } from "@/lib/config/env";
+import { deriveOperationalStage } from "@/features/orders/lib/order-progress";
 import type {
   CustomerOrderDetail,
   CustomerOrderItem,
@@ -18,7 +19,13 @@ type OrderSummaryRow = {
   total_amount?: number | string | null;
   placed_at?: string | null;
   created_at?: string | null;
-  order_items?: Array<{ id?: string | null; quantity?: number | null }> | null;
+  order_items?:
+    | Array<{
+        id?: string | null;
+        quantity?: number | null;
+        fulfillment_status?: CustomerOrderItem["fulfillmentStatus"] | null;
+      }>
+    | null;
 };
 
 type OrderItemRow = {
@@ -33,6 +40,11 @@ type OrderItemRow = {
   discount_amount?: number | string | null;
   line_total_amount?: number | string | null;
   currency_code?: string | null;
+  fulfillment_status?: CustomerOrderItem["fulfillmentStatus"] | null;
+  tracking_code?: string | null;
+  shipment_note?: string | null;
+  shipped_at?: string | null;
+  delivered_at?: string | null;
   product_metadata_snapshot?: Json | null;
   created_at?: string | null;
 };
@@ -75,6 +87,14 @@ const mapOrderSummary = (row: OrderSummaryRow): CustomerOrderSummary | null => {
     orderNumber: row.order_number,
     orderStatus: row.order_status,
     paymentStatus: row.payment_status,
+    operationalStage: deriveOperationalStage({
+      orderStatus: row.order_status,
+      paymentStatus: row.payment_status,
+      fulfillmentStatuses: (row.order_items ?? [])
+        .flatMap((item) =>
+          item.fulfillment_status ? [item.fulfillment_status] : [],
+        ),
+    }),
     itemCount: (row.order_items ?? []).reduce(
       (count, item) => count + (item.quantity ?? 0),
       0,
@@ -97,6 +117,7 @@ const mapOrderItem = (row: OrderItemRow): CustomerOrderItem | null => {
     row.discount_amount == null ||
     row.line_total_amount == null ||
     !row.currency_code ||
+    !row.fulfillment_status ||
     !row.created_at
   ) {
     return null;
@@ -121,6 +142,11 @@ const mapOrderItem = (row: OrderItemRow): CustomerOrderItem | null => {
     discountAmount: Number(row.discount_amount),
     lineTotalAmount: Number(row.line_total_amount),
     currencyCode: row.currency_code,
+    fulfillmentStatus: row.fulfillment_status,
+    trackingCode: row.tracking_code ?? null,
+    shipmentNote: row.shipment_note ?? null,
+    shippedAt: row.shipped_at ?? null,
+    deliveredAt: row.delivered_at ?? null,
     metadata,
     createdAt: row.created_at,
   };
@@ -151,6 +177,11 @@ const mapOrderDetail = (row: OrderDetailRow): CustomerOrderDetail | null => {
     orderNumber: row.order_number,
     orderStatus: row.order_status,
     paymentStatus: row.payment_status,
+    operationalStage: deriveOperationalStage({
+      orderStatus: row.order_status,
+      paymentStatus: row.payment_status,
+      fulfillmentStatuses: items.map((item) => item.fulfillmentStatus),
+    }),
     itemCount: items.reduce((count, item) => count + item.quantity, 0),
     currencyCode: row.currency_code,
     totalAmount: Number(row.total_amount),
@@ -180,6 +211,7 @@ export async function getCustomerOrders(userId: string) {
         order_items (
           id,
           quantity
+          ,fulfillment_status
         )
       `,
     )
@@ -224,6 +256,11 @@ export async function getCustomerOrderById(userId: string, orderId: string) {
           discount_amount,
           line_total_amount,
           currency_code,
+          fulfillment_status,
+          tracking_code,
+          shipment_note,
+          shipped_at,
+          delivered_at,
           product_metadata_snapshot,
           created_at
         )

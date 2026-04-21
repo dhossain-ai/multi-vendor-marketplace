@@ -1,4 +1,5 @@
 import type { Json } from "@/types/database";
+import type { OrderOperationalStage } from "@/features/orders/lib/order-progress";
 
 export type OrderStatus =
   | "pending"
@@ -17,6 +18,13 @@ export type PaymentStatus =
   | "refunded"
   | "partially_refunded";
 
+export type FulfillmentStatus =
+  | "unfulfilled"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
+
 export type OrderItemSnapshotMetadata = {
   thumbnailUrl?: string | null;
   sellerName?: string | null;
@@ -30,6 +38,7 @@ export type CustomerOrderSummary = {
   orderNumber: string;
   orderStatus: OrderStatus;
   paymentStatus: PaymentStatus;
+  operationalStage: OrderOperationalStage;
   itemCount: number;
   currencyCode: string;
   totalAmount: number;
@@ -49,6 +58,11 @@ export type CustomerOrderItem = {
   discountAmount: number;
   lineTotalAmount: number;
   currencyCode: string;
+  fulfillmentStatus: FulfillmentStatus;
+  trackingCode: string | null;
+  shipmentNote: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
   metadata: OrderItemSnapshotMetadata;
   createdAt: string;
 };
