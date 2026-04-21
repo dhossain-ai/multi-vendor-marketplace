@@ -4,6 +4,15 @@ import { AuthMessage } from "@/features/auth/components/auth-message";
 import { formatPrice } from "@/features/catalog/lib/format-price";
 import { CartSubmitButton } from "@/features/cart/components/cart-submit-button";
 import { startPaymentAction } from "@/features/checkout/lib/checkout-actions";
+import {
+  getCustomerFulfillmentStatusLabel,
+  getCustomerOperationalStageLabel,
+  getCustomerPaymentStatusLabel,
+} from "@/features/orders/lib/order-status-copy";
+import {
+  getOperationalStageTone,
+  getOrderOperationalStageDescription,
+} from "@/features/orders/lib/order-progress";
 import type { CustomerOrderDetail } from "@/features/orders/types";
 
 type OrderDetailViewProps = {
@@ -12,36 +21,33 @@ type OrderDetailViewProps = {
   error?: string | null;
 };
 
-const getStatusColor = (
-  status: string,
-): string => {
-  switch (status) {
-    case "paid":
-    case "confirmed":
-    case "completed":
+const getStatusColor = (tone: ReturnType<typeof getOperationalStageTone>): string => {
+  switch (tone) {
+    case "success":
       return "bg-emerald-100 text-emerald-800";
-    case "processing":
+    case "info":
       return "bg-blue-100 text-blue-800";
-    case "unpaid":
-    case "pending":
+    case "warning":
       return "bg-amber-100 text-amber-800";
-    case "failed":
-    case "cancelled":
+    case "danger":
       return "bg-red-100 text-red-800";
-    case "refunded":
-    case "partially_refunded":
-      return "bg-gray-100 text-gray-800";
     default:
       return "bg-gray-100 text-gray-700";
   }
 };
 
-function StatusBadge({ label }: { label: string }) {
+function StatusBadge({
+  label,
+  tone,
+}: {
+  label: string;
+  tone: ReturnType<typeof getOperationalStageTone>;
+}) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(label)}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(tone)}`}
     >
-      {label.replace(/_/g, " ")}
+      {label}
     </span>
   );
 }
@@ -63,11 +69,11 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
               {order.orderNumber}
             </p>
             <h1 className="text-foreground text-4xl font-semibold tracking-tight">
-              Order detail
+              Order details
             </h1>
             <p className="text-ink-muted max-w-3xl text-sm leading-7">
-              This page renders from order snapshots, so it remains
-              historically stable even if product or seller data changes later.
+              Review your items, totals, and payment progress. Saved order details stay
+              accurate even if a product changes later.
             </p>
           </div>
           {error ? <AuthMessage tone="error" message={error} /> : null}
@@ -98,9 +104,22 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
                     <h2 className="text-foreground text-2xl font-semibold tracking-tight">
                       {item.productTitle}
                     </h2>
-                    {item.productSlug ? (
-                      <p className="text-ink-muted text-sm">Snapshot slug: {item.productSlug}</p>
+                    {item.metadata.sellerName ? (
+                      <p className="text-ink-muted text-sm">Sold by {item.metadata.sellerName}</p>
                     ) : null}
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                        item.fulfillmentStatus === "delivered"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : item.fulfillmentStatus === "shipped" || item.fulfillmentStatus === "processing"
+                            ? "bg-blue-100 text-blue-800"
+                            : item.fulfillmentStatus === "cancelled"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-amber-100 text-amber-800"
+                      }`}
+                    >
+                      {getCustomerFulfillmentStatusLabel(item.fulfillmentStatus)}
+                    </span>
                   </div>
 
                   <div className="text-right">
@@ -116,9 +135,20 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
 
                 <div className="text-ink-muted mt-4 flex flex-wrap items-center gap-4 text-sm">
                   <span>Quantity: {item.quantity}</span>
-                  <span>Seller id: {item.sellerId}</span>
                   <span>Created: {new Date(item.createdAt).toLocaleString()}</span>
+                  {item.shippedAt ? (
+                    <span>Shipped: {new Date(item.shippedAt).toLocaleString()}</span>
+                  ) : null}
+                  {item.deliveredAt ? (
+                    <span>Delivered: {new Date(item.deliveredAt).toLocaleString()}</span>
+                  ) : null}
+                  {item.trackingCode ? <span>Tracking: {item.trackingCode}</span> : null}
                 </div>
+                {item.shipmentNote ? (
+                  <p className="mt-3 rounded-[1.25rem] bg-panel-muted px-4 py-3 text-sm leading-6 text-ink-muted">
+                    {item.shipmentNote}
+                  </p>
+                ) : null}
               </article>
             ))}
           </section>
@@ -130,9 +160,26 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
                   Order status
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge label={order.orderStatus} />
-                  <StatusBadge label={order.paymentStatus} />
+                  <StatusBadge
+                    label={getCustomerOperationalStageLabel(order.operationalStage)}
+                    tone={getOperationalStageTone(order.operationalStage)}
+                  />
+                  <StatusBadge
+                    label={getCustomerPaymentStatusLabel(order.paymentStatus)}
+                    tone={
+                      order.paymentStatus === "paid"
+                        ? "success"
+                        : order.paymentStatus === "processing"
+                          ? "info"
+                          : order.paymentStatus === "failed"
+                            ? "danger"
+                            : "warning"
+                    }
+                  />
                 </div>
+                <p className="text-sm leading-6 text-ink-muted">
+                  {getOrderOperationalStageDescription(order.operationalStage)}
+                </p>
               </div>
 
               <div className="border-border space-y-3 border-y py-5 text-sm">
@@ -168,10 +215,11 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
 
               {order.paymentStatus === "paid" ? (
                 <div className="rounded-[1.5rem] bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-800">
-                  <p className="font-medium">Payment confirmed</p>
+                  <p className="font-medium">
+                    {getCustomerOperationalStageLabel(order.operationalStage)}
+                  </p>
                   <p className="mt-1">
-                    Your payment has been verified by the payment provider. This
-                    order is confirmed and being processed.
+                    {getOrderOperationalStageDescription(order.operationalStage)}
                   </p>
                 </div>
               ) : order.paymentStatus === "failed" ? (

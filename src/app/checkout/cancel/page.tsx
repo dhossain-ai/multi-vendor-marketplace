@@ -76,7 +76,7 @@ export default async function CheckoutCancelPage({
             href="/"
             className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium"
           >
-            Continue browsing
+            Continue shopping
           </Link>
         </div>
       </Container>

@@ -3,6 +3,10 @@ import { Container } from "@/components/ui/container";
 import { AuthMessage } from "@/features/auth/components/auth-message";
 import { formatPrice } from "@/features/catalog/lib/format-price";
 import { OrdersEmptyState } from "@/features/orders/components/orders-empty-state";
+import {
+  getCustomerOperationalStageLabel,
+  getCustomerPaymentStatusLabel,
+} from "@/features/orders/lib/order-status-copy";
 import type { CustomerOrderSummary } from "@/features/orders/types";
 
 type OrdersListViewProps = {
@@ -18,10 +22,10 @@ export function OrdersListView({ orders, notice }: OrdersListViewProps) {
           <Container className="space-y-4">
             <div>
               <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-                Customer orders
+                Your orders
               </p>
               <h1 className="text-foreground mt-2 text-4xl font-semibold tracking-tight">
-                Snapshot-backed order history
+                Order history
               </h1>
             </div>
             {notice ? <AuthMessage tone="success" message={notice} /> : null}
@@ -38,15 +42,14 @@ export function OrdersListView({ orders, notice }: OrdersListViewProps) {
         <div className="space-y-4">
           <div className="space-y-3">
             <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-              Customer orders
+              Your orders
             </p>
             <h1 className="text-foreground text-4xl font-semibold tracking-tight">
-              Review pending and future orders
+              Track recent purchases
             </h1>
             <p className="text-ink-muted max-w-3xl text-sm leading-7">
-              This order list is intentionally driven by order snapshots rather than
-              live catalog records, so future product edits will not rewrite what
-              the customer purchased.
+              Follow payment progress, open any order for details, and keep a clear
+              record of what you&apos;ve purchased.
             </p>
           </div>
           {notice ? <AuthMessage tone="success" message={notice} /> : null}
@@ -70,16 +73,16 @@ export function OrdersListView({ orders, notice }: OrdersListViewProps) {
                   <div className="flex flex-wrap items-center gap-2 text-sm">
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        order.orderStatus === "confirmed" || order.orderStatus === "completed"
+                        order.operationalStage === "delivered" || order.operationalStage === "confirmed"
                           ? "bg-emerald-100 text-emerald-800"
-                          : order.orderStatus === "cancelled"
+                          : order.operationalStage === "cancelled" || order.operationalStage === "payment_failed"
                             ? "bg-red-100 text-red-800"
-                            : order.orderStatus === "processing"
+                            : order.operationalStage === "processing" || order.operationalStage === "shipped" || order.operationalStage === "payment_processing"
                               ? "bg-blue-100 text-blue-800"
                               : "bg-amber-100 text-amber-800"
                       }`}
                     >
-                      {order.orderStatus.replace(/_/g, " ")}
+                      {getCustomerOperationalStageLabel(order.operationalStage)}
                     </span>
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
@@ -92,7 +95,7 @@ export function OrdersListView({ orders, notice }: OrdersListViewProps) {
                               : "bg-amber-100 text-amber-800"
                       }`}
                     >
-                      {order.paymentStatus.replace(/_/g, " ")}
+                      {getCustomerPaymentStatusLabel(order.paymentStatus)}
                     </span>
                     <span className="text-ink-muted">
                       {new Date(order.placedAt ?? order.createdAt).toLocaleString()}

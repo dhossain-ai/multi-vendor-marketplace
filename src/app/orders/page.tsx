@@ -10,7 +10,7 @@ type OrdersPageProps = {
 
 export const metadata: Metadata = {
   title: "Orders",
-  description: "Review snapshot-backed customer orders.",
+  description: "Track your recent marketplace orders.",
 };
 
 export default async function OrdersPage({ searchParams }: OrdersPageProps) {

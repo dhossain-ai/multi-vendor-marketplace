@@ -19,10 +19,10 @@ export function CartView({ cart, notice, error }: CartViewProps) {
           <Container className="space-y-4">
             <div>
               <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-                Customer cart
+                Your cart
               </p>
               <h1 className="text-foreground mt-2 text-4xl font-semibold tracking-tight">
-                Authenticated cart foundation
+                Ready when you are
               </h1>
             </div>
             {notice ? <AuthMessage tone="success" message={notice} /> : null}
@@ -40,15 +40,14 @@ export function CartView({ cart, notice, error }: CartViewProps) {
         <div className="space-y-4">
           <div className="space-y-3">
             <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-              Customer cart
+              Your cart
             </p>
             <h1 className="text-foreground text-4xl font-semibold tracking-tight">
-              Review your selected items
+              Review your items
             </h1>
             <p className="text-ink-muted max-w-3xl text-sm leading-7">
-              Cart reads and writes are now server-scoped to the authenticated
-              user. Checkout now revalidates the latest cart state on the server
-              before creating a pending order.
+              Double-check quantities, availability, and pricing before you move to checkout.
+              Final totals are confirmed securely on the server during checkout.
             </p>
           </div>
           {notice ? <AuthMessage tone="success" message={notice} /> : null}

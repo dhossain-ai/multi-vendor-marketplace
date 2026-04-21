@@ -9,11 +9,11 @@ export function OrdersEmptyState() {
           No orders yet
         </p>
         <h1 className="text-foreground mt-4 text-3xl font-semibold tracking-tight">
-          Pending orders will appear here after checkout
+          Your purchases will show up here
         </h1>
         <p className="text-ink-muted mx-auto mt-4 max-w-2xl text-sm leading-7">
-          Order history now reads from snapshot-backed order records, but no
-          pending order has been created for this account yet.
+          After your first checkout, you&apos;ll be able to track payment progress and
+          review past purchases from this page.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
@@ -26,7 +26,7 @@ export function OrdersEmptyState() {
             href="/"
             className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
           >
-            Browse catalog
+            Browse products
           </Link>
         </div>
       </Container>

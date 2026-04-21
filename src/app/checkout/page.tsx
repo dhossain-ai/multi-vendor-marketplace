@@ -10,7 +10,7 @@ type CheckoutPageProps = {
 
 export const metadata: Metadata = {
   title: "Checkout",
-  description: "Validate the cart and create a pending order before payment integration.",
+  description: "Review your cart and continue to secure payment.",
 };
 
 export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {

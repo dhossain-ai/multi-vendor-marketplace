@@ -26,11 +26,11 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
               Checkout
             </p>
             <h1 className="text-foreground text-4xl font-semibold tracking-tight">
-              Review and pay
+              Review and place your order
             </h1>
             <p className="text-ink-muted max-w-3xl text-sm leading-7">
-              Review your cart items and server-calculated totals below. When
-              ready, proceed to secure payment powered by Stripe.
+              Check your items, confirm the total, and continue to secure payment
+              when everything looks right.
             </p>
           </div>
           {messageTone && error ? (
@@ -44,11 +44,10 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
         {checkout.status === "empty" ? (
           <section className="border-border bg-panel rounded-[2rem] border p-10 text-center shadow-[var(--shadow-panel)]">
             <h2 className="text-foreground text-3xl font-semibold tracking-tight">
-              There is nothing to check out yet
+              Your cart is empty
             </h2>
             <p className="text-ink-muted mx-auto mt-4 max-w-2xl text-sm leading-7">
-              Your cart is empty, so checkout cannot create a pending order.
-              Add items from the catalog first.
+              Add a few products first, then come back here to finish your order.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
@@ -61,7 +60,7 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
                 href="/"
                 className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
               >
-                Browse catalog
+                Browse products
               </Link>
             </div>
           </section>
@@ -107,22 +106,31 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
                         </div>
 
                         <div className="text-right">
-                          <p className="text-ink-muted text-sm">Line subtotal</p>
+                          <p className="text-ink-muted text-sm">
+                            {item.discountAmount > 0 ? "Line total" : "Line subtotal"}
+                          </p>
                           <p className="text-foreground mt-1 text-xl font-semibold">
                             {formatPrice(
-                              item.lineSubtotalAmount,
+                              item.discountAmount > 0
+                                ? item.lineTotalAmount
+                                : item.lineSubtotalAmount,
                               item.currencyCode,
                             )}
                           </p>
                           <p className="text-ink-muted mt-1 text-xs">
                             {formatPrice(item.unitPriceAmount, item.currencyCode)} each
                           </p>
+                          {item.discountAmount > 0 ? (
+                            <p className="mt-1 text-xs text-emerald-700">
+                              Includes {formatPrice(item.discountAmount, item.currencyCode)} in savings
+                            </p>
+                          ) : null}
                         </div>
                       </div>
 
                       <div className="text-ink-muted flex flex-wrap items-center gap-4 text-sm">
                         <span>Quantity: {item.quantity}</span>
-                        <span>Slug: {item.productSlug}</span>
+                        <span>Sold by {item.seller.name}</span>
                       </div>
 
                       {item.issues.length > 0 ? (
@@ -145,7 +153,7 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
                     Order summary
                   </p>
                   <h2 className="text-foreground text-2xl font-semibold tracking-tight">
-                    Server-calculated totals
+                    Estimated total
                   </h2>
                 </div>
 
@@ -168,7 +176,7 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-ink-muted">Discounts</span>
                     <span className="text-foreground font-medium">
-                      {formatPrice(
+                      -{formatPrice(
                         checkout.totals.discountAmount,
                         checkout.totals.currencyCode,
                       )}
@@ -194,10 +202,16 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
                   </div>
                 </div>
 
+                {checkout.appliedCoupon?.isValid ? (
+                  <div className="rounded-[1.5rem] bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-800">
+                    <p className="font-medium">{checkout.appliedCoupon.code} applied</p>
+                    <p className="mt-1">{checkout.appliedCoupon.message}</p>
+                  </div>
+                ) : null}
+
                 <p className="text-ink-muted text-sm leading-7">
-                  Checkout creates a pending order with snapshot-backed items, then
-                  redirects you to Stripe for secure payment. Your order is only
-                  confirmed after the payment provider verifies the transaction.
+                  We save your order details first, then send you to Stripe for secure
+                  payment. Your order is confirmed after the payment provider verifies the transaction.
                 </p>
 
                 {checkout.errors.length > 0 ? (
