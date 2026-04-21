@@ -1,11 +1,26 @@
 import type { Json } from "@/types/database";
+import type { CategoryOption } from "@/features/shared/types";
+import type {
+  FulfillmentStatus,
+  OrderStatus,
+  PaymentStatus,
+} from "@/features/orders/types";
+import type { OrderOperationalStage } from "@/features/orders/lib/order-progress";
 
 export type SellerProductStatus = "draft" | "active" | "archived" | "suspended";
+
+export type SellerProductImage = {
+  url: string;
+  alt: string;
+  sortOrder: number;
+};
 
 export type SellerProduct = {
   id: string;
   sellerId: string;
   categoryId: string | null;
+  categoryName: string | null;
+  categorySlug: string | null;
   title: string;
   slug: string;
   description: string | null;
@@ -16,6 +31,7 @@ export type SellerProduct = {
   isUnlimitedStock: boolean;
   status: SellerProductStatus;
   thumbnailUrl: string | null;
+  galleryImages: SellerProductImage[];
   metadata: Json;
   publishedAt: string | null;
   createdAt: string;
@@ -34,23 +50,61 @@ export type SellerProductFormData = {
   status: "draft" | "active";
   categoryId: string | null;
   thumbnailUrl: string | null;
+  galleryImageUrls: string[];
+};
+
+export type SellerStoreProfileFormData = {
+  storeName: string;
+  slug: string;
+  bio: string;
+  logoUrl: string | null;
 };
 
 export type SellerOrderItem = {
   id: string;
-  orderId: string;
-  orderNumber: string;
-  orderStatus: string;
-  paymentStatus: string;
+  productId: string | null;
   productTitle: string;
   productSlug: string | null;
-  unitPriceAmount: number;
   quantity: number;
+  unitPriceAmount: number;
+  lineSubtotalAmount: number;
+  discountAmount: number;
   lineTotalAmount: number;
   currencyCode: string;
+  fulfillmentStatus: FulfillmentStatus;
+  trackingCode: string | null;
+  shipmentNote: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
   metadata: Record<string, unknown>;
-  orderPlacedAt: string | null;
   createdAt: string;
+};
+
+export type SellerOrderSummary = {
+  id: string;
+  orderNumber: string;
+  orderStatus: OrderStatus;
+  paymentStatus: PaymentStatus;
+  operationalStage: OrderOperationalStage;
+  itemCount: number;
+  totalQuantity: number;
+  grossSalesAmount: number;
+  currencyCode: string;
+  placedAt: string | null;
+  createdAt: string;
+  items: SellerOrderItem[];
+};
+
+export type SellerOrderDetail = SellerOrderSummary & {
+  customerName: string | null;
+  customerEmail: string | null;
+};
+
+export type SellerFulfillmentUpdateInput = {
+  orderId: string;
+  fulfillmentStatus: Extract<FulfillmentStatus, "processing" | "shipped" | "delivered" | "cancelled">;
+  trackingCode: string | null;
+  shipmentNote: string | null;
 };
 
 export type SellerDashboardSummary = {
@@ -62,3 +116,5 @@ export type SellerDashboardSummary = {
   grossSalesAmount: number;
   currencyCode: string;
 };
+
+export type SellerProductFormCategory = CategoryOption;
