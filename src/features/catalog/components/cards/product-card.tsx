@@ -28,6 +28,9 @@ export function ProductCard({ product }: ProductCardProps) {
               <h3 className="text-foreground text-lg font-semibold tracking-tight">
                 {product.title}
               </h3>
+              {product.seller?.name ? (
+                <p className="text-ink-muted text-sm">Sold by {product.seller.name}</p>
+              ) : null}
             </div>
             <p className="text-foreground text-base font-semibold">
               {formatPrice(product.priceAmount, product.currencyCode)}
@@ -39,8 +42,8 @@ export function ProductCard({ product }: ProductCardProps) {
           </p>
 
           <div className="text-ink-muted flex items-center justify-between gap-3 text-sm">
-            <span>{product.seller?.name ?? "Marketplace seller"}</span>
-            <span className="text-brand font-medium">View product</span>
+            <span>Available now</span>
+            <span className="text-brand font-medium">View details</span>
           </div>
         </div>
       </Link>

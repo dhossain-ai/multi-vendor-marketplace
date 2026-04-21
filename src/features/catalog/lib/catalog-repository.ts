@@ -276,6 +276,19 @@ const listDemoProductSlugs = (): ProductSlugsResult => ({
   source: "demo",
 });
 
+const getFallbackReason = (error: unknown) => {
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return "Unknown Supabase catalog error.";
+};
+
 const withSupabaseFallback = async <T>(
   query: () => Promise<T>,
   fallback: () => T,
@@ -287,7 +300,10 @@ const withSupabaseFallback = async <T>(
   try {
     return await query();
   } catch (error) {
-    console.error("Catalog repository fell back to demo data.", error);
+    console.warn(
+      "Catalog repository used demo data because the Supabase catalog query failed:",
+      getFallbackReason(error),
+    );
     return fallback();
   }
 };

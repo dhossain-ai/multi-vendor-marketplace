@@ -24,7 +24,7 @@ export function ProductDetailView({
       <Container className="space-y-12">
         <nav className="text-ink-muted flex items-center gap-2 text-sm">
           <Link href="/" className="hover:text-foreground transition-colors">
-            Catalog
+            Shop
           </Link>
           <span>/</span>
           <span>{product.title}</span>
@@ -88,9 +88,9 @@ export function ProductDetailView({
                   </p>
                 </div>
                 <div>
-                  <p className="text-ink-muted text-sm">Slug</p>
+                  <p className="text-ink-muted text-sm">Checkout</p>
                   <p className="text-foreground mt-1 text-base font-medium">
-                    {product.slug}
+                    Secure payment at checkout
                   </p>
                 </div>
               </div>
@@ -103,6 +103,27 @@ export function ProductDetailView({
                   </p>
                 ) : null}
               </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-[1.5rem] bg-panel-muted p-4">
+                  <p className="text-sm font-medium text-foreground">Saved orders</p>
+                  <p className="mt-2 text-sm leading-6 text-ink-muted">
+                    Purchases stay visible in your account after checkout.
+                  </p>
+                </div>
+                <div className="rounded-[1.5rem] bg-panel-muted p-4">
+                  <p className="text-sm font-medium text-foreground">Trusted sellers</p>
+                  <p className="mt-2 text-sm leading-6 text-ink-muted">
+                    Listings are shown only when the seller is approved to sell.
+                  </p>
+                </div>
+                <div className="rounded-[1.5rem] bg-panel-muted p-4">
+                  <p className="text-sm font-medium text-foreground">Secure checkout</p>
+                  <p className="mt-2 text-sm leading-6 text-ink-muted">
+                    Payment is completed securely with Stripe test mode.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -111,10 +132,10 @@ export function ProductDetailView({
           <section className="space-y-6">
             <div className="space-y-2">
               <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-                Related products
+                You may also like
               </p>
               <h2 className="text-foreground text-3xl font-semibold tracking-tight">
-                More from the public catalog
+                More to explore
               </h2>
             </div>
             <ProductGrid products={relatedProducts} />

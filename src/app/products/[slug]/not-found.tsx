@@ -9,18 +9,17 @@ export default function ProductNotFound() {
           Product unavailable
         </p>
         <h1 className="text-foreground mt-3 text-3xl font-semibold tracking-tight">
-          This product is not available in the public catalog.
+          This product is not available right now.
         </h1>
         <p className="text-ink-muted mx-auto mt-4 max-w-2xl text-sm leading-7">
-          The slug may be incorrect, the product may no longer be publicly
-          visible, or it may still be in a non-public state such as draft or
-          suspension.
+          The link may be out of date, the item may have sold out, or the seller
+          may have removed it from the storefront.
         </p>
         <Link
           href="/"
           className="bg-brand mt-6 inline-flex rounded-full px-5 py-3 text-sm font-medium text-white"
         >
-          Back to catalog
+          Back to shop
         </Link>
       </Container>
     </div>

@@ -10,23 +10,22 @@ export function CatalogHero({ productCount }: CatalogHeroProps) {
       <Container className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
         <div className="space-y-6">
           <span className="text-brand bg-brand-soft border-brand/20 inline-flex rounded-full border px-4 py-2 text-sm font-medium">
-            Public catalog foundation
+            Marketplace storefront
           </span>
           <div className="space-y-4">
             <h1 className="text-foreground max-w-4xl text-4xl font-semibold tracking-tight md:text-6xl">
-              Browse the first marketplace-ready catalog slice.
+              Discover products from approved marketplace sellers.
             </h1>
             <p className="text-ink-muted max-w-2xl text-lg leading-8">
-              This page now reads from a dedicated catalog repository layer,
-              serves only publicly visible products, and sets up the data shape
-              that future auth, cart, and checkout work can safely build on.
+              Browse categories, discover new arrivals, and shop a clean storefront
+              built for real customer journeys.
             </p>
           </div>
         </div>
 
         <div className="border-border bg-panel-muted rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
           <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-            Current listing state
+            Storefront snapshot
           </p>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div className="rounded-3xl bg-white/80 p-5">
@@ -36,9 +35,9 @@ export function CatalogHero({ productCount }: CatalogHeroProps) {
               </p>
             </div>
             <div className="rounded-3xl bg-white/80 p-5">
-              <p className="text-ink-muted text-sm">Read path</p>
+              <p className="text-ink-muted text-sm">Shopping experience</p>
               <p className="text-foreground mt-2 text-lg font-semibold">
-                Listing and detail queries are separated
+                Browse, add to cart, and check out with confidence
               </p>
             </div>
           </div>
