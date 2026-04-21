@@ -2,13 +2,13 @@
 
 ## Current Phase
 
-Seller dashboard foundation completed (Phase 7).
+Reset Phase 4 — Marketplace operations completed.
 
 ---
 
 ## Project State Summary
 
-The repository now includes a complete seller-facing area with dashboard summary, product management CRUD, and seller-scoped order visibility. All seller access is server-authoritative with strict ownership enforcement. Non-approved sellers see clear status messaging.
+The repository now behaves like a much more operational marketplace product across shopper, seller, and admin journeys. The public side is shopper-first, sellers can move paid orders through fulfillment with clear state changes, coupon logic now participates in real cart/checkout totals, and admin order/product views reflect marketplace operations instead of placeholder monitoring.
 
 ---
 
@@ -29,52 +29,55 @@ The repository now includes a complete seller-facing area with dashboard summary
 - server-side session loading added with application profile and seller profile lookup
 - role and seller-status guards added for authenticated, seller, approved-seller, and admin checks
 - minimal authenticated account experience added in the header and `/account`
-- protected placeholder routes added for `/admin`
-- cart schema migration added for `carts` and `cart_items`
-- typed schema subset expanded to cover cart tables
-- cart repository/data-access layer added for current cart reads, add/update/remove/clear
-- protected `/cart` page added with empty state, line items, quantity updates, remove actions, subtotal summary, and checkout entry point
-- order schema migration added for `orders`, `order_items`, and `payments`
-- typed schema subset expanded to cover order and payment tables plus status enums
-- checkout validation service added for ownership, product, seller, quantity, and totals checks
-- pending-order creation flow with snapshot-backed order items and cart clearing
-- protected `/checkout` page with validation feedback and pending-order submission
-- customer order history foundation at `/orders` and `/orders/[id]`
-- Stripe test-mode payment integration added:
-  - `src/features/payments/` boundary with types, repository, service, and Stripe client
-  - Stripe Checkout Session creation for pending orders with idempotency
-  - Stripe webhook endpoint at `/api/webhooks/stripe` with signature verification
-  - idempotent webhook handling for `checkout.session.completed` and `checkout.session.expired`
-  - payment record creation and status tracking separate from order status
-  - order status transitions: `pending`→`confirmed` and `unpaid`→`paid` on payment confirmation
-  - checkout flow updated to redirect to Stripe Checkout after pending order creation
-  - post-checkout success page with confirmation-safe messaging
-  - post-checkout cancel page with retry flow
-  - order detail view updated with color-coded payment/order status badges
-  - "Pay now" / "Retry payment" button on unpaid pending orders
-  - orders list view updated with color-coded status badges
-  - environment config helpers for Stripe keys
-  - graceful degradation when Stripe env vars are not configured
-- seller dashboard foundation added:
-  - `src/features/seller/` boundary with types, repositories, actions, and components
-  - seller dashboard shell with layout-level role guard and pill-style navigation
-  - seller status gate for pending/rejected/suspended/missing seller states
-  - seller dashboard overview with metric cards (total/active/draft/archived products, paid orders, gross sales)
-  - seller product management: list, create, edit, archive with ownership enforcement
-  - seller product form with title, slug, descriptions, pricing, stock, status, thumbnail, category
-  - seller products view with status badges, edit/archive actions, empty state
-  - seller-scoped order items view with color-coded status badges and product snapshots
-  - strict ownership enforcement: seller_id derived from session, never from client input
-  - product status handling: sellers create draft/active, can archive; only admin can suspend
-  - all seller routes protected: `/seller`, `/seller/products`, `/seller/products/new`, `/seller/products/[id]/edit`, `/seller/orders`
-- README updated to reflect catalog, auth, cart, checkout, payment, and seller foundation
-- docs updated for Phase 7 completion
+- protected admin route foundation expanded into a full admin area
+- authenticated cart foundation completed
+- checkout, pending-order creation, and snapshot-backed customer order history completed
+- Stripe test-mode payment integration completed
+- seller dashboard foundation completed
+- admin dashboard foundation completed
+- product UX reset completed:
+  - storefront-style homepage with customer-facing sections
+  - richer seeded catalog content visible on the public side
+  - role-aware global navigation
+  - customer-first account page
+  - cleaner customer, seller, and admin wording across key screens
+  - better separation between shopper, seller, and admin journeys
+- seller onboarding and store setup reset completed:
+  - `/sell` application flow for authenticated customers
+  - in-app creation of `seller_profiles` without manual SQL
+  - seller settings page for store name, slug, bio, and optional logo URL
+  - clear seller state handling for no profile, pending, approved, rejected, and suspended
+  - seller dashboard messaging aligned to approval state
+  - seller product form upgraded with category selection, stock rules, and gallery image URLs
+  - seller product list upgraded with category, image-count, and inventory visibility
+  - global header and account page now expose seller entry points intentionally
+- marketplace operations reset completed:
+  - seller orders are now grouped into real seller order summaries
+  - seller order detail page added at `/seller/orders/[id]`
+  - seller-scoped fulfillment updates now support `processing`, `shipped`, `delivered`, and `cancelled`
+  - line-item fulfillment lives on `order_items`, preserving payment truth separately from fulfillment progress
+  - checkout now validates and applies coupons server-side
+  - cart and checkout totals now show real coupon discount handling
+  - order-item discount amounts now persist into pending orders
+  - customer order history/detail now show clearer operational stages and fulfillment progress
+  - admin order monitoring now reflects operational stage plus line-item fulfillment details
+  - admin product moderation now shows inventory state more clearly
+- database foundation repaired for fresh Supabase projects:
+  - ordered migration chain under `supabase/migrations/`
+  - shared helper + enum migration
+  - auth/profile foundation with `auth.users` -> `public.profiles` trigger bootstrap
+  - catalog foundation for `categories`, `products`, and `product_images`
+  - cart foundation for `carts` and `cart_items`
+  - coupon + admin audit foundation
+  - checkout/order/payment foundation for `orders`, `order_items`, and `payments`
+  - minimal RLS/policy foundation for public catalog, customer ownership, seller ownership, and admin access fallback
+  - README and docs updated with exact database setup and first-admin bootstrap steps
 
 ---
 
 ## In Progress
 
-- preparing the repository for admin dashboard work in the next phase
+- preparing the next cleanup slice around generated Supabase types, customer account depth, and catalog build-time reliability
 
 ---
 
@@ -82,35 +85,34 @@ The repository now includes a complete seller-facing area with dashboard summary
 
 ### Product / UX
 
-- admin dashboard features
-- coupon experience
-- seller onboarding application UI
+- customer profile/address management
+- richer seeded order scenarios and account realism
+- storefront reliability cleanup for static catalog generation
 
 ### Backend / Business Logic
 
 - commission logic
 - refund workflows
 - review/wishlist system
+- generated Supabase types from the finalized live schema
 
 ---
 
 ## Known Gaps
 
-- catalog still uses an MVP-safe fallback dataset when live Supabase catalog data is unavailable
-- the included migrations still need to be applied in the target Supabase project
-- current database typing is a hand-written subset; join queries require two-query workarounds
+- current database typing is still a hand-written subset, although it now matches the new bootstrap chain
+- existing partially-manual Supabase projects should be reset or reconciled before trusting them
 - pending-order creation currently uses application-side compensation instead of a single database transaction
-- checkout does not yet support coupons, taxes, or addresses
-- admin route remains a protected placeholder only
+- checkout now supports coupon validation and discounts, but still does not support taxes or addresses
 - Stripe webhook endpoint needs production HTTPS and live webhook registration
-- seller onboarding application UI not yet built (sellers must be created/approved via DB or admin tools)
-- category selection in product form uses raw UUID input (category picker deferred to admin phase)
+- admin audit logging is best-effort and should be hardened later
+- build output still warns that catalog slug generation falls back to demo data because `cookies()` are touched during static product slug generation
 
 ---
 
 ## Current Priority
 
-Move from seller dashboard into admin dashboard and platform control features.
+Stabilize the operational model with generated Supabase types, deeper customer account realism, and the lingering catalog build-time warning cleanup.
 
 ---
 
@@ -118,31 +120,30 @@ Move from seller dashboard into admin dashboard and platform control features.
 
 The next implementation focus should be:
 
-- admin dashboard shell and metrics
-- seller approval/rejection admin flow
-- product moderation admin view
-- category management
-- coupon management
-- generated Supabase schema typing for repository-safe queries
+- generate real Supabase database types from an applied project
+- improve customer profile/account management beyond the current summary view
+- resolve the catalog `cookies()` static-generation fallback warnings
+- harden fulfillment permissions and auditability after one real Supabase migration apply
 
 ---
 
 ## Risks
 
-- delaying Supabase migrations application for too long
+- letting the hand-written database types drift again after the schema is now stabilized
+- continuing development against a partially initialized Supabase project instead of a clean migration run
 - docs drifting from code as more features are added
-- delaying replacement of hand-written schema types (join queries are brittle)
 - webhook endpoint not being HTTPS-accessible in local development without Stripe CLI
-- no seller onboarding UI means sellers must be seeded or admin-created
+- allowing shopper, seller, and admin language to drift apart again after the reset
+- letting order-level and line-item fulfillment state drift apart after the new operations model
 
 ---
 
 ## Readiness Assessment
 
-The project is ready to move into admin dashboard implementation once:
+The project is ready to move into the next refinement slice once:
 
-- Supabase project credentials are configured locally
-- all migrations have been applied to the target database
+- the new migration chain has been applied to the target Supabase project
+- the first admin has been promoted explicitly
 - Stripe test-mode keys are configured locally
-- the next slice is limited to admin dashboard and platform controls
+- the next slice is limited to generated types, customer-account realism, storefront reliability cleanup, and post-operations hardening
 - docs continue to be updated alongside implementation

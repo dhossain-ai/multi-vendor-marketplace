@@ -12,16 +12,17 @@ This file should be updated whenever the project direction, architecture, priori
 
 This repository is a production-minded full-stack multi-vendor marketplace platform under active phased implementation.
 
-The current application already provides:
+The current application now provides:
 
-- public catalog/listing UI
-- product detail pages by slug
-- Supabase-backed catalog, auth, cart, and checkout scaffolding
-- server-side auth/session/profile loading
-- protected route foundations for account, seller, admin, cart, checkout, and orders
-- build, lint, and typecheck verification
+- shopper-first storefront homepage and product detail pages
+- Supabase-backed auth, cart, checkout, payments, seller, and admin foundations
+- in-app seller onboarding and store setup
+- seller-scoped fulfillment operations and coupon-aware checkout totals
+- role-aware navigation and a customer-first account area
+- server-side session/profile/seller-profile loading
+- a real Supabase migration chain that can initialize a fresh project from scratch
 
-The goal is to expand it into a realistic commerce system with:
+The goal remains a realistic commerce system with:
 
 - customer flows
 - seller/vendor flows
@@ -45,61 +46,63 @@ The goal is to expand it into a realistic commerce system with:
 - catalog repository/data layer for listing, slug lookup, related products, and static slugs
 - visibility-safe public catalog behavior
 - demo catalog fallback dataset when live catalog data is unavailable
+- richer seeded marketplace product content for a less empty storefront
 - sign-in, sign-up, sign-out, and auth callback flow
 - server-side session/profile/seller-profile loading
 - role-aware route guard utilities
-- minimal authenticated account UI and protected seller/admin placeholders
-- cart migration and typed cart schema support
-- server-side cart repository and mutation actions
-- protected `/cart` page and add-to-cart flow from product detail
-- checkout validation and pending-order creation flow
-- order schema support and snapshot-backed order history foundation
-- `/checkout`, `/orders`, and `/orders/[id]`
-- Stripe test-mode payment integration:
-  - payment feature boundary at `src/features/payments/`
-  - Stripe Checkout Session creation with idempotent payment records
-  - webhook endpoint at `/api/webhooks/stripe` with signature verification
-  - server-authoritative order/payment status transitions
-  - post-checkout success and cancel pages
-  - order detail "Pay now" and "Retry payment" flows
-  - color-coded payment/order status badges throughout order views
-- seller dashboard foundation:
-  - `src/features/seller/` boundary with types, repositories, actions, and components
-  - seller dashboard shell with layout-level role guard and status gate
-  - seller product management: list, create, edit, archive with ownership enforcement
-  - seller-scoped order items view with status badges and product snapshots
-  - dashboard summary metrics (product counts, paid orders, gross sales)
-  - four-layer auth: authenticated → seller role → seller profile → approved status
-  - strict ownership: seller_id derived from session, never from client
+- cart foundation
+- checkout and pending-order creation
+- coupon validation and discount persistence during checkout
+- Stripe test-mode payment integration
+- seller dashboard foundation
+- seller order detail and fulfillment updates
+- seller onboarding and store setup:
+  - `/sell` application flow
+  - `/seller/settings` store profile management
+  - approval-state-aware seller workspace and navigation
+  - category-aware, inventory-aware seller product form
+- admin dashboard foundation
+- admin order and product monitoring with operational-state visibility
+- product UX reset:
+  - storefront-style homepage
+  - cleaner shopper-facing copy
+  - customer-first account page
+  - clearer seller/admin operational language
+  - stronger customer/seller/admin separation in navigation
+- real database foundation:
+  - ordered Supabase migration chain under `supabase/migrations/`
+  - base enum/helper migration
+  - auth/profile foundation with `auth.users` -> `public.profiles` trigger bootstrap
+  - catalog foundation for categories/products/product_images
+  - cart foundation for carts/cart_items
+  - coupon and admin audit foundation
+  - checkout/order/payment foundation
+  - minimal RLS foundation for public catalog, customer ownership, seller ownership, and admin fallback access
+  - explicit first-admin bootstrap documentation
 - lint/typecheck/build verification
 
 ### Not Yet Implemented
 
-- richer order lifecycle transitions (refunds, partial refunds)
-- seller onboarding application UI
-- admin dashboard features
 - commission logic
-- coupon system
 - reviews
 - wishlist
 - notification workflows
-- audit logging
+- payout/refund tooling
+- generated Supabase database types
 
 ---
 
 ## Current Product Positioning
 
-Treat the project as a **catalog, auth, cart, checkout, payment, and seller dashboard foundation** that will become a full marketplace platform.
+Treat the project as a **working marketplace MVP** with clearly separated customer, seller, and admin journeys.
 
-Do **not** describe the current implementation as a finished e-commerce product yet.
+It is not final-polish complete yet, but it should no longer be described like an internal architecture demo.
 
 Acceptable descriptions:
 
-- multi-vendor marketplace with seller dashboard and payment integration
-- phased marketplace implementation with buyer and seller surfaces
-- full-stack marketplace platform with server-authoritative ownership and payment flow
-
-Avoid overstating current scope.
+- multi-vendor marketplace with shopper storefront, seller tools, admin tools, and payment integration
+- marketplace MVP with a real Supabase schema bootstrap chain and role-separated UX
+- full-stack marketplace platform with server-authoritative ownership, moderation, and payment flow
 
 ---
 
@@ -121,6 +124,7 @@ Avoid overstating current scope.
 
 - ESLint
 - Prettier
+- Supabase CLI available via `npx supabase`
 
 ### Deployment
 
@@ -135,7 +139,7 @@ The intended architecture is a modular monolith suitable for a portfolio-grade p
 Preferred structure:
 
 - UI components isolated from domain logic
-- API routes handling request validation and orchestration
+- API routes and server actions handling orchestration
 - repository/data layer abstracting direct DB queries
 - explicit business rules documented in `FEATURE_SPEC.md`
 - schema and constraints documented in `DATABASE_SCHEMA.md`
@@ -166,48 +170,43 @@ Order data must not depend on mutable product records after purchase. Use order 
 
 Do not collapse everything into a single status field.
 
-Examples:
-
-- `payment_status`: unpaid, processing, paid, failed, refunded
-- `order_status`: pending, confirmed, processing, completed, cancelled, refunded
-
 ### 4. Prefer idempotent write paths
 
 Checkout, payment callbacks/webhooks, and other sensitive mutations must be designed to tolerate retries and duplicate requests.
 
-### 5. Design for realistic scaling, not premature overengineering
+### 5. Keep the database foundation migration-based
 
-The project should be schema-safe and architecture-aware for future growth, but it does not need enterprise complexity in the first version.
+All schema changes should extend the ordered migration chain. Do not add ad-hoc SQL snippets that bypass migration history.
 
 ### 6. Keep docs aligned with code
 
-When the implementation changes meaningfully, update the relevant docs:
+When implementation changes meaningfully, update the relevant docs:
 
 - `STATUS.md`
 - `NEXT_STEPS.md`
 - `DEV_SUMMARY.md`
-- `ARCHITECTURE.md`
-- `FEATURE_SPEC.md`
 - `DATABASE_SCHEMA.md`
-- `API_SPEC.md`
 - `DECISIONS.md`
+- `README.md`
 
 ---
 
 ## Product Rules to Preserve
 
-These rules should shape future implementation:
-
 - role enforcement must be server-side
 - cart ownership and mutation checks must be server-side
 - checkout totals must be calculated on the server
+- coupon totals and eligibility must be calculated on the server
 - pending orders must use snapshot-backed order items
+- fulfillment state belongs on seller-owned `order_items`, not on payment records
 - seller data access must be isolated to seller-owned resources
 - admin capabilities must be explicit and auditable
 - coupons must be validated server-side when introduced
 - payment success from client-side redirect alone is not enough for final order completion
 - important mutations should be resistant to duplicate submissions
 - old orders must remain readable even if product data changes later
+- seller role and seller approval status are separate concepts
+- first admin bootstrap must stay explicit, never automatic
 
 ---
 
@@ -219,13 +218,10 @@ Use these files as the source of truth for specific concerns:
 - `ROADMAP.md` — phased plan and sequencing
 - `FEATURE_SPEC.md` — business behavior and edge cases
 - `DATABASE_SCHEMA.md` — schema design and constraints
-- `API_SPEC.md` — endpoint contracts and mutation behavior
-- `ARCHITECTURE.md` — request flow, auth strategy, scaling notes
 - `DECISIONS.md` — rationale for important choices
 - `STATUS.md` — current live progress
 - `NEXT_STEPS.md` — immediate next work
 - `DEV_SUMMARY.md` — historical progression
-- `AI_PROMPT_HISTORY.md` — prompt history and AI workflow notes
 
 ---
 
@@ -238,8 +234,7 @@ When extending the codebase:
 - prefer typed interfaces and predictable data shapes
 - keep naming business-oriented and consistent
 - do not bypass repository or server-side validation for convenience
-- add or update tests where meaningful
-- document new architecture or behavior changes in docs
+- document schema or role workflow changes carefully
 
 ---
 
@@ -247,17 +242,15 @@ When extending the codebase:
 
 The next major work should generally follow this order:
 
-1. lock down product rules and documentation
-2. integrate payment provider in test mode
-3. add payment-aware order status handling
-4. build seller onboarding and seller dashboard foundation
-5. build admin dashboard foundation
-6. add coupon, review, wishlist, and reporting layers
-7. harden for reliability and scaling
+1. generate Supabase types from the finalized schema
+2. improve customer account/profile depth
+3. resolve the catalog build-time `cookies()` warning path
+4. harden reliability and auditability around operations
+5. add refinement features only after those are stable
 
 ---
 
-## Immediate Context for New Sessions
+## Immediate Context For New Sessions
 
 A new AI session should assume:
 
@@ -265,12 +258,15 @@ A new AI session should assume:
 - auth and role foundations already exist
 - the authenticated cart foundation already exists
 - checkout creates snapshot-backed pending orders
-- customer order history now reads from durable order records
-- the project is transitioning to marketplace architecture
-- documentation-first planning is part of the workflow
-- schema design, role boundaries, checkout rules, and historical correctness matter more than adding random UI features
-- the implementation should stay realistic and portfolio-grade
-- decisions should favor future maintainability and real-world behavior
+- Stripe webhook flow confirms payments server-side
+- seller and admin operational surfaces now exist
+- seller fulfillment and coupon-aware checkout now exist
+- shopper-facing UX has been reset to feel like a real storefront
+- seller onboarding now exists inside the app and no longer depends on manual SQL
+- the repository now includes a real Supabase bootstrap chain
+- new auth users should get app profiles automatically through DB triggers
+- the first admin must be promoted explicitly by SQL
+- generated Supabase types are still pending
 
 ---
 
@@ -279,27 +275,23 @@ A new AI session should assume:
 - avoid presenting unfinished features as complete
 - avoid overcommitting to enterprise-scale architecture too early
 - avoid mixing buyer, seller, and admin concerns without a clear role model
+- avoid slipping back into developer/demo wording on user-facing screens
 - avoid coupling historical order data to mutable live product data
 - avoid weak status modeling for payments and orders
+- avoid ad-hoc manual database setup outside the migration chain
 
 ---
 
-## What a Good Next Change Looks Like
+## What A Good Next Change Looks Like
 
 A strong next step should:
 
-- improve realism of the marketplace
+- build on the repaired database foundation
+- deepen the role-separated product journeys
 - preserve clean architecture
 - be easy to explain in docs
 - fit the roadmap
-- not break the existing foundation
-- add meaningful portfolio value
-
-Examples:
-
-- payment session integration
-- payment status transition planning
-- seller/admin dashboard shell after commerce foundations are in place
+- not break the current migration chain
 
 ---
 
@@ -312,8 +304,6 @@ Whenever major progress is made, update at least:
 
 Whenever architecture, behavior, or data modeling changes, also update:
 
-- `ARCHITECTURE.md`
-- `FEATURE_SPEC.md`
 - `DATABASE_SCHEMA.md`
-- `API_SPEC.md`
 - `DECISIONS.md`
+- `README.md`

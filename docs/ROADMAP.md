@@ -18,7 +18,7 @@ The roadmap should be updated as scope changes, but phase order should remain de
 
 ## Current Status
 
-The project currently has a strong **catalog, auth, cart, and checkout foundation**:
+The project currently has a strong **catalog, auth, cart, checkout, payment, seller, admin, and database foundation** plus reset work that now makes the product feel much closer to a real marketplace:
 
 - Next.js frontend
 - Supabase/PostgreSQL data layer
@@ -26,8 +26,16 @@ The project currently has a strong **catalog, auth, cart, and checkout foundatio
 - authenticated cart flow
 - pending-order creation
 - snapshot-backed customer order history foundation
+- Stripe test-mode payment confirmation
+- seller dashboard operations
+- in-app seller onboarding and store setup
+- admin platform controls foundation
+- a fresh-project Supabase migration chain with profile bootstrap triggers
+- a storefront-style homepage, role-aware navigation, and clearer account/dashboard separation
+- seller state-aware workspace messaging, store settings, and category/inventory-aware product setup
+- seller-scoped fulfillment operations, coupon-aware checkout totals, and clearer customer/admin order tracking
 
-The next work should build on this foundation instead of replacing it.
+The next work should build on this foundation instead of replacing it, with generated Supabase types, deeper customer-account realism, and storefront reliability cleanup leading the queue.
 
 ---
 
@@ -313,7 +321,8 @@ Introduce platform-level operational controls.
 - category management
 - coupon management
 - order monitoring
-- platform revenue/commission visibility
+- MVP platform revenue summary
+- commission visibility later when commission accounting is introduced
 - basic admin audit considerations
 
 ## Deliverables
@@ -330,6 +339,37 @@ Introduce platform-level operational controls.
 - admin can operate core marketplace controls
 - admin actions are clearly separated from seller abilities
 - platform oversight is visible and useful
+
+---
+
+# Phase 8.5 — Database Foundation And Role Workflow Fix
+
+## Goal
+
+Repair the Supabase foundation so the application can be initialized cleanly from scratch and the auth/profile role workflow matches the implementation.
+
+## Scope
+
+- audit migration gaps and ordering problems
+- add foundational schema for profiles, seller_profiles, categories, products, and product_images
+- add a real auth-to-profile bootstrap trigger
+- reconcile later cart/order/admin migrations against the new base
+- document explicit admin bootstrap and fresh-project setup
+
+## Deliverables
+
+- ordered migration chain
+- `auth.users` -> `public.profiles` trigger bootstrap
+- corrected role/profile/seller-status schema foundation
+- minimal sane RLS foundation for current access patterns
+- updated setup docs
+
+## Exit Criteria
+
+- a brand-new Supabase project can apply the migrations without missing-table failures
+- new auth users receive matching app profiles automatically
+- seller role and seller approval status remain separate
+- admin bootstrap is explicit and documented
 
 ---
 
