@@ -1,7 +1,7 @@
 export const siteConfig = {
-  name: "Marketplace Platform",
+  name: "Northstar Market",
   description:
-    "Production-minded multi-vendor marketplace foundation built with Next.js, TypeScript, Tailwind CSS, and Supabase scaffolding.",
+    "A multi-vendor marketplace for workspace upgrades, creator gear, and everyday desk essentials.",
   tagline:
-    "A modular baseline for catalog, auth, cart, checkout, and marketplace operations.",
+    "Independent sellers for desk, audio, and creator gear.",
 } as const;

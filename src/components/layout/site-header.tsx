@@ -1,41 +1,93 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
-import { AuthNav } from "@/features/auth/components/auth-nav";
 import { CartNav } from "@/features/cart/components/cart-nav";
+import { getAuthSessionState } from "@/lib/auth/session";
 import { siteConfig } from "@/lib/config/site";
 
-export function SiteHeader() {
+function HeaderLink({
+  href,
+  label,
+  tone = "secondary",
+}: {
+  href: string;
+  label: string;
+  tone?: "secondary" | "primary";
+}) {
+  return (
+    <Link
+      href={href}
+      className={
+        tone === "primary"
+          ? "inline-flex min-h-10 items-center justify-center rounded-full bg-brand px-4 text-sm font-semibold text-white"
+          : "inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-panel px-4 text-sm font-medium text-foreground"
+      }
+    >
+      {label}
+    </Link>
+  );
+}
+
+export async function SiteHeader() {
+  const session = await getAuthSessionState();
+  const isSignedIn = Boolean(session.user);
+  const isApprovedSeller =
+    session.profile?.role === "seller" && session.sellerProfile?.status === "approved";
+  const showSellerEntry = Boolean(session.user) && session.profile?.role !== "admin";
+  const sellerEntryHref = isApprovedSeller
+    ? "/seller"
+    : session.sellerProfile
+      ? "/seller/settings"
+      : "/sell";
+  const sellerEntryLabel = isApprovedSeller
+    ? "Seller Dashboard"
+    : session.sellerProfile
+      ? "Seller Setup"
+      : "Sell";
+  const isAdmin = session.profile?.role === "admin";
+
   return (
     <header className="border-border/80 sticky top-0 z-20 border-b bg-white/70 backdrop-blur-xl">
-      <Container className="flex min-h-16 items-center justify-between gap-6">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="bg-brand inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white">
-            MP
-          </span>
-          <div>
-            <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-              Marketplace
-            </p>
-            <p className="text-ink-muted text-sm">{siteConfig.tagline}</p>
-          </div>
-        </Link>
+      <Container className="py-4">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="bg-brand inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white">
+              NM
+            </span>
+            <div>
+              <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
+                {siteConfig.name}
+              </p>
+              <p className="text-ink-muted text-sm">{siteConfig.tagline}</p>
+            </div>
+          </Link>
 
-        <nav className="hidden items-center gap-2 md:flex">
-          <Link
-            href="/"
-            className="bg-brand rounded-full px-4 py-2 text-sm font-medium text-white"
-          >
-            Catalog
-          </Link>
-          <CartNav />
-          <Link
-            href="/checkout"
-            className="border-border bg-panel text-foreground rounded-full border px-4 py-2 text-sm font-medium"
-          >
-            Checkout
-          </Link>
-          <AuthNav />
-        </nav>
+          <div className="flex flex-col gap-3 xl:items-end">
+            <nav className="flex flex-wrap items-center gap-2">
+              <HeaderLink href="/" label="Shop" tone="primary" />
+              <HeaderLink href="/#categories" label="Categories" />
+              <HeaderLink href="/#featured" label="Featured" />
+            </nav>
+
+            <nav className="flex flex-wrap items-center gap-2">
+              {isSignedIn ? (
+                <>
+                  <CartNav />
+                  <HeaderLink href="/orders" label="Orders" />
+                  <HeaderLink href="/account" label="Account" />
+                  {showSellerEntry ? (
+                    <HeaderLink href={sellerEntryHref} label={sellerEntryLabel} />
+                  ) : null}
+                  {isAdmin ? <HeaderLink href="/admin" label="Admin Dashboard" /> : null}
+                </>
+              ) : (
+                <>
+                  <HeaderLink href="/sign-in" label="Sign in" />
+                  <HeaderLink href="/sign-up" label="Sign up" tone="primary" />
+                </>
+              )}
+            </nav>
+          </div>
+        </div>
       </Container>
     </header>
   );
