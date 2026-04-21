@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signOutAction } from "@/lib/auth/actions";
+import { getSellerStatusLabel } from "@/features/seller/lib/seller-status";
 import type { AppProfile, SellerProfile } from "@/types/auth";
 
 type AccountSummaryProps = {
@@ -13,6 +14,22 @@ export function AccountSummary({
   sellerProfile,
   notice,
 }: AccountSummaryProps) {
+  const joinedDate = new Date(profile.createdAt).toLocaleDateString();
+  const canAccessSellerDashboard =
+    profile.role === "seller" && sellerProfile?.status === "approved";
+  const showSellerAccess = profile.role !== "admin";
+  const showAdminAccess = profile.role === "admin";
+  const sellerLink = canAccessSellerDashboard
+    ? "/seller"
+    : sellerProfile
+      ? "/seller/settings"
+      : "/sell";
+  const sellerLinkLabel = canAccessSellerDashboard
+    ? "Open seller dashboard"
+    : sellerProfile
+      ? "Manage store setup"
+      : "Become a seller";
+
   return (
     <div className="space-y-8">
       {notice ? (
@@ -23,11 +40,15 @@ export function AccountSummary({
 
       <section className="border-border bg-panel rounded-[2rem] border p-8 shadow-[var(--shadow-panel)]">
         <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-          Account
+          Your account
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
-          {profile.fullName ?? "Marketplace account"}
+          {profile.fullName ?? "Welcome back"}
         </h1>
+        <p className="text-ink-muted mt-3 max-w-2xl text-sm leading-7">
+          Keep an eye on your orders, confirm your account details, and jump into
+          seller or admin tools only when they apply to you.
+        </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <div className="rounded-3xl bg-white/80 p-5">
             <p className="text-ink-muted text-sm">Email</p>
@@ -36,7 +57,7 @@ export function AccountSummary({
             </p>
           </div>
           <div className="rounded-3xl bg-white/80 p-5">
-            <p className="text-ink-muted text-sm">Role</p>
+            <p className="text-ink-muted text-sm">Account type</p>
             <p className="mt-2 text-base font-medium text-foreground capitalize">
               {profile.role}
             </p>
@@ -48,63 +69,106 @@ export function AccountSummary({
             </p>
           </div>
           <div className="rounded-3xl bg-white/80 p-5">
-            <p className="text-ink-muted text-sm">Seller status</p>
+            <p className="text-ink-muted text-sm">Member since</p>
             <p className="mt-2 text-base font-medium text-foreground capitalize">
-              {sellerProfile?.status ?? "No seller profile"}
+              {joinedDate}
             </p>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-3">
+      <section className="grid gap-6 lg:grid-cols-2">
         <article className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
           <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
             Orders
           </p>
           <p className="text-ink-muted mt-3 text-sm leading-7">
-            Customer order history now reads from pending-order snapshots instead
-            of live catalog records.
+            Review recent purchases, payment progress, and saved order totals in one place.
           </p>
           <Link
             href="/orders"
             className="text-brand mt-5 inline-flex text-sm font-medium"
           >
-            Open order history
+            View your orders
           </Link>
         </article>
 
         <article className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
           <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-            Seller area
+            Shopping
           </p>
           <p className="text-ink-muted mt-3 text-sm leading-7">
-            Seller tooling is not implemented yet, but the protected route and
-            seller-status foundation are now in place.
+            Return to the storefront to browse categories, discover new arrivals,
+            and add more items to your cart.
           </p>
           <Link
-            href="/seller"
+            href="/"
             className="text-brand mt-5 inline-flex text-sm font-medium"
           >
-            Open seller access placeholder
-          </Link>
-        </article>
-
-        <article className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
-          <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-            Admin area
-          </p>
-          <p className="text-ink-muted mt-3 text-sm leading-7">
-            Admin features remain deferred, but role-based protection is ready to
-            support them safely in later phases.
-          </p>
-          <Link
-            href="/admin"
-            className="text-brand mt-5 inline-flex text-sm font-medium"
-          >
-            Open admin access placeholder
+            Continue shopping
           </Link>
         </article>
       </section>
+
+      {showSellerAccess || showAdminAccess ? (
+        <section className="space-y-4">
+          <div>
+            <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
+              Access beyond shopping
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+              Role-based tools
+            </h2>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            {showSellerAccess ? (
+              <article className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
+                <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
+                  Sell on the marketplace
+                </p>
+                <h3 className="mt-2 text-xl font-semibold text-foreground">
+                  {sellerProfile?.storeName ?? "Open your store"}
+                </h3>
+                <p className="text-ink-muted mt-3 text-sm leading-7">
+                  {sellerProfile
+                    ? `Current seller status: ${getSellerStatusLabel(
+                        sellerProfile.status,
+                      ).toLowerCase()}. Keep your store profile current so the marketplace team and your customers see the right information.`
+                    : "Apply to sell through the marketplace, set up your store profile, and unlock product and order tools after approval."}
+                </p>
+                <Link
+                  href={sellerLink}
+                  className="text-brand mt-5 inline-flex text-sm font-medium"
+                >
+                  {sellerLinkLabel}
+                </Link>
+              </article>
+            ) : null}
+
+            {showAdminAccess ? (
+              <article className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
+                <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
+                  Admin tools
+                </p>
+                <h3 className="mt-2 text-xl font-semibold text-foreground">
+                  Marketplace operations
+                </h3>
+                <p className="text-ink-muted mt-3 text-sm leading-7">
+                  Review sellers, moderate products, manage categories and coupons,
+                  and monitor orders from the admin area.
+                </p>
+                <Link
+                  href="/admin"
+                  className="text-brand mt-5 inline-flex text-sm font-medium"
+                >
+                  Open admin dashboard
+                </Link>
+              </article>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       <form action={signOutAction}>
         <button

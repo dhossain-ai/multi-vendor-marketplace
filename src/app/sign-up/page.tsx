@@ -21,8 +21,8 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
   return (
     <AuthCard
       eyebrow="Create account"
-      title="Set up your marketplace identity"
-      description="New accounts start as customer profiles. Seller approval and admin assignment remain explicit server-side platform decisions."
+      title="Start shopping with Northstar Market"
+      description="New accounts begin as customer profiles so you can browse, save items to your cart, and place orders right away."
       footerLabel="Already have an account?"
       footerHref="/sign-in"
       footerCta="Sign in"

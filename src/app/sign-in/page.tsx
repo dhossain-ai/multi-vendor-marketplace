@@ -21,8 +21,8 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   return (
     <AuthCard
       eyebrow="Sign in"
-      title="Access your marketplace account"
-      description="Use your email and password to continue into the customer, seller, or admin account flows."
+      title="Welcome back"
+      description="Use your email and password to continue shopping, reviewing orders, or opening your role-specific dashboard."
       footerLabel="Need an account?"
       footerHref="/sign-up"
       footerCta="Create one"

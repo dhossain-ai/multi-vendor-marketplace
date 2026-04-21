@@ -16,12 +16,11 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
       <div className="py-16">
         <Container className="border-border bg-panel rounded-[2rem] border p-8 shadow-[var(--shadow-panel)]">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-            Profile setup is not complete yet
+            We could not finish setting up your account
           </h1>
           <p className="text-ink-muted mt-4 text-sm leading-7">
-            The account is authenticated, but the application profile record could
-            not be loaded. Check the Supabase configuration and profile tables
-            before continuing.
+            Your sign-in worked, but the marketplace profile record could not be
+            loaded yet. Check the Supabase configuration and profile tables before continuing.
           </p>
         </Container>
       </div>
