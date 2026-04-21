@@ -1,66 +1,58 @@
 # Marketplace Platform
 
-Production-minded full-stack multi-vendor marketplace foundation.
+Production-minded full-stack multi-vendor marketplace platform built with Next.js 16, Supabase, Stripe test mode, and role-scoped seller/admin operations.
 
-This repository currently includes a public catalog foundation plus authentication, role, cart, and checkout scaffolding. The documentation in [`docs/`](docs) remains the source of truth for product direction and architecture.
+The repo now includes:
 
-## Current Scope
+- public catalog and product detail pages
+- Supabase auth and server-side session/profile loading
+- authenticated cart flow
+- server-authoritative checkout and pending orders
+- Stripe Checkout session flow and webhook confirmation
+- customer order history
+- coupon-aware cart and checkout totals
+- seller dashboard foundation plus fulfillment workflow
+- admin dashboard foundation plus operational monitoring
+- a real ordered Supabase migration chain for fresh-project setup
 
-Completed so far:
-
-- Next.js App Router with TypeScript
-- Tailwind CSS v4 baseline
-- ESLint and Prettier configuration
-- scalable `src/` folder structure
-- public catalog landing page
-- slug-based product detail pages
-- catalog repository/data-access layer
-- sign up, sign in, sign out, and callback handling
-- server-side session, profile, and seller-profile loading
-- role-aware route protection foundations
-- authenticated cart reads/writes with server-side ownership checks
-- protected `/cart` page and add-to-cart from product detail
-- server-authoritative checkout validation and pending-order creation
-- snapshot-backed customer order history at `/orders`
-- minimal authenticated account page and protected seller/admin placeholders
-- Supabase client scaffolding
-- environment example file
-- updated project docs for current state
-
-Not implemented yet:
-
-- payment integration
-- seller onboarding flow
-- seller or admin dashboards
+The documentation in [`docs/`](docs) remains the source of truth for product rules and architecture.
 
 ## Stack
 
-- Next.js 16
+- Next.js 16 App Router
 - React 19
 - TypeScript
 - Tailwind CSS v4
+- Supabase
+- Stripe
 - ESLint 9
 - Prettier 3
-- Supabase client scaffolding
 
 ## Project Structure
 
 ```text
 src/
-  app/                  App Router entrypoints, layout, and global styles
-  components/           Reusable layout and UI primitives
+  app/                  App Router entrypoints, layouts, and route handlers
+  components/           Shared layout and UI primitives
   features/
-    auth/               Auth UI building blocks for account and protected placeholders
-    checkout/           Checkout validation and pending-order creation flow
-    catalog/            Catalog types, repository logic, and public catalog UI
-    orders/             Snapshot-based customer order history
+    admin/              Admin repositories, actions, and views
+    auth/               Auth UI and account/session helpers
+    cart/               Cart repository, actions, and cart UI
+    catalog/            Public catalog repository and product detail UI
+    checkout/           Checkout validation and pending-order creation
+    orders/             Customer order history and detail views
+    payments/           Stripe integration and payment status handling
+    seller/             Seller dashboard repositories, actions, and views
+    shared/             Shared data loaders such as active categories
   lib/
-    auth/               Session, profile, action, and guard primitives
-    config/             Site and environment configuration
+    auth/               Session, profile, role, and guard helpers
+    config/             Environment and site configuration
     supabase/           Browser/server/admin Supabase client factories
     utils/              Generic utility helpers
   styles/               Shared design tokens
   types/                App-wide TypeScript types
+supabase/
+  migrations/           Ordered database bootstrap chain
 docs/                   Product, architecture, and planning source of truth
 ```
 
@@ -72,7 +64,7 @@ docs/                   Product, architecture, and planning source of truth
 npm install
 ```
 
-2. Copy the environment template and fill in your Supabase values:
+2. Copy the environment template and fill in your project values:
 
 ```powershell
 Copy-Item .env.example .env.local
@@ -84,14 +76,69 @@ Required variables:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `STRIPE_SECRET_KEY` for payment testing
+- `STRIPE_WEBHOOK_SECRET` for local Stripe webhook testing
 
-3. Start the app:
+3. Create a fresh Supabase project.
+
+4. Apply the database schema in migration order.
+
+Preferred path with Supabase CLI:
+
+```bash
+npx supabase link --project-ref <your-project-ref>
+npx supabase db push
+```
+
+SQL editor fallback:
+
+Run the files in `supabase/migrations/` in filename order:
+
+1. `202604200001_base_helpers_and_enums.sql`
+2. `202604200002_auth_profile_foundation.sql`
+3. `202604200003_catalog_foundation.sql`
+4. `202604200004_cart_foundation.sql`
+5. `202604200005_coupon_and_audit_foundation.sql`
+6. `202604200006_checkout_orders_payments_foundation.sql`
+7. `202604200007_marketplace_operations_reset.sql`
+
+5. Promote the first admin explicitly after the target user has signed up:
+
+```sql
+update public.profiles
+set role = 'admin'
+where email = 'you@example.com';
+```
+
+6. Verify the schema is healthy:
+
+```sql
+select to_regclass('public.profiles');
+select to_regclass('public.products');
+select to_regclass('public.carts');
+select to_regclass('public.orders');
+```
+
+Each query should return the matching relation name, not `null`.
+
+7. Start the app:
 
 ```bash
 npm run dev
 ```
 
-4. Open `http://localhost:3000`.
+8. Open `http://localhost:3000`.
+
+## Role and Profile Notes
+
+- `auth.users` is the Supabase identity source of truth.
+- `public.profiles` is the application profile table.
+- new `auth.users` rows automatically create matching `public.profiles` rows through a database trigger
+- `profiles.role` controls `customer`, `seller`, and `admin`
+- `seller_profiles.status` controls `pending`, `approved`, `rejected`, and `suspended`
+- seller role and seller approval remain separate on purpose
+
+Seller onboarding now happens through the app at `/sell`. Admin approval is still required before seller product and order operations unlock.
 
 ## Scripts
 
@@ -102,17 +149,6 @@ npm run dev
 - `npm run typecheck` - run TypeScript type checking
 - `npm run format` - format the repository with Prettier
 - `npm run format:check` - verify formatting without writing changes
-
-## Supabase Scaffolding
-
-The repo currently includes scaffold files for:
-
-- browser client creation
-- server client creation with Next cookies
-- admin client creation for server-only privileged work
-- hand-written schema typings to replace with generated Supabase types later
-
-This now covers catalog reads plus auth/session/cart/checkout foundations. Payment integration and real seller/admin product features are still deferred.
 
 ## Documentation Map
 
