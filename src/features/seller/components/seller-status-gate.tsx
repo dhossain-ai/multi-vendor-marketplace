@@ -1,27 +1,12 @@
 import Link from "next/link";
+import { getSellerStatusDetails, getSellerStatusLabel } from "@/features/seller/lib/seller-status";
 import type { SellerStatus } from "@/types/auth";
 
 type SellerStatusGateProps = {
   status: SellerStatus | null | undefined;
-  children: React.ReactNode;
-};
-
-const statusMessages: Record<string, { title: string; description: string }> = {
-  pending: {
-    title: "Seller application pending",
-    description:
-      "Your seller application is being reviewed. You will gain access to the seller dashboard once your application is approved by the platform team.",
-  },
-  rejected: {
-    title: "Seller application rejected",
-    description:
-      "Your seller application was not approved. If you believe this was an error, please contact support for further assistance.",
-  },
-  suspended: {
-    title: "Seller account suspended",
-    description:
-      "Your seller account has been suspended. You cannot access seller features at this time. Please contact support if you need assistance.",
-  },
+  ctaHref?: string;
+  ctaLabel?: string;
+  children?: React.ReactNode;
 };
 
 /**
@@ -29,7 +14,12 @@ const statusMessages: Record<string, { title: string; description: string }> = {
  * Shows a status message for pending/rejected/suspended sellers.
  * Shows a missing-profile message if no seller profile exists.
  */
-export function SellerStatusGate({ status, children }: SellerStatusGateProps) {
+export function SellerStatusGate({
+  status,
+  ctaHref = "/seller/settings",
+  ctaLabel = "Open store settings",
+  children,
+}: SellerStatusGateProps) {
   if (status === "approved") {
     return <>{children}</>;
   }
@@ -44,20 +34,20 @@ export function SellerStatusGate({ status, children }: SellerStatusGateProps) {
           No seller profile found
         </h2>
         <p className="text-ink-muted mt-4 text-sm leading-7">
-          You need a seller profile to access dashboard features. Contact
-          platform support or complete seller registration first.
+          You need a store profile before you can manage listings or orders. Set
+          up your seller application first, then come back once it is submitted.
         </p>
         <Link
-          href="/account"
+          href={ctaHref}
           className="text-brand mt-6 inline-flex text-sm font-medium"
         >
-          Back to account
+          {ctaLabel}
         </Link>
       </div>
     );
   }
 
-  const info = statusMessages[status];
+  const info = getSellerStatusDetails(status);
 
   return (
     <div className="border-border bg-panel rounded-[2rem] border p-8 shadow-[var(--shadow-panel)]">
@@ -70,15 +60,19 @@ export function SellerStatusGate({ status, children }: SellerStatusGateProps) {
       <p className="text-ink-muted mt-4 text-sm leading-7">
         {info?.description ?? "Your seller account is not currently in an active state."}
       </p>
+      <p className="text-ink-muted mt-3 text-sm leading-7">
+        {info?.nextStep ??
+          "Update your store details and wait for marketplace approval before using seller tools."}
+      </p>
       <div className="bg-panel-muted mt-6 rounded-2xl px-4 py-3 text-sm text-foreground">
         Current status:{" "}
-        <span className="font-medium capitalize">{status}</span>
+        <span className="font-medium">{getSellerStatusLabel(status)}</span>
       </div>
       <Link
-        href="/account"
+        href={ctaHref}
         className="text-brand mt-6 inline-flex text-sm font-medium"
       >
-        Back to account
+        {ctaLabel}
       </Link>
     </div>
   );

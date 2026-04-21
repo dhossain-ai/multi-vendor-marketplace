@@ -10,18 +10,16 @@ export const metadata: Metadata = {
 
 export default async function SellerPage() {
   const session = await requireSellerRole("/seller");
-  const sellerProfileId = session.sellerProfile?.id;
-
-  if (!sellerProfileId || !session.sellerProfile) {
-    return null;
-  }
-
-  const summary = await getSellerDashboardSummary(sellerProfileId);
+  const sellerProfile = session.sellerProfile;
+  const summary =
+    sellerProfile?.status === "approved"
+      ? await getSellerDashboardSummary(sellerProfile.id)
+      : null;
 
   return (
     <SellerDashboardView
+      sellerProfile={sellerProfile}
       summary={summary}
-      storeName={session.sellerProfile.storeName}
     />
   );
 }
