@@ -7,6 +7,39 @@ import type { AppProfile, SellerProfile } from "@/types/auth";
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type SellerProfileRow = Database["public"]["Tables"]["seller_profiles"]["Row"];
 
+const getSupabaseErrorReason = (error: unknown): string => {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  if (error && typeof error === "object") {
+    const message =
+      "message" in error && typeof error.message === "string"
+        ? error.message
+        : null;
+    const code =
+      "code" in error && typeof error.code === "string" ? error.code : null;
+
+    if (code && message) {
+      return `${code}: ${message}`;
+    }
+
+    if (message) {
+      return message;
+    }
+  }
+
+  return "Unknown Supabase error";
+};
+
+const isUniqueViolation = (error: unknown) =>
+  Boolean(
+    error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "23505",
+  );
+
 const mapProfileRow = (row: ProfileRow): AppProfile => ({
   id: row.id,
   email: row.email,
@@ -45,7 +78,10 @@ export async function getProfileByUserId(userId: string): Promise<AppProfile | n
     .maybeSingle();
 
   if (error) {
-    console.error("Failed to load profile.", error);
+    console.warn(
+      "Failed to load profile from Supabase:",
+      getSupabaseErrorReason(error),
+    );
     return null;
   }
 
@@ -67,7 +103,10 @@ export async function getSellerProfileByUserId(
     .maybeSingle();
 
   if (error) {
-    console.error("Failed to load seller profile.", error);
+    console.warn(
+      "Failed to load seller profile from Supabase:",
+      getSupabaseErrorReason(error),
+    );
     return null;
   }
 
@@ -104,7 +143,10 @@ export async function ensureProfileForUser(user: User): Promise<AppProfile | nul
         .single();
 
       if (error) {
-        console.error("Failed to refresh profile metadata.", error);
+        console.warn(
+          "Failed to refresh profile metadata in Supabase:",
+          getSupabaseErrorReason(error),
+        );
         return existingProfile;
       }
 
@@ -131,7 +173,14 @@ export async function ensureProfileForUser(user: User): Promise<AppProfile | nul
     .single();
 
   if (error) {
-    console.error("Failed to create profile.", error);
+    if (isUniqueViolation(error)) {
+      return getProfileByUserId(user.id);
+    }
+
+    console.warn(
+      "Failed to create profile in Supabase:",
+      getSupabaseErrorReason(error),
+    );
     return null;
   }
 
