@@ -93,18 +93,21 @@ export type Database = {
         {
           id: string;
           user_id: string;
+          coupon_id: string | null;
           created_at: string;
           updated_at: string;
         },
         {
           id?: string;
           user_id: string;
+          coupon_id?: string | null;
           created_at?: string;
           updated_at?: string;
         },
         {
           id?: string;
           user_id?: string;
+          coupon_id?: string | null;
           created_at?: string;
           updated_at?: string;
         }
@@ -131,6 +134,56 @@ export type Database = {
           cart_id?: string;
           product_id?: string;
           quantity?: number;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      coupons: TableDefinition<
+        {
+          id: string;
+          code: string;
+          type: "fixed" | "percentage";
+          value_amount: number;
+          minimum_order_amount: number | null;
+          usage_limit_total: number | null;
+          usage_limit_per_user: number | null;
+          starts_at: string | null;
+          expires_at: string | null;
+          is_active: boolean;
+          seller_id: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        },
+        {
+          id?: string;
+          code: string;
+          type: "fixed" | "percentage";
+          value_amount: number;
+          minimum_order_amount?: number | null;
+          usage_limit_total?: number | null;
+          usage_limit_per_user?: number | null;
+          starts_at?: string | null;
+          expires_at?: string | null;
+          is_active?: boolean;
+          seller_id?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        },
+        {
+          id?: string;
+          code?: string;
+          type?: "fixed" | "percentage";
+          value_amount?: number;
+          minimum_order_amount?: number | null;
+          usage_limit_total?: number | null;
+          usage_limit_per_user?: number | null;
+          starts_at?: string | null;
+          expires_at?: string | null;
+          is_active?: boolean;
+          seller_id?: string | null;
+          created_by?: string | null;
           created_at?: string;
           updated_at?: string;
         }
@@ -245,7 +298,13 @@ export type Database = {
           line_total_amount: number;
           currency_code: string;
           product_metadata_snapshot: Json;
+          fulfillment_status: "unfulfilled" | "processing" | "shipped" | "delivered" | "cancelled";
+          tracking_code: string | null;
+          shipment_note: string | null;
+          shipped_at: string | null;
+          delivered_at: string | null;
           created_at: string;
+          updated_at: string;
         },
         {
           id?: string;
@@ -261,7 +320,13 @@ export type Database = {
           line_total_amount: number;
           currency_code: string;
           product_metadata_snapshot?: Json;
+          fulfillment_status?: "unfulfilled" | "processing" | "shipped" | "delivered" | "cancelled";
+          tracking_code?: string | null;
+          shipment_note?: string | null;
+          shipped_at?: string | null;
+          delivered_at?: string | null;
           created_at?: string;
+          updated_at?: string;
         },
         {
           id?: string;
@@ -277,7 +342,13 @@ export type Database = {
           line_total_amount?: number;
           currency_code?: string;
           product_metadata_snapshot?: Json;
+          fulfillment_status?: "unfulfilled" | "processing" | "shipped" | "delivered" | "cancelled";
+          tracking_code?: string | null;
+          shipment_note?: string | null;
+          shipped_at?: string | null;
+          delivered_at?: string | null;
           created_at?: string;
+          updated_at?: string;
         }
       >;
       payments: TableDefinition<
@@ -462,6 +533,41 @@ export type Database = {
           created_at?: string;
         }
       >;
+      admin_audit_logs: TableDefinition<
+        {
+          id: string;
+          admin_user_id: string;
+          action_type: string;
+          target_table: string;
+          target_id: string | null;
+          before_data: Json | null;
+          after_data: Json | null;
+          reason: string | null;
+          created_at: string;
+        },
+        {
+          id?: string;
+          admin_user_id: string;
+          action_type: string;
+          target_table: string;
+          target_id?: string | null;
+          before_data?: Json | null;
+          after_data?: Json | null;
+          reason?: string | null;
+          created_at?: string;
+        },
+        {
+          id?: string;
+          admin_user_id?: string;
+          action_type?: string;
+          target_table?: string;
+          target_id?: string | null;
+          before_data?: Json | null;
+          after_data?: Json | null;
+          reason?: string | null;
+          created_at?: string;
+        }
+      >;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -469,6 +575,7 @@ export type Database = {
       user_role: "customer" | "seller" | "admin";
       seller_status: "pending" | "approved" | "rejected" | "suspended";
       product_status: "draft" | "active" | "archived" | "suspended";
+      coupon_type: "fixed" | "percentage";
       order_status:
         | "pending"
         | "confirmed"
@@ -484,6 +591,12 @@ export type Database = {
         | "failed"
         | "refunded"
         | "partially_refunded";
+      fulfillment_status:
+        | "unfulfilled"
+        | "processing"
+        | "shipped"
+        | "delivered"
+        | "cancelled";
     };
     CompositeTypes: Record<string, never>;
   };
