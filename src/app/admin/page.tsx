@@ -1,19 +1,21 @@
-import { Container } from "@/components/ui/container";
+import type { Metadata } from "next";
+import { AdminDashboardView } from "@/features/admin/components/admin-dashboard-view";
+import { getAdminDashboardSummary } from "@/features/admin/lib/admin-dashboard-repository";
 import { requireAdminRole } from "@/lib/auth/guards";
-import { AccessPlaceholder } from "@/features/auth/components/access-placeholder";
+
+export const metadata: Metadata = {
+  title: "Admin Dashboard",
+  description: "Platform overview and operational admin controls.",
+};
 
 export default async function AdminPage() {
-  await requireAdminRole("/admin");
+  const session = await requireAdminRole("/admin");
+  const summary = await getAdminDashboardSummary();
 
   return (
-    <div className="py-16">
-      <Container>
-        <AccessPlaceholder
-          eyebrow="Admin access"
-          title="Admin protection is ready for later platform controls"
-          description="This route stays intentionally minimal for now. It exists to prove the server-side admin role guard before real admin tooling is added."
-        />
-      </Container>
-    </div>
+    <AdminDashboardView
+      summary={summary}
+      adminName={session.profile?.fullName ?? session.profile?.email ?? "Platform operator"}
+    />
   );
 }
