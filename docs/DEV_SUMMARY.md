@@ -299,3 +299,241 @@ Built the seller-facing area of the marketplace: dashboard shell with metrics, p
 - seller approval/rejection admin flow
 - category and coupon management
 - generated Supabase types from real schema
+
+## 2026-04-20 - Phase 8 Admin Dashboard Foundation
+
+### Summary
+
+Built the admin-facing foundation of the marketplace: protected admin routes, platform summary metrics, seller moderation, product moderation, category and coupon management foundations, and platform-wide order monitoring.
+
+### Added
+
+- admin feature boundary at `src/features/admin/`:
+  - admin types for dashboard summary, sellers, products, categories, coupons, and orders
+  - repository modules for admin summary, seller moderation, product moderation, category management, coupon management, and order monitoring
+  - server actions for admin mutations with server-authoritative role enforcement
+  - reusable admin UI components for summary cards, navigation, status badges, moderation views, and order detail
+- admin routes:
+  - `/admin`
+  - `/admin/sellers`
+  - `/admin/products`
+  - `/admin/categories`
+  - `/admin/coupons`
+  - `/admin/orders`
+  - `/admin/orders/[id]`
+- moderation rules:
+  - seller transitions are explicit and allowlisted
+  - admin product reactivation returns `suspended` products to `draft`
+  - sellers can no longer edit or archive suspended products
+- shared catalog/admin improvement:
+  - seller product form now loads active categories from the database instead of raw UUID input
+- schema support:
+  - Phase 8 migration for `coupons` and `admin_audit_logs`
+  - hand-written database type subset extended for new admin tables
+  - best-effort admin audit log writes for sensitive admin actions
+
+### Notes
+
+- coupon storage and admin control exist, but checkout-side coupon validation is still deferred
+- admin order tooling is intentionally read-only in this phase
+- audit logging is intentionally lightweight and should be hardened later
+
+### Next Recommended Slice
+
+- checkout coupon validation and application
+- seller onboarding/application UI
+- generated Supabase types from the real schema
+
+## 2026-04-20 - Phase 8.5 Database Foundation And Role Workflow Fix
+
+### Summary
+
+Repaired the Supabase foundation so the project can be initialized from a fresh database instead of depending on missing early-phase tables. The migration history now bootstraps roles, profiles, catalog tables, cart tables, coupons/audit logs, and order/payment tables in dependency-safe order.
+
+### Added
+
+- ordered migration chain under `supabase/migrations/`:
+  - `202604200001_base_helpers_and_enums.sql`
+  - `202604200002_auth_profile_foundation.sql`
+  - `202604200003_catalog_foundation.sql`
+  - `202604200004_cart_foundation.sql`
+  - `202604200005_coupon_and_audit_foundation.sql`
+  - `202604200006_checkout_orders_payments_foundation.sql`
+- database-side profile bootstrap:
+  - `auth.users` insert trigger to create `public.profiles`
+  - auth update trigger to keep email/full name aligned
+  - backfill insert for existing auth users
+- helper SQL functions for:
+  - admin role checks
+  - current seller profile resolution
+  - ownership checks for carts and orders
+  - public product visibility checks
+- minimal RLS policies for:
+  - public catalog reads
+  - customer-owned carts and orders
+  - seller-owned product access
+  - admin-only coupon/audit access
+- repo setup docs:
+  - explicit migration order
+  - first-admin bootstrap query
+  - schema verification steps in README
+- app-side reconciliation improvement:
+  - `ensureProfileForUser()` now tolerates duplicate profile creation races cleanly
+
+### Notes
+
+- the hand-written `src/types/database.ts` file still exists and should be replaced with generated Supabase types next
+- existing partially-manual Supabase projects should be reset or reconciled before trusting them
+
+### Next Recommended Slice
+
+- generate real Supabase types from the finalized schema
+- add coupon validation during checkout
+- build seller onboarding/application UI
+
+## 2026-04-20 - Reset Phase 2 Product UX Reset And Role Separation
+
+### Summary
+
+Reset the app experience so it feels like a real marketplace product instead of a milestone demo. The public side now reads like a storefront, the account area is customer-first, navigation is role-aware, and seller/admin areas use cleaner operational language.
+
+### Added
+
+- storefront home component with:
+  - customer-facing hero
+  - category highlights
+  - featured product section
+  - role-separation/trust messaging
+- customer-facing order status label helper
+- seller navigation component with active-tab behavior
+
+### Changed
+
+- shared product shell:
+  - marketplace branding and tagline
+  - role-aware global header
+  - shopper-facing footer copy
+- public catalog:
+  - richer seed/demo catalog content
+  - more realistic product card and product detail copy
+  - improved empty and unavailable-product messaging
+- customer journey:
+  - customer-first account page
+  - cleaner cart, checkout, order list, and order detail language
+  - sign-in/sign-up copy aligned with real user journeys
+- seller/admin journey clarity:
+  - seller dashboard, listings, orders, and status messaging
+  - admin dashboard, moderation, category/coupon, and order-monitoring copy
+
+### Notes
+
+- this reset focused on product coherence and role separation, not final polish
+- seller onboarding, coupon redemption, and generated Supabase types remain the next deeper product steps
+- the existing build-time warning about catalog slug generation touching `cookies()` is still present and should be addressed in the next reset slice
+
+### Next Recommended Slice
+
+- seller onboarding application flow
+- checkout coupon redemption
+- generated Supabase database types
+- deeper customer account/profile management
+
+## 2026-04-20 - Reset Phase 3 Seller Onboarding And Store Setup
+
+### Summary
+
+Turned the seller area into a real marketplace workflow: signed-in customers can now apply to sell from inside the app, seller approval states are visible and understandable, store settings have a real home, and seller product management now feels more like inventory management than placeholder CRUD.
+
+### Added
+
+- seller onboarding flow:
+  - `/sell`
+  - seller application action that creates `seller_profiles` through the app
+  - store profile setup view and form
+- seller settings route:
+  - `/seller/settings`
+  - editable store name, slug, bio, and optional logo URL
+- seller status helper for consistent pending/approved/rejected/suspended copy
+
+### Changed
+
+- seller workspace:
+  - seller layout no longer blocks all non-approved users at the shell level
+  - dashboard messaging now reflects approval status and next steps
+  - seller navigation includes store settings
+- seller operations:
+  - products and orders pages are now approved-only at the page level
+  - product form now supports active category selection, stock rules, and gallery image URLs
+  - product list shows category, image coverage, and inventory state
+- role-aware UX:
+  - account page now includes a seller application or seller setup entry point
+  - global header now shows `Sell`, `Seller Setup`, or `Seller Dashboard` based on role/status
+- admin moderation compatibility:
+  - seller-status changes now revalidate seller onboarding/settings surfaces too
+
+### Notes
+
+- seller role and seller approval status remain separate
+- seller profile creation is now app-driven, not manual-SQL-driven
+- product and order tools remain server-authoritative and require approved seller status in server actions
+
+### Next Recommended Slice
+
+- coupon redemption and totals during checkout
+- generated Supabase database types
+- deeper customer account/profile management
+- richer seller image handling once the core workflow is stable
+
+## 2026-04-20 - Reset Phase 4 Marketplace Operations
+
+### Summary
+
+Made the marketplace feel operationally real: sellers now work from seller-scoped fulfillment views instead of read-only order history, customers can follow clearer order progress, coupons participate in real cart/checkout totals, and admin monitoring reflects operational state instead of placeholder labels.
+
+### Added
+
+- marketplace operations migration:
+  - `202604200007_marketplace_operations_reset.sql`
+  - `fulfillment_status` enum
+  - `carts.coupon_id`
+  - `order_items` fulfillment fields, timestamps, and trigger support
+  - seller fulfillment update policy and order-status sync trigger
+- coupon evaluation service for:
+  - active/inactive and date-window validation
+  - platform-wide vs seller-scoped applicability
+  - minimum-order checks
+  - total/per-user usage limits
+- seller order detail route:
+  - `/seller/orders/[id]`
+  - seller-scoped fulfillment update forms
+- shared order progress helper for operational-stage labels and descriptions
+
+### Changed
+
+- cart and checkout:
+  - coupon apply/remove flow in cart
+  - server-authoritative coupon totals in checkout
+  - pending orders now persist coupon and line-item discount amounts
+- customer orders:
+  - clearer operational stage badges
+  - item-level fulfillment, tracking, and shipment-note visibility
+- seller operations:
+  - seller orders are grouped into real order summaries
+  - seller fulfillment updates are limited to seller-owned `order_items`
+  - product inventory labels now distinguish low stock
+- admin operations:
+  - admin order views show operational stage and line-item fulfillment details
+  - admin product moderation view now surfaces inventory state more clearly
+
+### Notes
+
+- payment truth remains separate from fulfillment truth
+- seller fulfillment updates operate on `order_items`, not the entire `orders` row
+- build still warns about catalog static generation touching `cookies()` and falling back to demo data during build
+
+### Next Recommended Slice
+
+- generate real Supabase types from the applied schema
+- deepen customer profile/account management
+- resolve the catalog build-time `cookies()` warning
+- harden post-reset auditability and reliability

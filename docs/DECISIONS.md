@@ -408,12 +408,12 @@ Payment status transitions for the MVP Stripe integration follow a server-author
 
 ### Decision
 
-Seller dashboard access follows a four-layer authorization model:
+Seller-facing access follows a four-layer authorization model:
 
 1. **Authenticated user** — must be signed in
-2. **Seller role** — `profile.role === "seller"` (enforced at layout level)
-3. **Seller profile exists** — a `seller_profiles` record must exist
-4. **Approved status** — `seller_profile.status === "approved"` (enforced per-page for mutations)
+2. **Seller role** — `profile.role === "seller"`
+3. **Seller profile exists** — a `seller_profiles` record should exist for operational seller use
+4. **Approved status** — `seller_profile.status === "approved"` is required for product/order operations
 
 Ownership enforcement:
 
@@ -440,15 +440,195 @@ Seller order visibility:
 ### Why
 
 - Server-authoritative ownership prevents cross-seller data leakage
-- Status gating at layout level prevents pending/suspended sellers from accessing operational features
+- Seller onboarding and store settings need to stay available even when a seller is pending, rejected, or suspended
+- Product and order tools should only unlock after approval, but store profile management should remain accessible
 - Product lifecycle rules align with FEATURE_SPEC.md and DATABASE_SCHEMA.md
 - Two-query approach for order data works around missing Relationships metadata in hand-written Database types
 
 ### Consequences
 
-- Sellers must be created/approved via database seed or admin tools until seller onboarding UI is built
-- Hand-written Database types prevent Supabase join syntax — requires two-query workarounds
-- Category selection in seller product form uses raw UUID input until category management is available
+- seller layout can require seller role without automatically exposing all operational pages
+- approved-only checks belong on product/order pages and server actions, not only the layout shell
+- seller onboarding can promote a customer account into the seller role while still leaving operational access gated by `seller_profiles.status`
+- hand-written Database types prevent Supabase join syntax and still require some two-query workarounds
+
+---
+
+## D-017: Admin Moderation Transition Rules
+
+### Date
+
+2026-04-20
+
+### Decision
+
+Phase 8 admin moderation follows explicit MVP-safe transition rules:
+
+Seller status transitions:
+
+| Current | Allowed next statuses |
+|---|---|
+| `pending` | `approved`, `rejected`, `suspended` |
+| `approved` | `suspended` |
+| `rejected` | `approved`, `suspended` |
+| `suspended` | `approved`, `rejected` |
+
+Product moderation transitions:
+
+| Current | Admin action | Result |
+|---|---|---|
+| `draft`, `active` | suspend | `suspended` |
+| `suspended` | reactivate | `draft` |
+
+Additional boundary rule:
+
+- sellers cannot edit or archive products while the product is `suspended`
+- reactivating a suspended product returns it to `draft` so republishing is always explicit
+
+### Why
+
+- status changes need to be predictable and safe
+- seller suspension and product moderation must not break historical orders
+- reactivating to `draft` avoids silently making a moderated product public again
+- seller pages should never be able to undo admin moderation implicitly
+
+### Consequences
+
+- admin actions remain platform-scoped and operational
+- public catalog visibility changes automatically based on seller/product/category status checks already used by catalog and checkout reads
+- seller suspension and product suspension are ready for audit logging later
+
+---
+
+## D-018: Database Bootstrap And Profile Creation Model
+
+### Date
+
+2026-04-20
+
+### Decision
+
+The repository now uses an ordered Supabase bootstrap chain:
+
+1. base helpers and enums
+2. auth/profile foundation
+3. catalog foundation
+4. cart foundation
+5. coupon and admin-audit foundation
+6. checkout, orders, and payments foundation
+
+New `auth.users` rows create matching `public.profiles` rows through database triggers. The application-side `ensureProfileForUser()` helper remains as a reconciliation layer, not the primary bootstrap mechanism.
+
+### Why
+
+- the original migration set started at later feature phases and could not initialize a fresh Supabase project
+- profile creation must not depend on a user visiting a specific page after signup
+- keeping the bootstrap logic in the database makes the auth/profile contract explicit and reliable
+
+### Consequences
+
+- fresh projects should be initialized from migration history, not manual SQL guessing
+- later migrations may assume `profiles`, `seller_profiles`, `categories`, `products`, and related enums already exist
+- missing profile rows after signup should now be treated as an exceptional failure, not normal behavior
+
+---
+
+## D-019: First Admin Bootstrap Stays Explicit
+
+### Date
+
+2026-04-20
+
+### Decision
+
+The first admin is bootstrapped through an explicit manual SQL promotion step against `public.profiles`. There is no automatic “first signup becomes admin” rule.
+
+### Why
+
+- auto-admin behavior is convenient but insecure
+- the platform needs a clear operational bootstrap path without hidden magic
+
+### Consequences
+
+- README and setup docs must include the promotion query
+- local and production environments should both use the same explicit process
+- seller role bootstrap remains separate from admin bootstrap
+
+---
+
+## D-020: Seller Onboarding And Store Setup Flow
+
+### Date
+
+2026-04-20
+
+### Decision
+
+Seller onboarding is now an in-app workflow:
+
+- signed-in non-admin customers enter through `/sell`
+- submitting the seller application creates `seller_profiles` through the app
+- seller role and seller approval status remain separate
+- `/seller/settings` stays available for store profile edits even when the seller is pending, rejected, or suspended
+- products and orders remain approved-only operational areas
+
+Store setup fields for the MVP are:
+
+- store name
+- store slug
+- store description/bio
+- optional logo URL
+
+### Why
+
+- seller creation should no longer depend on manual SQL or hidden setup steps
+- marketplace operators still need approval control over who can actually sell
+- sellers need a realistic place to manage store identity before and after approval
+
+### Consequences
+
+- seller application writes must stay server-authoritative and derive the user identity from the session
+- header/account navigation should expose `Sell`, `Seller Setup`, or `Seller Dashboard` based on seller state
+- admin seller moderation remains the final control point for operational access
+
+---
+
+## D-021: Marketplace Operations Model
+
+### Date
+
+2026-04-20
+
+### Decision
+
+Reset Phase 4 uses a seller-scoped fulfillment model and a server-authoritative coupon model:
+
+- coupon validation happens during cart/checkout on the server
+- `carts.coupon_id` stores the currently selected coupon reference
+- pending-order creation persists `orders.coupon_id` plus per-line discount amounts
+- fulfillment state lives on `order_items`, not on `orders`
+- sellers update only their own `order_items` fulfillment fields
+- parent `orders.order_status` is synchronized from line-item fulfillment through a database trigger
+
+Fulfillment states:
+
+- `unfulfilled`
+- `processing`
+- `shipped`
+- `delivered`
+- `cancelled`
+
+### Why
+
+- multi-vendor orders make seller-controlled top-level order status unsafe
+- coupon totals must be revalidated at checkout and cannot trust client-side math
+- payment truth must remain separate from shipment/fulfillment truth
+
+### Consequences
+
+- customer, seller, and admin order views should derive a higher-level operational stage from payment status plus line-item fulfillment state
+- seller fulfillment updates must remain server-authoritative and seller-scoped
+- migration history now needs the marketplace-operations reset migration before these features work against a fresh project
 
 ---
 

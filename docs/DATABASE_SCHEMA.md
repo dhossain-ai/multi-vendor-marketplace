@@ -401,6 +401,7 @@ Represents a user's active cart container.
 
 - `id` UUID PK
 - `user_id` UUID not null unique references `profiles(id)`
+- `coupon_id` UUID nullable references `coupons(id)`
 - `created_at` timestamptz not null default now()
 - `updated_at` timestamptz not null default now()
 
@@ -411,6 +412,7 @@ Represents a user's active cart container.
 ### Indexes
 
 - unique index on `user_id`
+- index on `coupon_id`
 
 ### Notes
 
@@ -570,12 +572,24 @@ Stores immutable or semi-immutable line items for each order.
 - `discount_amount` numeric(12,2) not null default 0
 - `line_total_amount` numeric(12,2) not null
 - `currency_code` text not null
+- `fulfillment_status` fulfillment_status not null default `unfulfilled`
+- `tracking_code` text nullable
+- `shipment_note` text nullable
+- `shipped_at` timestamptz nullable
+- `delivered_at` timestamptz nullable
 - `product_metadata_snapshot` jsonb not null default '{}'::jsonb
 - `created_at` timestamptz not null default now()
+- `updated_at` timestamptz not null default now()
 
 ### Constraints
 
 - quantity > 0
+- fulfillment state is seller-operational data, not payment truth
+
+### Notes
+
+- multi-vendor seller fulfillment should update `order_items`, not the parent `orders` row directly
+- parent `orders.order_status` may be synchronized from line-item fulfillment for marketplace-safe summaries
 - non-negative amounts
 - seller_id required even if product later disappears
 
