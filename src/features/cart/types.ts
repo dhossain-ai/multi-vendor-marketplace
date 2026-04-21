@@ -16,6 +16,7 @@ export type CartItemAvailability =
 export type CartItem = {
   id: string;
   productId: string;
+  sellerId: string;
   productSlug: string;
   title: string;
   thumbnailUrl: string | null;
@@ -29,12 +30,23 @@ export type CartItem = {
   availabilityLabel: string;
 };
 
+export type CartAppliedCoupon = {
+  id: string;
+  code: string;
+  discountAmount: number;
+  isValid: boolean;
+  message: string;
+};
+
 export type CartSnapshot = {
   cartId: string | null;
   items: CartItem[];
   itemCount: number;
   subtotalAmount: number;
+  discountAmount: number;
+  totalAmount: number;
   currencyCode: string;
+  appliedCoupon: CartAppliedCoupon | null;
   hasUnavailableItems: boolean;
   isEmpty: boolean;
 };

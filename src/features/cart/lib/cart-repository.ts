@@ -1,6 +1,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabaseServiceRoleEnv } from "@/lib/config/env";
+import { evaluateCoupon } from "@/features/checkout/lib/coupon-service";
 import type { Database } from "@/types/database";
 import type { CartItem, CartItemAvailability, CartSnapshot } from "@/features/cart/types";
 
@@ -14,6 +15,7 @@ type CartCategoryRow = {
 };
 
 type CartSellerRow = {
+  id?: string | null;
   store_name?: string | null;
   slug?: string | null;
   status?: string | null;
@@ -47,6 +49,7 @@ type CartMutationProduct = {
   stockQuantity: number | null;
   isUnlimitedStock: boolean;
   seller: {
+    id: string;
     name: string;
     slug?: string | null;
     status?: string | null;
@@ -149,8 +152,9 @@ const mapProductRow = (row: CartProductRow | null | undefined): CartMutationProd
     thumbnailUrl: row.thumbnail_url ?? null,
     stockQuantity: row.stock_quantity ?? null,
     isUnlimitedStock: Boolean(row.is_unlimited_stock),
-    seller: seller?.store_name
+    seller: seller?.store_name && seller.id
       ? {
+          id: seller.id,
           name: seller.store_name,
           slug: seller.slug,
           status: seller.status,
@@ -180,6 +184,7 @@ const mapCartItem = (row: CartItemQueryRow): CartItem | null => {
   return {
     id: row.id,
     productId: product.id,
+    sellerId: product.seller?.id ?? "",
     productSlug: product.slug,
     title: product.title,
     thumbnailUrl: product.thumbnailUrl,
@@ -205,21 +210,26 @@ const mapCartItem = (row: CartItemQueryRow): CartItem | null => {
 };
 
 const buildCartSnapshot = (
-  cartId: string | null,
+  cart: CartRow | null,
   items: CartItem[],
+  appliedCoupon: CartSnapshot["appliedCoupon"],
 ): CartSnapshot => {
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
   const subtotalAmount = items.reduce(
     (total, item) => total + item.lineTotalAmount,
     0,
   );
+  const discountAmount = appliedCoupon?.isValid ? appliedCoupon.discountAmount : 0;
 
   return {
-    cartId,
+    cartId: cart?.id ?? null,
     items,
     itemCount,
     subtotalAmount,
+    discountAmount,
+    totalAmount: subtotalAmount - discountAmount,
     currencyCode: items[0]?.currencyCode ?? "USD",
+    appliedCoupon,
     hasUnavailableItems: items.some((item) => item.availability !== "available"),
     isEmpty: items.length === 0,
   };
@@ -284,6 +294,7 @@ const getProductForCart = async (
           is_active
         ),
         seller_profiles!products_seller_id_fkey (
+          id,
           store_name,
           slug,
           status
@@ -351,6 +362,7 @@ const listCartItemsByCartId = async (cartId: string): Promise<CartItem[]> => {
             is_active
           ),
           seller_profiles!products_seller_id_fkey (
+            id,
             store_name,
             slug,
             status
@@ -406,12 +418,33 @@ export async function getCartByUserId(userId: string): Promise<CartSnapshot> {
   const cart = await findCartByUserId(userId);
 
   if (!cart) {
-    return buildCartSnapshot(null, []);
+    return buildCartSnapshot(null, [], null);
   }
 
   const items = await listCartItemsByCartId(cart.id);
+  const evaluatedCoupon = cart.coupon_id
+    ? await evaluateCoupon({
+        userId,
+        items: items.map((item) => ({
+          cartItemId: item.id,
+          sellerId: item.sellerId,
+          lineSubtotalAmount: item.lineTotalAmount,
+        })),
+        subtotalAmount: items.reduce((sum, item) => sum + item.lineTotalAmount, 0),
+        couponId: cart.coupon_id,
+      }).catch(() => null)
+    : null;
+  const appliedCoupon = evaluatedCoupon
+    ? {
+        id: evaluatedCoupon.id,
+        code: evaluatedCoupon.code,
+        discountAmount: evaluatedCoupon.discountAmount,
+        isValid: evaluatedCoupon.isValid,
+        message: evaluatedCoupon.message,
+      }
+    : null;
 
-  return buildCartSnapshot(cart.id, items);
+  return buildCartSnapshot(cart, items, appliedCoupon);
 }
 
 export async function getCartItemCountByUserId(userId: string) {
@@ -530,7 +563,7 @@ export async function clearCartByUserId(userId: string) {
   const cart = await findCartByUserId(userId);
 
   if (!cart) {
-    return buildCartSnapshot(null, []);
+    return buildCartSnapshot(null, [], null);
   }
 
   const client = await getCartClient();
@@ -544,4 +577,65 @@ export async function clearCartByUserId(userId: string) {
   }
 
   return getCartByUserId(userId);
+}
+
+export async function applyCouponToCart(input: {
+  userId: string;
+  code: string;
+}) {
+  const cart = await ensureCartByUserId(input.userId);
+  const items = await listCartItemsByCartId(cart.id);
+
+  if (items.length === 0) {
+    throw new CartOperationError("Add items to your cart before applying a coupon.");
+  }
+
+  const subtotalAmount = items.reduce((sum, item) => sum + item.lineTotalAmount, 0);
+  const evaluatedCoupon = await evaluateCoupon({
+    userId: input.userId,
+    code: input.code.trim().toUpperCase(),
+    items: items.map((item) => ({
+      cartItemId: item.id,
+      sellerId: item.sellerId,
+      lineSubtotalAmount: item.lineTotalAmount,
+    })),
+    subtotalAmount,
+  }).catch((error) => {
+    throw new CartOperationError(
+      error instanceof Error ? error.message : "Unable to validate that coupon.",
+    );
+  });
+
+  if (!evaluatedCoupon?.isValid) {
+    throw new CartOperationError(
+      evaluatedCoupon?.message ?? "That coupon cannot be applied to the current cart.",
+    );
+  }
+
+  const client = await getCartClient();
+  const { error } = await client
+    .from("carts")
+    .update({ coupon_id: evaluatedCoupon.id })
+    .eq("id", cart.id)
+    .eq("user_id", input.userId);
+
+  if (error) {
+    throw new CartOperationError("Unable to save that coupon to the cart.");
+  }
+
+  return evaluatedCoupon;
+}
+
+export async function removeCouponFromCart(userId: string) {
+  const cart = await ensureCartByUserId(userId);
+  const client = await getCartClient();
+  const { error } = await client
+    .from("carts")
+    .update({ coupon_id: null })
+    .eq("id", cart.id)
+    .eq("user_id", userId);
+
+  if (error) {
+    throw new CartOperationError("Unable to remove the coupon from the cart.");
+  }
 }

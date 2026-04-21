@@ -6,8 +6,10 @@ import { requireAuthenticatedUser } from "@/lib/auth/guards";
 import { sanitizeRedirectPath } from "@/lib/auth/navigation";
 import {
   addItemToCart,
+  applyCouponToCart,
   CartOperationError,
   clearCartByUserId,
+  removeCouponFromCart,
   removeCartItem,
   updateCartItemQuantity,
 } from "@/features/cart/lib/cart-repository";
@@ -178,6 +180,61 @@ export async function clearCartAction() {
     redirect(
       buildCartPath({
         error: getFriendlyMessage(error, "The cart could not be cleared."),
+      }),
+    );
+  }
+}
+
+export async function applyCartCouponAction(formData: FormData) {
+  const session = await requireAuthenticatedUser("/cart");
+  const code = String(formData.get("code") ?? "").trim();
+
+  if (!code) {
+    redirect(
+      buildCartPath({
+        error: "Enter a coupon code before applying it.",
+      }),
+    );
+  }
+
+  try {
+    const coupon = await applyCouponToCart({
+      userId: session.user.id,
+      code,
+    });
+
+    revalidateCartSurface("/cart");
+    revalidatePath("/checkout");
+    redirect(
+      buildCartPath({
+        notice: `${coupon.code} was applied to your cart.`,
+      }),
+    );
+  } catch (error) {
+    redirect(
+      buildCartPath({
+        error: getFriendlyMessage(error, "That coupon could not be applied."),
+      }),
+    );
+  }
+}
+
+export async function removeCartCouponAction() {
+  const session = await requireAuthenticatedUser("/cart");
+
+  try {
+    await removeCouponFromCart(session.user.id);
+    revalidateCartSurface("/cart");
+    revalidatePath("/checkout");
+    redirect(
+      buildCartPath({
+        notice: "Coupon removed from cart.",
+      }),
+    );
+  } catch (error) {
+    redirect(
+      buildCartPath({
+        error: getFriendlyMessage(error, "The coupon could not be removed."),
       }),
     );
   }
