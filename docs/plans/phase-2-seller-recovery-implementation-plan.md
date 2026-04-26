@@ -74,7 +74,32 @@ Planned work:
 
 ### Phase 4 — Seller registration and application flow
 
+Goal: move seller application behavior to `/seller/register` and make both new-account and existing-account application flows match the locked decisions.
+
+Planned work:
+
+- Create `/seller/register`.
+- Preserve `/sell` for later public seller landing work; during transition it can link or redirect to `/seller/register`.
+- Expand application form and validation to required MVP fields.
+- Support existing signed-in customer application.
+- Support new unauthenticated applicant account creation plus seller application.
+- Keep duplicate application prevention.
+- Add rejected resubmission that sets status back to `pending`.
+- Keep pending/rejected/suspended/approved status-safe messaging.
+
 ### Phase 5 — Admin seller review and status history
+
+Goal: make admin review deliberate, auditable, and aligned with lifecycle decisions.
+
+Planned work:
+
+- Add seller detail review route if needed.
+- Add reason input for reject, suspend, and reactivate.
+- Add verified-email check before approval.
+- Write `seller_status_history` entries for all lifecycle transitions.
+- Continue writing `admin_audit_logs`.
+- Surface safe seller-visible reasons.
+- Keep suspended sellers' public products hidden through existing public visibility logic.
 
 ### Phase 6 — Seller dashboard and store settings
 
@@ -266,20 +291,127 @@ Do not generate types during Phase 2.
 
 | Route | Current state | Target state | Action |
 |---|---|---|---|
+| `/seller/register` | Missing. | Main seller application route for new applicants and existing signed-in users. | CREATE in Phase 4. |
+| `/sell` | Auth-gated application page. | Public seller landing/marketing entry page later, not the main application form. | REFACTOR later. In Phase 4, make it point to `/seller/register` or preserve temporarily with clear redirect behavior. |
+| `/seller` | Seller-role dashboard; customer/no-profile users are blocked. | Status-aware seller workspace for seller-role users; no-profile users should be guided to `/seller/register` from account/public entry points. | REFACTOR only enough to align status messaging after registration route exists. Keep approved-only operations locked. |
+| `/seller/settings` | Seller-role store profile edit/apply page; slug editable in all states. | Seller store settings/application details by status; slug editable only before approval. | REFACTOR in Phase 6. |
+| `/seller/products` | Approved-only seller product list. | Keep approved-only product list. | KEEP, then update metrics/status labels in Phase 7 as needed. |
+| `/seller/products/new` | Approved-only product create. | Approved-only product create; publish requires image and valid sellability. | REFACTOR validation in Phase 7. |
+| `/seller/products/[id]/edit` | Approved-only owned product edit. | Keep ownership checks; prevent seller editing admin-suspended products back to active. | KEEP with validation refinements in Phase 7. |
+| `/seller/orders` | Approved-only seller-scoped order list. | Approved-only seller-scoped order list with privacy-safe data. | REFACTOR in Phase 8. |
+| `/seller/orders/[id]` | Approved-only seller order detail; currently exposes email and seller cancellation. | Privacy-safe seller detail, own items only, no seller cancellation. | REFACTOR in Phase 8. |
+| `/admin/sellers` | Seller list/status actions only. | Seller list with filters/search and link to detail review. | REFACTOR in Phase 5. |
+| `/admin/sellers/[id]` | Missing. | Seller detail review with application fields, email verification status, lifecycle history, and actions. | CREATE if list cards cannot carry review safely. Recommended for client-ready admin flow. |
 
 ## 12. Server action/repository plan
 
 | Area | Current issue | Target behavior | Action |
 |---|---|---|---|
+| Seller application action | Current action is tied to `/sell` and only captures store name, slug, bio, logo. | `/seller/register` captures required fields and creates/updates one seller profile. | Split or rename action in Phase 4 after route is created. |
+| New applicant account creation | Existing `/sell` requires authenticated user. | Visitor can create auth user/profile and seller profile from `/seller/register`. | Add a dedicated registration action that creates/authenticates user, then creates pending seller profile. |
+| Existing user application | Existing signed-in customer can apply through `/sell`; role changes to seller. | Existing signed-in user applies through `/seller/register`; status pending. | Move flow to new route and preserve duplicate prevention. |
+| Duplicate application | Existing seller profile errors in repository. | Existing pending/approved/rejected/suspended profiles route to correct status/resubmission behavior. | Replace generic error with status-aware handling. |
+| Rejected resubmission | Missing. | Rejected seller edits application and resubmits; status becomes `pending`, `resubmitted_at` set, history written. | Add repository/action path after schema exists. |
+| Admin approve | No verified-email gate. | Approve only if auth email is verified; set approval fields; write history and audit. | Refactor `updateSellerStatus` workflow in Phase 5. |
+| Admin reject/suspend/reactivate | No reason input; generated reason only. | Require safe seller-visible reason; record lifecycle history and audit. | Add reason-aware admin actions and repository methods. |
+| Seller status history | Missing. | Every lifecycle mutation writes `seller_status_history`. | Add repository helper used by application/admin actions. |
+| Seller profile updates | Too broad by lifecycle; approved slug editable. | Status-aware allowed fields; slug locked after approval. | Add server-side field whitelist by status. |
+| Auth guards | `is_active` not enforced. | Inactive accounts cannot operate. | Update guard behavior in Phase 4 or 5, before broad route changes. |
 
 ## 13. UI/component plan
 
 | Area | Current issue | Target behavior | Action |
 |---|---|---|---|
+| Seller registration form | Current store form lacks required fields and lives under `/sell`. | `/seller/register` form includes store name, slug, description, support email, country, agreement checkbox, optional business email/phone. | Build in Phase 4 using existing form patterns. |
+| Seller status messaging | Generic status messages and no reasons. | Safe rejection/suspension reasons displayed where appropriate. | Update after schema/history support. |
+| Admin seller list | List cards have inline status actions but limited review context. | List links to detail review and/or shows pending-first review flow. | Refactor in Phase 5. |
+| Admin seller detail | Missing. | Detail view shows account/app fields, verification state, history, and actions with reason inputs. | Create `/admin/sellers/[id]` if needed. |
+| Reason input UI | Missing. | Reject/suspend/reactivate require safe reason input. | Add in admin review Phase 5. |
+| Approved slug editing | Store form always shows editable slug. | Slug disabled after approval with support/admin guidance. | Refactor in Phase 6. |
 
 ## 14. Seller registration implementation plan
 
+### New seller applicant flow
+
+1. Visitor opens `/seller/register`.
+2. If unauthenticated, form collects account fields plus seller application fields.
+3. Server creates auth user using existing auth patterns.
+4. Server ensures/creates `profiles` row.
+5. Server creates `seller_profiles` row with:
+   - `status = pending`
+   - required store/application fields
+   - `agreement_accepted_at`
+6. Server writes `seller_status_history` event `application_submitted`.
+7. User lands on a pending seller status page or `/seller/settings`.
+8. Approval remains blocked until email is verified.
+
+### Existing signed-in user flow
+
+1. Signed-in user opens `/seller/register`.
+2. If user is admin, block application and show account/admin-safe message.
+3. If user has no seller profile, show seller application fields only.
+4. Server creates pending seller profile and changes role to `seller` if the current profile role is `customer`.
+5. Server writes application history.
+6. User lands on pending status.
+
+### Duplicate application behavior
+
+- No seller profile: show application.
+- Pending profile: route to pending status/settings; allow edits but do not duplicate.
+- Approved profile: route to `/seller`.
+- Rejected profile: show rejection reason and resubmission form.
+- Suspended profile: show suspension reason/support guidance; no normal operations.
+
+### Validation requirements
+
+- Store name required and length-limited.
+- Store slug required, URL-safe, unique, and editable only before approval.
+- Store description required and length-limited.
+- Support email required and email-shaped.
+- Country required as `country_code`.
+- Agreement checkbox required and stored as timestamp.
+- Business email optional but validated if present.
+- Phone optional but length/format bounded.
+
 ## 15. Admin seller review implementation plan
+
+Admin review should move from simple inline status mutation to deliberate seller lifecycle decisions.
+
+Plan:
+
+- Keep `/admin/sellers` as the list route.
+- Add `/admin/sellers/[id]` unless a single-page detail expansion can cleanly provide review depth.
+- Load seller profile, owner profile, application fields, product count, order summary, email verification state, and status history.
+- Approval:
+  - Require admin role.
+  - Require seller profile exists.
+  - Require email verified.
+  - Set `status = approved`, `approved_at`, `approved_by`.
+  - Clear rejection/suspension reasons as appropriate.
+  - Write `seller_status_history` and `admin_audit_logs`.
+- Rejection:
+  - Require safe seller-visible reason.
+  - Set `status = rejected`.
+  - Set `rejection_reason`.
+  - Clear approval fields.
+  - Write history and audit.
+- Suspension:
+  - Require safe seller-visible reason.
+  - Set `status = suspended`.
+  - Set `suspension_reason`.
+  - Do not mutate product statuses automatically unless a future admin product policy requires it.
+  - Rely on public visibility requiring seller approved so products hide immediately.
+  - Write history and audit.
+- Reactivation:
+  - Require reason.
+  - Require email verified.
+  - Set `status = approved`, `approved_at`, `approved_by`.
+  - Clear suspension/rejection reason if product owner wants clean active display, while preserving history.
+  - Do not auto-activate archived or product-suspended products.
+  - Write history and audit.
+- Rejected resubmission:
+  - Triggered from seller side, not admin side.
+  - Sets `status = pending`, `resubmitted_at`, clears or preserves old rejection reason according to UI display decision, and writes history.
 
 ## 16. Seller dashboard implementation plan
 
