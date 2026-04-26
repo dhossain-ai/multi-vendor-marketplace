@@ -14,8 +14,8 @@ We enforced strict routing and view states for sellers depending on their applic
 ## Dashboard Metrics
 Approved sellers now see a complete set of MVP-realistic metrics scoped strictly to their store:
 - **Listings**: Total, active, draft, archived.
-- **Live Listings**: Shows active products and flags `lowStockProducts` (<= 5).
-- **Orders to Fulfill**: Count of `unfulfilledOrders` alongside total sold items.
+- **Live Listings**: Shows active products and flags `lowStockProducts` using the database schema `low_stock_threshold`.
+- **Orders to Fulfill**: Count of `unfulfilledOrders` that are not yet delivered or cancelled.
 - **Gross Sales**: Displays both 30-day and all-time `grossSalesAmount` calculated from paid order items.
 
 ## Store Settings Behavior
