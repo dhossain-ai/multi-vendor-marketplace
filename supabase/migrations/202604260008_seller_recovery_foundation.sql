@@ -90,4 +90,27 @@ with check (
   )
 );
 
+alter table public.products
+  add column if not exists low_stock_threshold integer not null default 5;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.products'::regclass
+      and conname = 'products_low_stock_threshold_non_negative'
+  ) then
+    alter table public.products
+      add constraint products_low_stock_threshold_non_negative
+      check (low_stock_threshold >= 0);
+  end if;
+end
+$$;
+
+create index if not exists products_seller_low_stock_idx
+  on public.products (seller_id, stock_quantity)
+  where is_unlimited_stock = false
+    and status in ('draft', 'active');
+
 commit;
