@@ -778,3 +778,9 @@ Recommended future commits:
 - Confirm shipping snapshot JSON shape before mapping seller-visible recipient/address/phone.
 - Confirm whether seller profile self-updates should rely on authenticated RLS or continue through service-role repositories with strict server checks.
 - Confirm local Supabase migration state before writing Phase 3 migration because old migrations may already contain the `public.is_admin()` helper mismatch.
+
+## Phase 3 implementation note
+
+Phase 3 added forward migration `supabase/migrations/202604260008_seller_recovery_foundation.sql` for seller recovery schema fields, `seller_status_history`, product `low_stock_threshold`, and the `public.is_admin()` compatibility wrapper.
+
+Local migration reset and Supabase type generation were not completed because the Supabase CLI could not connect to Docker Desktop on this machine. The exact blocker was inability to inspect `supabase_db_multi-vendor-marketplace` through the Docker Desktop Linux engine pipe. Before Phase 4 implementation, rerun a fresh local reset and regenerate `src/types/database.ts` in an environment with local Supabase/Docker available.
