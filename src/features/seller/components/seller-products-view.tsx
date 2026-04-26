@@ -31,7 +31,7 @@ const getInventoryLabel = (product: SellerProduct) => {
     return "Out of stock";
   }
 
-  if ((product.stockQuantity ?? 0) <= 5) {
+  if ((product.stockQuantity ?? 0) <= product.lowStockThreshold) {
     return `Low stock (${product.stockQuantity})`;
   }
 
@@ -161,7 +161,7 @@ export function SellerProductsView({
                   Images: {product.galleryImages.length + (product.thumbnailUrl ? 1 : 0)}
                 </span>
                 <span>
-                  Created: {new Date(product.createdAt).toLocaleDateString()}
+                  Updated: {new Date(product.updatedAt).toLocaleDateString()}
                 </span>
                 {product.publishedAt ? (
                   <span>
