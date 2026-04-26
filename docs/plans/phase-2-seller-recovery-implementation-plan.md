@@ -103,7 +103,30 @@ Planned work:
 
 ### Phase 6 — Seller dashboard and store settings
 
+Goal: make the seller dashboard operational and align store settings with status-specific rules.
+
+Planned work:
+
+- Expand dashboard repository/view-model.
+- Add all required dashboard metrics.
+- Display safe seller status reasons.
+- Make settings form status-aware.
+- Disable slug editing after approval.
+- Allow rejected resubmission from application/settings flow.
+- Keep suspended sellers locked out of normal operations.
+
 ### Phase 7 — Seller product and inventory rules
+
+Goal: align product creation/editing/publishing and inventory behavior with the seller blueprint.
+
+Planned work:
+
+- Require image/thumbnail only for publish.
+- Keep drafts savable without image.
+- Add low-stock threshold display/count using default `5`.
+- Allow active out-of-stock products to remain visible but not purchasable.
+- Keep approved-only product operations.
+- Keep admin-suspended products locked from seller reactivation.
 
 ### Phase 8 — Seller order privacy and fulfillment rules
 
@@ -317,6 +340,11 @@ Do not generate types during Phase 2.
 | Seller status history | Missing. | Every lifecycle mutation writes `seller_status_history`. | Add repository helper used by application/admin actions. |
 | Seller profile updates | Too broad by lifecycle; approved slug editable. | Status-aware allowed fields; slug locked after approval. | Add server-side field whitelist by status. |
 | Auth guards | `is_active` not enforced. | Inactive accounts cannot operate. | Update guard behavior in Phase 4 or 5, before broad route changes. |
+| Dashboard repository | Current summary lacks low stock, orders needing fulfillment, recent orders, and 30-day sales. | Seller dashboard returns store status, product counts, low-stock count, fulfillment-needs count, recent orders, all-time sales, 30-day sales. | Expand repository in Phase 6 after schema/types are ready. |
+| Store settings repository | Current update accepts slug in every lifecycle state. | Slug update allowed only before approval; status-specific field whitelist. | Add status-aware update method in Phase 6. |
+| Product validation | Current active product requires stock but not image; active zero-stock limited product is blocked. | Publish requires image/category/price; zero-stock active product can remain visible but checkout blocks purchase. | Refactor validation in Phase 7. |
+| Low-stock threshold | No product threshold field. | Use `products.low_stock_threshold`, default `5`. | Add read/write support after Phase 3 migration. |
+| Product visibility | Current DB visibility hides suspended sellers through seller status approval check. | Preserve this behavior. | Keep and verify in Phase 7/9. |
 
 ## 13. UI/component plan
 
@@ -328,6 +356,10 @@ Do not generate types during Phase 2.
 | Admin seller detail | Missing. | Detail view shows account/app fields, verification state, history, and actions with reason inputs. | Create `/admin/sellers/[id]` if needed. |
 | Reason input UI | Missing. | Reject/suspend/reactivate require safe reason input. | Add in admin review Phase 5. |
 | Approved slug editing | Store form always shows editable slug. | Slug disabled after approval with support/admin guidance. | Refactor in Phase 6. |
+| Dashboard metrics | Current dashboard shows total/live/sold/gross sales only. | Show store status, product counts, low stock, fulfillment needs, recent orders, all-time sales, 30-day sales, quick actions. | Refactor in Phase 6. |
+| Store settings form | Current fields are name, slug, bio, logo. | Include support email, country, optional business email/phone; status-aware slug editing. | Refactor in Phase 6. |
+| Product form publish controls | Current form allows publish without image and blocks zero-stock active products. | Publish requires image; out-of-stock active listings can remain visible but not purchasable. | Refactor in Phase 7. |
+| Product inventory labels | Current list has hardcoded low stock threshold `5`. | Use default/per-product threshold consistently and include dashboard low-stock count. | Refactor in Phase 7. |
 
 ## 14. Seller registration implementation plan
 
@@ -415,7 +447,98 @@ Plan:
 
 ## 16. Seller dashboard implementation plan
 
+Dashboard should answer "what needs my attention today?" for approved sellers and provide clear state guidance for non-approved sellers.
+
+Repository/view-model requirements:
+
+- `storeStatus`
+- `storeName`
+- `storeSlug`
+- `totalProducts`
+- `draftProducts`
+- `activeProducts`
+- `archivedProducts`
+- `lowStockProducts`
+- `ordersNeedingFulfillment`
+- `recentOrders`
+- `allTimeGrossSalesAmount`
+- `last30DaysGrossSalesAmount`
+- `currencyCode`
+
+Metric definitions:
+
+- Product counts are seller-scoped.
+- Low stock counts limited-stock products with `stock_quantity > 0` and `stock_quantity <= low_stock_threshold`.
+- Unlimited-stock products are excluded from low-stock counts.
+- Orders needing fulfillment are based on seller-owned `order_items` in actionable states such as `unfulfilled` and `processing`.
+- Recent orders are seller-scoped order summaries and must not include other sellers' line items.
+- Gross sales are seller-owned paid line totals, not payout/net sales.
+- Last-30-days sales should use order placed/created date consistently and be documented in code comments if the data source is ambiguous.
+
+Status behavior:
+
+- No seller profile: point to `/seller/register` from public/account entry points.
+- Pending: show pending review and application details.
+- Rejected: show safe rejection reason and resubmit path.
+- Suspended: show safe suspension reason and support/admin guidance.
+- Approved: show operational dashboard.
+
+Store settings requirements:
+
+- Store name editable when seller can edit profile.
+- Store description editable when seller can edit profile.
+- Support email and country required.
+- Business email and phone optional.
+- Slug editable only before approval.
+- Approved slug input should be disabled or omitted with support/admin guidance.
+- Suspended sellers should not be able to perform normal operations; profile edits should be limited to support-safe fields only if the implementation phase explicitly allows it.
+
 ## 17. Seller product/inventory implementation plan
+
+Product operations remain approved-seller-only.
+
+Create/draft:
+
+- Approved seller can create a product.
+- `seller_id` is always server-derived.
+- Draft products can be saved without image.
+- Draft validation can be more permissive than publish validation, but should still enforce bounded title/slug/price fields enough to avoid unusable data.
+
+Publish:
+
+- Seller status must be approved.
+- Product must have valid title and slug.
+- Product must have valid active category.
+- Product must have valid price greater than zero.
+- Product must have either thumbnail image or at least one gallery image.
+- Limited-stock product can publish with zero stock if out-of-stock visible behavior is desired, but checkout/cart must prevent purchase.
+- Unlimited-stock product does not require `stock_quantity`.
+
+Edit:
+
+- Seller can edit only own products.
+- Seller cannot change `seller_id`.
+- Seller cannot edit an admin-suspended product back to active.
+- If an edit invalidates publish requirements, active save should fail or force draft according to implementation design. Prefer failing with a clear message for MVP.
+
+Archive:
+
+- Archive remains a soft remove from selling/history-preserving action.
+- Archived products are not purchasable.
+- Existing order item references remain intact.
+
+Inventory:
+
+- Limited stock: `is_unlimited_stock = false`, stock quantity integer `>= 0`.
+- Unlimited stock: `is_unlimited_stock = true`, stock quantity null/ignored.
+- Low stock threshold defaults to `5`.
+- Low stock alert applies only to limited products above zero.
+- Out-of-stock means limited product with `stock_quantity = 0`.
+- Out-of-stock products stay visible if active but checkout/cart must block purchase.
+
+Implementation caution:
+
+- Product publish rules and checkout purchasability rules are related but not identical. Do not hide out-of-stock products by making product public visibility depend on stock.
 
 ## 18. Seller order/fulfillment implementation plan
 
