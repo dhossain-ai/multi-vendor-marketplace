@@ -113,4 +113,14 @@ create index if not exists products_seller_low_stock_idx
   where is_unlimited_stock = false
     and status in ('draft', 'active');
 
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select public.is_admin_user()
+$$;
+
 commit;
