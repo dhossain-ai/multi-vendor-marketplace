@@ -154,6 +154,16 @@ as $$
   select coalesce(public.current_user_role() = 'admin', false)
 $$;
 
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select public.is_admin_user()
+$$;
+
 create or replace function public.current_seller_profile_id()
 returns uuid
 language sql
