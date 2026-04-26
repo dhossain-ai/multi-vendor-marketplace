@@ -558,3 +558,334 @@ Customer-facing storefront visibility should require at least:
 - Seller is approved.
 - Store profile has required public fields.
 - Store is not manually hidden by admin.
+
+## 12. Product Management Flow
+
+Product management is approved-seller-only for MVP. Pending, rejected, suspended, and no-profile users must not be able to create or modify sellable products.
+
+### Create Product
+
+An approved seller can create a product owned by their seller profile.
+
+Required product fields:
+
+- Product title.
+- Slug or generated URL handle.
+- Description or short description.
+- Category.
+- Price.
+- Currency.
+- Inventory mode.
+- Product status: draft or active.
+
+Recommended product fields:
+
+- Thumbnail image.
+- Gallery images.
+- SKU.
+- Low-stock threshold.
+- Basic product metadata.
+
+Creation rules:
+
+- `seller_id` must come from the authenticated session's seller profile, not from client input.
+- Seller must be approved at write time.
+- Category must exist and be active if the product is published.
+- Price must be non-negative and use a supported currency.
+- Product slug must be unique within the expected product URL strategy.
+
+### Save Draft
+
+Draft is the safe default for incomplete product work.
+
+Draft rules:
+
+- Draft products are visible to the seller and admins only.
+- Draft products are not purchasable.
+- Draft products may have incomplete public-selling fields, within validation limits.
+- Draft products still belong to exactly one seller.
+
+### Publish
+
+Publishing makes a product eligible for public catalog visibility, subject to all visibility rules.
+
+Publish requirements:
+
+- Seller status is `approved`.
+- Product status is changed to `active`.
+- Required product content is complete.
+- Category is selected and active.
+- Price is valid.
+- Inventory is valid and sellable, unless unlimited stock is enabled.
+- Product has required image(s), if the marketplace requires images for public listings.
+
+Public visibility should require seller approval, product active status, and category availability. A product should not be publicly visible just because its own status is active.
+
+### Edit
+
+Approved sellers can edit their own products.
+
+Rules:
+
+- Ownership must be checked on every edit.
+- Sellers cannot change `seller_id`.
+- Editing an active product should immediately affect future browsing/purchasing unless a later moderation workflow is added.
+- If an edit makes an active product invalid for sale, the system should block the save or force the product back to draft.
+
+### Archive
+
+Archiving removes a product from active selling without deleting history.
+
+Rules:
+
+- Archived products are not publicly purchasable.
+- Archived products remain visible to seller/admin history.
+- Existing order items continue to reference their purchased product snapshot or product id.
+- Sellers can usually restore archived products to draft or active if all publish requirements are met.
+
+Hard deletion is not part of seller MVP because products may be referenced by orders, carts, audit logs, or analytics.
+
+### Images
+
+Images should support:
+
+- One thumbnail/primary image.
+- Optional gallery images.
+- Alt text where practical.
+- Stable sort order.
+
+Validation expectations:
+
+- Accept only allowed image storage sources or uploaded assets.
+- Prevent arbitrary untrusted URLs if the platform uses managed storage.
+- Limit image count and size.
+- Do not let image updates bypass product ownership checks.
+
+### Category Selection
+
+Sellers should choose from active marketplace categories.
+
+Rules:
+
+- A product can be saved as draft without category only if draft validation allows it.
+- A product cannot be published without an active category.
+- If an admin deactivates a category, affected active products should no longer be publicly purchasable until moved to an active category.
+
+### Price
+
+Price rules:
+
+- Store price in minor units or a precise decimal strategy; do not rely on floating-point math for money.
+- Currency must be explicit.
+- Active products must have a price greater than zero unless the marketplace explicitly supports free products.
+- Seller cannot change payment status, payouts, or order totals by editing product price after purchase.
+- Order items must preserve the purchased unit price at checkout time.
+
+### Inventory
+
+Inventory is part of the product's sellability state.
+
+Rules:
+
+- Product must choose limited or unlimited stock.
+- Limited-stock products require a non-negative stock quantity.
+- Unlimited-stock products should not require a stock quantity.
+- Publishing should be blocked for limited-stock products with zero stock unless the marketplace allows visible out-of-stock listings.
+- Checkout must validate stock server-side before creating order items.
+
+## 13. Inventory Rules
+
+Inventory rules should be simple and predictable for MVP.
+
+### Limited Stock
+
+Limited stock means the seller has a finite quantity available.
+
+Rules:
+
+- `is_unlimited_stock = false`.
+- `stock_quantity` is required.
+- `stock_quantity` must be an integer greater than or equal to zero.
+- Checkout reserves or decrements stock using a server-side, concurrency-safe operation.
+- Sellers cannot set negative stock.
+
+### Unlimited Stock
+
+Unlimited stock means the product can be sold without stock depletion.
+
+Rules:
+
+- `is_unlimited_stock = true`.
+- `stock_quantity` should be null or ignored.
+- Product is not low stock or out of stock due to quantity.
+- Useful for digital goods, made-to-order products, or services only if the marketplace allows those categories.
+
+### Low Stock
+
+Low stock is an alert state for limited-stock products.
+
+Default MVP rule:
+
+- A product is low stock when `is_unlimited_stock = false`, `stock_quantity > 0`, and `stock_quantity <= low_stock_threshold`.
+
+If no per-product threshold exists, use a marketplace default such as 5 units.
+
+### Out Of Stock
+
+Out of stock applies to limited-stock products with zero available quantity.
+
+Rules:
+
+- Product cannot be purchased when out of stock.
+- Product may remain visible as out of stock if the project owner wants demand capture.
+- Product should be excluded from "active sellable" counts if active sellable means purchasable now.
+
+### Stock Validation Expectations
+
+Stock must be validated in server-side operations, not only in the UI.
+
+Validation must occur when:
+
+- Creating or updating a product.
+- Publishing a product.
+- Adding to cart, if cart stock validation is supported.
+- Checking out.
+- Admins modify inventory.
+
+Checkout is the final authority. If stock changed between cart and checkout, checkout should fail gracefully or adjust according to the cart/checkout blueprint.
+
+## 14. Seller Order Flow
+
+Seller orders are derived from order items owned by the seller. In a multi-vendor marketplace, the order is customer-facing and platform-level; the seller's operational unit is their subset of order items.
+
+### Seller-Scoped Order List
+
+An approved seller can view orders containing at least one item with `order_items.seller_id` equal to their seller profile id.
+
+List fields:
+
+- Order id and order number.
+- Placed date.
+- Seller-owned item count.
+- Seller-owned quantity.
+- Seller-owned gross total.
+- Seller-owned fulfillment status summary.
+- Customer name, if allowed by privacy policy.
+- Destination region or shipping summary, if needed for fulfillment.
+
+The list must not include orders where the seller has no items.
+
+### Seller Order Detail
+
+Seller order detail should show only the seller-relevant slice of the order.
+
+Seller-visible fields:
+
+- Order number.
+- Order placed date.
+- Seller-owned line items.
+- Product title/sku snapshot.
+- Quantity.
+- Unit price at purchase.
+- Line total.
+- Fulfillment status for each seller-owned item.
+- Tracking code and shipment note for seller-owned fulfillment.
+- Customer shipping name and address fields required to fulfill the seller's items.
+- Customer email or phone only if needed for fulfillment/support and allowed by policy.
+
+Seller-hidden fields:
+
+- Other sellers' line items.
+- Other sellers' fulfillment details.
+- Platform payment processor details.
+- Payment status update controls.
+- Internal fraud/risk notes.
+- Admin-only customer account details.
+
+### Own Line Items Only
+
+Every seller order query must filter by server-derived seller profile id. Client-supplied seller ids are not trusted.
+
+Rules:
+
+- Seller can read only order items owned by their seller profile.
+- Seller can update fulfillment only for order items owned by their seller profile.
+- Seller cannot infer other sellers' products, quantities, totals, or fulfillment states from the response.
+
+### Customer/Shipping Info Visibility
+
+Sellers need enough shipping data to fulfill physical goods, but no more than necessary.
+
+MVP visibility:
+
+- Shipping recipient name.
+- Shipping address.
+- Shipping phone only if carrier/shipping workflow needs it.
+- Customer email only if seller support workflow needs direct communication.
+
+Do not expose billing details, payment method details, or unrelated customer profile data to sellers.
+
+### Fulfillment States
+
+Recommended item-level fulfillment states:
+
+- `unfulfilled`
+- `processing`
+- `shipped`
+- `delivered`
+- `cancelled`
+
+Seller-allowed updates for MVP:
+
+- `unfulfilled` -> `processing`
+- `unfulfilled` -> `shipped`
+- `processing` -> `shipped`
+- `shipped` -> `delivered`
+
+Admin-only or restricted updates:
+
+- Any transition to `cancelled`, unless the project owner explicitly allows seller cancellation.
+- Backward transitions such as `delivered` -> `processing`.
+- Payment-related changes.
+
+### Tracking Code
+
+When marking an item shipped, the seller should be able to provide a tracking code.
+
+Rules:
+
+- Tracking code is optional only if the marketplace supports non-tracked shipping.
+- Tracking code must be stored on seller-owned order item fulfillment data.
+- Tracking code changes must be owner-checked and auditable enough for support.
+
+### Shipment Note
+
+Shipment note lets the seller provide carrier, handoff, pickup, or delivery context.
+
+Rules:
+
+- Shipment note is seller-editable only for seller-owned order items.
+- Notes should be bounded in length.
+- Notes should not contain internal admin-only data.
+
+## 15. Fulfillment Rules
+
+Fulfillment belongs to order items in multi-vendor orders. A single customer order can contain items from multiple sellers, and each seller may fulfill at a different time.
+
+Core rules:
+
+- `orders` represent the customer's platform-level purchase.
+- `order_items` represent seller-owned fulfillment units.
+- Seller fulfillment updates apply to the seller's own order items only.
+- Seller cannot update platform payment status.
+- Seller cannot update platform order status directly.
+- Seller cannot update other sellers' order items.
+- Platform/admin logic may derive whole-order status from item-level fulfillment states.
+
+Whole-order examples:
+
+- If all non-cancelled items are delivered, the platform may mark the order complete.
+- If one seller ships and another is still processing, the customer order is partially fulfilled.
+- If an item is cancelled by admin, order totals/refunds require a separate refunds/payments flow outside seller MVP.
+
+Seller fulfillment actions must be idempotent where possible. Re-submitting the same tracking code/status should not corrupt order state.
