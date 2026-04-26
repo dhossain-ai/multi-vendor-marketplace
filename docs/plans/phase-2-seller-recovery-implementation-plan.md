@@ -144,6 +144,18 @@ Planned work:
 
 ### Phase 9 — Seller QA, security, and cleanup
 
+Goal: verify the recovered seller flow end to end and remove obsolete seller behavior only after replacement paths are stable.
+
+Planned work:
+
+- Run migration/type verification.
+- Run seller lifecycle QA.
+- Run admin review QA.
+- Run ownership/security checks.
+- Run product publish/inventory QA.
+- Run order privacy/fulfillment QA.
+- Remove or redirect obsolete `/sell` application behavior after `/seller/register` is stable.
+
 ## 7. Database delta plan
 
 | Area | Current issue | Required change | Migration needed | Notes |
@@ -610,12 +622,159 @@ Granularity decision:
 
 ## 19. Cleanup/removal plan
 
+Remove or retire only after replacement behavior is implemented and tested:
+
+- Remove seller application form responsibility from `/sell`.
+- Remove seller-facing cancellation controls from order detail UI.
+- Remove seller cancellation acceptance from seller fulfillment server action.
+- Remove seller cancellation path from seller repository transition logic.
+- Remove default customer email exposure from seller order types/views.
+- Remove approved seller self-service slug editing.
+- Remove generic admin status buttons that do not require reasons, once reason-based actions exist.
+
+Keep:
+
+- `/sell` route file as future seller landing page entry.
+- Internal `seller` naming.
+- Existing seller product/order route structure.
+- Existing admin audit infrastructure, supplemented by `seller_status_history`.
+
 ## 20. Testing and QA plan
+
+Phase 9 should include automated and manual QA. Earlier implementation phases should add targeted tests as they change behavior.
+
+Database/RLS QA:
+
+- Migration applies cleanly to a fresh local database.
+- Migration applies cleanly to an existing seeded database.
+- `seller_profiles` new fields are present and validated.
+- `seller_status_history` records lifecycle events.
+- Fulfillment RLS policy uses the correct admin helper.
+- Public product query hides suspended sellers' products.
+
+Auth/permission QA:
+
+- Inactive profile cannot access seller/admin operations.
+- Customer without seller profile cannot perform seller writes.
+- Pending/rejected/suspended sellers cannot create products, publish, view seller orders, or update fulfillment.
+- Approved seller can access only own products and order items.
+- Admin-only review actions require admin role.
+
+Registration QA:
+
+- New applicant can submit `/seller/register`.
+- Existing signed-in customer can submit application.
+- Duplicate pending/approved/suspended profiles do not create a second seller profile.
+- Rejected seller can resubmit and status becomes `pending`.
+- Agreement checkbox is required and timestamped.
+
+Admin review QA:
+
+- Admin cannot approve unverified email.
+- Admin can approve verified pending seller.
+- Reject requires safe visible reason.
+- Suspend requires safe visible reason.
+- Reactivate requires reason and verified email.
+- Status history and audit logs are written.
+
+Dashboard/settings QA:
+
+- Dashboard shows required counts and sales periods.
+- Low-stock count excludes unlimited and zero-stock products.
+- Orders needing fulfillment count seller-owned actionable items.
+- Approved seller cannot edit slug.
+- Rejected seller sees safe reason and resubmission path.
+- Suspended seller sees safe reason and cannot operate.
+
+Product/inventory QA:
+
+- Draft can save without image.
+- Publish fails without image.
+- Publish requires active category and valid price.
+- Out-of-stock active product remains visible but cannot be purchased.
+- Seller cannot edit admin-suspended product back to active.
+
+Order/fulfillment QA:
+
+- Seller sees only own line items in multi-vendor order.
+- Seller does not see customer email by default.
+- Seller sees only fulfillment-needed shipping fields.
+- Seller cannot cancel paid order item.
+- Seller cannot update payment status.
+- Seller cannot update another seller's items.
 
 ## 21. Do-not-build-yet list
 
+- Do not build payouts.
+- Do not build refunds.
+- Do not build seller staff accounts.
+- Do not build warehouse complexity.
+- Do not build disputes.
+- Do not build advanced analytics.
+- Do not build seller subscriptions.
+- Do not build shipping label purchase.
+- Do not build product reviews/ratings.
+- Do not build wishlist/favorites.
+- Do not build bulk product import/export.
+- Do not convert `/sell` into a polished marketing page until the recovery flow is stable.
+- Do not introduce `vendor_profiles`.
+- Do not rename internal seller concepts to vendor.
+
 ## 22. Recommended implementation order
+
+1. Phase 3: write and apply seller database migration.
+2. Phase 3: fix/confirm fulfillment RLS helper mismatch.
+3. Phase 3: regenerate Supabase types.
+4. Phase 4: implement `/seller/register` for existing signed-in users first.
+5. Phase 4: add new unauthenticated applicant account creation path.
+6. Phase 4: implement duplicate status handling and rejected resubmission.
+7. Phase 5: implement `seller_status_history` repository helpers and admin reason-based transitions.
+8. Phase 5: add verified-email approval gate.
+9. Phase 5: add admin seller detail review if needed.
+10. Phase 6: expand seller dashboard repository and UI metrics.
+11. Phase 6: update store settings fields and approved slug lock.
+12. Phase 7: update product publish/image/inventory validation.
+13. Phase 7: update low-stock and out-of-stock behavior.
+14. Phase 8: remove seller cancellation path.
+15. Phase 8: update seller order privacy and shipping snapshot display.
+16. Phase 8: refine fulfillment update granularity.
+17. Phase 9: run security, RLS, lifecycle, and multi-vendor QA.
+18. Phase 9: clean up `/sell` application behavior and obsolete UI paths.
 
 ## 23. Commit strategy for future implementation phases
 
+Use small conventional commits by recovery layer. Avoid mixing schema, UI, and behavior in one commit unless a migration requires a type update commit immediately after.
+
+Recommended future commits:
+
+- `db: add seller application fields and status history`
+- `db: fix seller fulfillment rls helper`
+- `chore: regenerate supabase database types`
+- `feat: add seller registration route`
+- `feat: support seller application resubmission`
+- `feat: add admin seller review detail`
+- `feat: require reasons for seller moderation`
+- `fix: require verified email before seller approval`
+- `feat: expand seller dashboard metrics`
+- `feat: update seller store settings fields`
+- `fix: lock seller slug after approval`
+- `fix: require image before product publish`
+- `feat: add seller low stock dashboard count`
+- `fix: preserve active out of stock visibility`
+- `fix: remove seller order cancellation`
+- `fix: hide customer email from seller orders`
+- `feat: show seller shipping fulfillment details`
+- `test: cover seller lifecycle permissions`
+- `test: cover seller product inventory rules`
+- `test: cover seller fulfillment privacy`
+- `chore: clean up legacy sell application flow`
+
 ## 24. Open blockers
+
+- Confirm exact Supabase auth field/API to use for email verification in admin approval.
+- Confirm whether `seller_profiles.slug` can be made non-null immediately or needs a backfill/temporary nullable period.
+- Confirm if `seller_status_history` should be seller-readable directly through RLS or only exposed through server actions.
+- Confirm whether seller fulfillment should update individual order items or the seller's full shipment slice per order.
+- Confirm shipping snapshot JSON shape before mapping seller-visible recipient/address/phone.
+- Confirm whether seller profile self-updates should rely on authenticated RLS or continue through service-role repositories with strict server checks.
+- Confirm local Supabase migration state before writing Phase 3 migration because old migrations may already contain the `public.is_admin()` helper mismatch.
