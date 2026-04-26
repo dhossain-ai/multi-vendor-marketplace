@@ -77,3 +77,29 @@ No migration SQL was applied during Phase 3.5. The helper-order defect was corre
 
 `src/types/database.ts` was not regenerated and was intentionally not hand-edited.
 
+## 8. Application checks
+
+| Command | Result | Notes |
+|---|---|---|
+| `npm run lint` | Passed | No code changes were needed. |
+| `npm run typecheck` | Passed | Ran against the current, not regenerated, database types. |
+| `npm run build` | Passed | Build completed; existing catalog demo-data fallback warnings remain. |
+
+## 9. Remaining risks
+
+- Full migration-chain application is still unverified because local Supabase cannot run without Docker.
+- The Phase 3 seller recovery migration is syntactically reviewed but not applied to a database in this environment.
+- `src/types/database.ts` remains stale and does not include the Phase 3 seller recovery schema.
+- A remote Supabase URL is present in app env, but the repository is not CLI-linked and there is no local proof that the remote project is disposable/dev.
+- Phase 4 code built now would either need temporary hand-written type workarounds or would rely on stale schema assumptions.
+
+## 10. Phase 4 gate
+
+Phase 4 is not unblocked yet.
+
+Before building `/seller/register`, run one of these verified paths:
+
+1. Start Docker Desktop/local Supabase, run `npx supabase db reset`, then run `npx supabase gen types typescript --local > src/types/database.ts`.
+2. Link a confirmed disposable dev Supabase project, run the safest migration verification path for that project, then run `npx supabase gen types typescript --project-id <DEV_PROJECT_ID> > src/types/database.ts`.
+
+Do not use the existing remote URL for migration pushes unless the project owner confirms it is non-production and safe for destructive/dev schema verification.
