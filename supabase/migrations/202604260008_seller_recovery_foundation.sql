@@ -45,4 +45,49 @@ create index if not exists seller_profiles_resubmitted_at_desc_idx
   on public.seller_profiles (resubmitted_at desc)
   where resubmitted_at is not null;
 
+create table if not exists public.seller_status_history (
+  id uuid primary key default gen_random_uuid(),
+  seller_id uuid not null references public.seller_profiles(id) on delete cascade,
+  previous_status public.seller_status null,
+  new_status public.seller_status not null,
+  changed_by uuid null references public.profiles(id) on delete set null,
+  reason text null,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists seller_status_history_seller_id_idx
+  on public.seller_status_history (seller_id);
+
+create index if not exists seller_status_history_changed_by_idx
+  on public.seller_status_history (changed_by)
+  where changed_by is not null;
+
+create index if not exists seller_status_history_created_at_desc_idx
+  on public.seller_status_history (created_at desc);
+
+grant all on public.seller_status_history to service_role;
+grant select, insert on public.seller_status_history to authenticated;
+
+alter table public.seller_status_history enable row level security;
+
+drop policy if exists seller_status_history_select_admin on public.seller_status_history;
+create policy seller_status_history_select_admin
+on public.seller_status_history
+for select
+to authenticated
+using (public.is_admin_user());
+
+drop policy if exists seller_status_history_insert_admin on public.seller_status_history;
+create policy seller_status_history_insert_admin
+on public.seller_status_history
+for insert
+to authenticated
+with check (
+  public.is_admin_user()
+  and (
+    changed_by is null
+    or changed_by = auth.uid()
+  )
+);
+
 commit;
