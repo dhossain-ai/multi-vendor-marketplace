@@ -132,6 +132,8 @@ function parseProductFormData(formData: FormData): SellerProductFormData {
   const currencyCode = (formData.get("currencyCode") as string | null) ?? "USD";
   const stockQuantityRaw = formData.get("stockQuantity") as string | null;
   const isUnlimitedStock = formData.get("isUnlimitedStock") === "on";
+  const lowStockThresholdRaw = formData.get("lowStockThreshold") as string | null;
+  const lowStockThreshold = lowStockThresholdRaw ? parseInt(lowStockThresholdRaw, 10) : 5;
   const status = (formData.get("status") as string | null) === "active" ? "active" as const : "draft" as const;
   const categoryId = (formData.get("categoryId") as string | null) || null;
   const thumbnailUrl = (formData.get("thumbnailUrl") as string | null) || null;
@@ -149,6 +151,7 @@ function parseProductFormData(formData: FormData): SellerProductFormData {
     currencyCode,
     stockQuantity: isUnlimitedStock ? null : (stockQuantityRaw ? parseInt(stockQuantityRaw, 10) : null),
     isUnlimitedStock,
+    lowStockThreshold: Number.isNaN(lowStockThreshold) ? 5 : lowStockThreshold,
     status,
     categoryId,
     thumbnailUrl,
@@ -195,6 +198,10 @@ async function validateProductForm(data: SellerProductFormData): Promise<string 
     }
   }
 
+  if (Number.isNaN(data.lowStockThreshold) || data.lowStockThreshold < 0) {
+    return "Low stock threshold must be zero or a positive number.";
+  }
+
   const categories = await getActiveCategoryOptions();
   const hasCategories = categories.length > 0;
 
@@ -209,6 +216,10 @@ async function validateProductForm(data: SellerProductFormData): Promise<string 
 
     if (!data.isUnlimitedStock && (data.stockQuantity ?? 0) < 1) {
       return "Active products need at least 1 item in stock or unlimited stock.";
+    }
+
+    if (!data.thumbnailUrl && data.galleryImageUrls.length === 0) {
+      return "Active products require a thumbnail or at least one gallery image.";
     }
   }
 
