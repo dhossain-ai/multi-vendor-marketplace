@@ -23,7 +23,7 @@ export async function getSellerDashboardSummary(
   // Product counts by status
   const { data: products, error: productsError } = await client
     .from("products")
-    .select("id, status, stock_quantity, is_unlimited_stock")
+    .select("id, status, stock_quantity, is_unlimited_stock, low_stock_threshold")
     .eq("seller_id", sellerProfileId);
 
   if (productsError) {
@@ -36,7 +36,10 @@ export async function getSellerDashboardSummary(
   const draftProducts = allProducts.filter((p) => p.status === "draft").length;
   const archivedProducts = allProducts.filter((p) => p.status === "archived").length;
   const lowStockProducts = allProducts.filter(
-    (p) => !p.is_unlimited_stock && p.stock_quantity !== null && p.stock_quantity <= 5,
+    (p) =>
+      !p.is_unlimited_stock &&
+      p.stock_quantity !== null &&
+      p.stock_quantity <= (p.low_stock_threshold ?? 5),
   ).length;
 
   // Seller order items — get all, then cross-check with paid orders
@@ -97,7 +100,11 @@ export async function getSellerDashboardSummary(
 
   const unfulfilledOrders = new Set(
     paidItems
-      .filter((item) => item.fulfillment_status === "processing")
+      .filter(
+        (item) =>
+          item.fulfillment_status !== "delivered" &&
+          item.fulfillment_status !== "cancelled",
+      )
       .map((item) => item.order_id)
   ).size;
 
