@@ -21,9 +21,9 @@ Phase 3 added `supabase/migrations/202604260008_seller_recovery_foundation.sql` 
 |---|---|---|
 | Docker Desktop | Blocked | Docker API pipe `dockerDesktopLinuxEngine` is unavailable. |
 | Local Supabase reset | Blocked | `npx supabase db reset` cannot inspect the local Supabase DB container without Docker. |
-| Supabase CLI link | Blocked | `npx supabase migration list` reports no linked project ref. |
-| Remote project ref | Present in app env only | `.env.local` contains a Supabase URL, but the repo has no CLI link or evidence that the project is disposable/dev. |
-| Remote migration push | Not attempted | Avoided because the available remote project cannot be confirmed as non-production. |
+| Supabase CLI link | Available | Project owner linked dev project `hhfcmcopjvyitjxcrmoy`. |
+| Remote project ref | Confirmed dev by project owner | Remote push was approved only after explicit confirmation that the linked project is dev. |
+| Remote migration push | Completed | `npx supabase db push` applied all local migrations to the linked dev project. |
 
 ## 4. Migration helper ordering check
 
@@ -41,21 +41,21 @@ The Phase 3 migration contains the expected seller recovery objects:
 
 | Object | Migration state | Verification state |
 |---|---|---|
-| `seller_profiles.support_email` | Added if missing | Pending database reset/apply |
-| `seller_profiles.business_email` | Added if missing | Pending database reset/apply |
-| `seller_profiles.phone` | Added if missing | Pending database reset/apply |
-| `seller_profiles.country_code` | Added if missing | Pending database reset/apply |
-| `seller_profiles.agreement_accepted_at` | Added if missing | Pending database reset/apply |
-| `seller_profiles.rejection_reason` | Added if missing | Pending database reset/apply |
-| `seller_profiles.suspension_reason` | Added if missing | Pending database reset/apply |
-| `seller_profiles.resubmitted_at` | Added if missing | Pending database reset/apply |
-| `seller_profiles.approved_at` | Confirmed/added if missing | Pending database reset/apply |
-| `seller_profiles.approved_by` | Confirmed/added if missing with FK guard | Pending database reset/apply |
-| `seller_status_history` | Created if missing with seller, actor, reason, and timestamp fields | Pending database reset/apply |
-| `products.low_stock_threshold` | Added if missing with default `5` | Pending database reset/apply |
-| `products_low_stock_threshold_non_negative` | Added if missing | Pending database reset/apply |
-| `public.is_admin_user()` | Existing canonical helper | Pending database reset/apply |
-| `public.is_admin()` | Added early for compatibility and repeated in Phase 3 migration | Pending database reset/apply |
+| `seller_profiles.support_email` | Added if missing | Verified through dev push and generated types |
+| `seller_profiles.business_email` | Added if missing | Verified through dev push and generated types |
+| `seller_profiles.phone` | Added if missing | Verified through dev push and generated types |
+| `seller_profiles.country_code` | Added if missing | Verified through dev push and generated types |
+| `seller_profiles.agreement_accepted_at` | Added if missing | Verified through dev push and generated types |
+| `seller_profiles.rejection_reason` | Added if missing | Verified through dev push and generated types |
+| `seller_profiles.suspension_reason` | Added if missing | Verified through dev push and generated types |
+| `seller_profiles.resubmitted_at` | Added if missing | Verified through dev push and generated types |
+| `seller_profiles.approved_at` | Confirmed/added if missing | Verified through dev push and generated types |
+| `seller_profiles.approved_by` | Confirmed/added if missing with FK guard | Verified through dev push and generated types |
+| `seller_status_history` | Created if missing with seller, actor, reason, and timestamp fields | Verified through dev push and generated types |
+| `products.low_stock_threshold` | Added if missing with default `5` | Verified through dev push and generated types |
+| `products_low_stock_threshold_non_negative` | Added if missing | Verified through dev push |
+| `public.is_admin_user()` | Existing canonical helper | Verified through dev push and generated types |
+| `public.is_admin()` | Added early for compatibility and repeated in Phase 3 migration | Verified through dev push and generated types |
 
 Indexes in the Phase 3 migration cover seller profile country/support email/resubmission lookups, seller status history seller/actor/date lookups, and seller low-stock product queries.
 
@@ -64,42 +64,38 @@ Indexes in the Phase 3 migration cover seller profile country/support email/resu
 | Command | Result | Notes |
 |---|---|---|
 | `docker info --format '{{.ServerVersion}}'` | Failed | Docker daemon/API pipe is unavailable. |
-| `npx supabase migration list` | Failed | Supabase CLI reports the project is not linked. |
+| `npx supabase migration list` | Timed out before project owner relinked | Replaced by dry run and explicit dev push after project owner confirmation. |
 | `npx supabase db reset` | Failed before migration execution | Local Supabase could not inspect `supabase_db_multi-vendor-marketplace` because Docker Desktop is unavailable. |
+| `npx supabase db push --dry-run` | Passed | Reported all eight local migrations would be pushed. |
+| `npx supabase db push` | Passed | Applied all eight migrations to linked dev project `hhfcmcopjvyitjxcrmoy`. |
 
-No migration SQL was applied during Phase 3.5. The helper-order defect was corrected in the migration files, but the full chain still requires a real reset against local Supabase or a confirmed disposable dev project.
+Migration SQL was applied to the linked dev project after the project owner confirmed it was safe. Local fresh reset remains unavailable until Docker Desktop is running.
 
 ## 7. Type generation result
 
 | Command | Result | Notes |
 |---|---|---|
 | `npx supabase gen types typescript --local` | Failed | Same Docker/local Supabase blocker as reset. |
+| `npx supabase gen types typescript --project-id hhfcmcopjvyitjxcrmoy > src/types/database.ts` | Passed | Types were regenerated from the linked dev database. |
 
-`src/types/database.ts` was not regenerated and was intentionally not hand-edited.
+`src/types/database.ts` was regenerated from Supabase CLI output and was not hand-edited.
 
 ## 8. Application checks
 
 | Command | Result | Notes |
 |---|---|---|
 | `npm run lint` | Passed | No code changes were needed. |
-| `npm run typecheck` | Passed | Ran against the current, not regenerated, database types. |
+| `npm run typecheck` | Passed | Ran against regenerated database types. |
 | `npm run build` | Passed | Build completed; existing catalog demo-data fallback warnings remain. |
 
 ## 9. Remaining risks
 
-- Full migration-chain application is still unverified because local Supabase cannot run without Docker.
-- The Phase 3 seller recovery migration is syntactically reviewed but not applied to a database in this environment.
-- `src/types/database.ts` remains stale and does not include the Phase 3 seller recovery schema.
-- A remote Supabase URL is present in app env, but the repository is not CLI-linked and there is no local proof that the remote project is disposable/dev.
-- Phase 4 code built now would either need temporary hand-written type workarounds or would rely on stale schema assumptions.
+- Local fresh reset is still unavailable until Docker Desktop is running.
+- The remote dev push applied the chain to an existing dev database, so it is not a substitute for an empty local reset when Docker becomes available.
+- Existing catalog build warnings about `cookies()` during static generation remain outside this seller database phase.
 
 ## 10. Phase 4 gate
 
-Phase 4 is not unblocked yet.
+Phase 4 is unblocked for seller registration implementation against the linked dev schema and regenerated types.
 
-Before building `/seller/register`, run one of these verified paths:
-
-1. Start Docker Desktop/local Supabase, run `npx supabase db reset`, then run `npx supabase gen types typescript --local > src/types/database.ts`.
-2. Link a confirmed disposable dev Supabase project, run the safest migration verification path for that project, then run `npx supabase gen types typescript --project-id <DEV_PROJECT_ID> > src/types/database.ts`.
-
-Do not use the existing remote URL for migration pushes unless the project owner confirms it is non-production and safe for destructive/dev schema verification.
+When Docker Desktop becomes available, still run a local `npx supabase db reset` as an additional clean-room check.
