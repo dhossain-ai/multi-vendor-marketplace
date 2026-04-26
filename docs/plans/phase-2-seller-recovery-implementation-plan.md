@@ -130,6 +130,18 @@ Planned work:
 
 ### Phase 8 — Seller order privacy and fulfillment rules
 
+Goal: make seller order handling safe for multi-vendor fulfillment and customer privacy.
+
+Planned work:
+
+- Remove seller-facing cancellation for paid items.
+- Hide customer email by default.
+- Expose shipping recipient/address/phone only when needed for fulfillment.
+- Keep seller order queries scoped to own `order_items`.
+- Keep seller unable to mutate payment status.
+- Decide and implement item-level fulfillment updates instead of whole seller order slice updates, if feasible.
+- Verify fulfillment RLS helper fix from Phase 3.
+
 ### Phase 9 — Seller QA, security, and cleanup
 
 ## 7. Database delta plan
@@ -345,6 +357,10 @@ Do not generate types during Phase 2.
 | Product validation | Current active product requires stock but not image; active zero-stock limited product is blocked. | Publish requires image/category/price; zero-stock active product can remain visible but checkout blocks purchase. | Refactor validation in Phase 7. |
 | Low-stock threshold | No product threshold field. | Use `products.low_stock_threshold`, default `5`. | Add read/write support after Phase 3 migration. |
 | Product visibility | Current DB visibility hides suspended sellers through seller status approval check. | Preserve this behavior. | Keep and verify in Phase 7/9. |
+| Seller order repository | Current detail exposes customer email and omits shipping snapshot. | Return privacy-safe shipping fulfillment data without default email exposure. | Refactor in Phase 8. |
+| Fulfillment update action | Current action accepts `cancelled`. | Seller can update only processing/shipped/delivered transitions; cancellation is admin-only. | Remove seller cancellation path in Phase 8. |
+| Fulfillment update target | Current repository updates all seller-owned items in an order for a seller/status update. | Prefer selected seller-owned order item updates, or explicitly document seller-slice update behavior if retained. | Decide and refactor in Phase 8. |
+| Payment mutation | Seller code reads payment status and does not update payments. | Preserve no seller payment mutation. | Keep and test. |
 
 ## 13. UI/component plan
 
@@ -360,6 +376,9 @@ Do not generate types during Phase 2.
 | Store settings form | Current fields are name, slug, bio, logo. | Include support email, country, optional business email/phone; status-aware slug editing. | Refactor in Phase 6. |
 | Product form publish controls | Current form allows publish without image and blocks zero-stock active products. | Publish requires image; out-of-stock active listings can remain visible but not purchasable. | Refactor in Phase 7. |
 | Product inventory labels | Current list has hardcoded low stock threshold `5`. | Use default/per-product threshold consistently and include dashboard low-stock count. | Refactor in Phase 7. |
+| Seller order list | Current list is seller-scoped but not focused on fulfillment needs. | Seller order list highlights own items, fulfillment status, and action-needed orders. | Refactor in Phase 8. |
+| Seller order detail | Current detail includes cancellation control and customer email. | Show own items, shipping recipient/address/phone as needed, tracking/note controls, no email by default, no cancellation. | Refactor in Phase 8. |
+| Fulfillment controls | Current controls include processing, shipped, delivered, cancelled. | Allow processing/shipped/delivered only for seller; cancellation admin-only. | Remove seller cancellation UI in Phase 8. |
 
 ## 14. Seller registration implementation plan
 
@@ -541,6 +560,53 @@ Implementation caution:
 - Product publish rules and checkout purchasability rules are related but not identical. Do not hide out-of-stock products by making product public visibility depend on stock.
 
 ## 18. Seller order/fulfillment implementation plan
+
+Seller order work should preserve the current good foundation: seller order reads are derived from seller-owned `order_items`, not whole customer orders. The recovery work is about privacy, cancellation, and fulfillment granularity.
+
+Order list:
+
+- Load only orders with seller-owned `order_items`.
+- Show order number, placed date, seller-owned item count, seller-owned quantity, seller-owned gross amount, and seller-owned fulfillment status summary.
+- Do not show other sellers' line items.
+- Emphasize orders needing action where seller-owned items are `unfulfilled` or `processing`.
+
+Order detail:
+
+- Load only seller-owned line items for the selected order.
+- Do not expose other sellers' line items or totals.
+- Do not expose customer email by default.
+- Parse `orders.shipping_address_snapshot` into a safe seller fulfillment shape:
+  - recipient name
+  - address lines/city/region/postal/country as available
+  - phone only if present and needed for shipment
+- Never expose billing address, payment provider details, payment status mutation controls, or internal risk/admin notes.
+
+Fulfillment updates:
+
+- Seller can update own order items only.
+- Seller cannot update payment status.
+- Seller cannot update platform order status directly.
+- Seller cannot update other sellers' items.
+- Seller cannot cancel paid order items in MVP.
+- Allowed seller transitions:
+  - `unfulfilled` -> `processing`
+  - `unfulfilled` -> `shipped`
+  - `processing` -> `shipped`
+  - `shipped` -> `delivered`
+- Admin/platform retains `cancelled` for order item cancellation workflows outside seller MVP.
+
+Tracking and shipment notes:
+
+- Tracking code can be saved for shipped/delivered items.
+- Shipment note can be saved for seller-owned items.
+- Add length validation for shipment note.
+- Preserve idempotency for repeated status submissions.
+
+Granularity decision:
+
+- Preferred implementation: seller updates selected owned `order_items` by item id.
+- Acceptable MVP fallback: seller updates all of their owned items in an order only if the UI clearly presents the action as updating the seller's full shipment for that order.
+- Do not allow a seller-supplied item id to bypass seller ownership checks.
 
 ## 19. Cleanup/removal plan
 
