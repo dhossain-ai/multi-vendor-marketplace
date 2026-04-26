@@ -93,17 +93,17 @@ export function SellerDashboardView({
             <MetricCard
               label="Live listings"
               value={summary.activeProducts}
-              sublabel="Visible to customers"
+              sublabel={`${summary.lowStockProducts} running low on stock`}
             />
             <MetricCard
-              label="Sold items"
-              value={summary.totalOrderItems}
-              sublabel="Paid line items"
+              label="Orders to fulfill"
+              value={summary.unfulfilledOrders}
+              sublabel={`${summary.totalOrderItems} total sold items`}
             />
             <MetricCard
-              label="Gross sales"
-              value={formatPrice(summary.grossSalesAmount, summary.currencyCode)}
-              sublabel="From paid orders"
+              label="30-day sales"
+              value={formatPrice(summary.last30DaysGrossSales, summary.currencyCode)}
+              sublabel={`All-time: ${formatPrice(summary.grossSalesAmount, summary.currencyCode)}`}
             />
           </div>
 
@@ -156,17 +156,49 @@ export function SellerDashboardView({
         </>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className="border-border bg-panel rounded-[1.75rem] border p-6 shadow-[var(--shadow-panel)]">
-            <p className="text-brand text-sm font-semibold tracking-[0.12em] uppercase">
-              Store profile
-            </p>
-            <p className="text-foreground mt-2 text-xl font-semibold">
-              Keep your storefront details current
-            </p>
-            <p className="text-ink-muted mt-2 text-sm leading-7">
-              Add a clear name, slug, description, and optional logo so the marketplace team can review your application with the right context.
-            </p>
-          </div>
+          {sellerProfile?.status === "rejected" ? (
+            <div className="border-red-200 bg-red-50 rounded-[1.75rem] border p-6 shadow-[var(--shadow-panel)]">
+              <p className="text-red-900 text-sm font-semibold tracking-[0.12em] uppercase">
+                Rejection reason
+              </p>
+              <p className="text-red-900 mt-2 text-xl font-semibold">
+                Application needs changes
+              </p>
+              <p className="text-red-800 mt-2 text-sm leading-7">
+                {sellerProfile.rejectionReason ?? "No reason provided."}
+              </p>
+              <Link
+                href="/seller/register"
+                className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-red-900 px-5 text-sm font-semibold text-white hover:bg-red-800"
+              >
+                Resubmit application
+              </Link>
+            </div>
+          ) : sellerProfile?.status === "suspended" ? (
+            <div className="border-red-200 bg-red-50 rounded-[1.75rem] border p-6 shadow-[var(--shadow-panel)]">
+              <p className="text-red-900 text-sm font-semibold tracking-[0.12em] uppercase">
+                Suspension reason
+              </p>
+              <p className="text-red-900 mt-2 text-xl font-semibold">
+                Store operations paused
+              </p>
+              <p className="text-red-800 mt-2 text-sm leading-7">
+                {sellerProfile.suspensionReason ?? "No reason provided."}
+              </p>
+            </div>
+          ) : (
+            <div className="border-border bg-panel rounded-[1.75rem] border p-6 shadow-[var(--shadow-panel)]">
+              <p className="text-brand text-sm font-semibold tracking-[0.12em] uppercase">
+                Store profile
+              </p>
+              <p className="text-foreground mt-2 text-xl font-semibold">
+                Keep your storefront details current
+              </p>
+              <p className="text-ink-muted mt-2 text-sm leading-7">
+                Add a clear name, slug, description, and optional logo so the marketplace team can review your application with the right context.
+              </p>
+            </div>
+          )}
 
           <div className="border-border bg-panel rounded-[1.75rem] border p-6 shadow-[var(--shadow-panel)]">
             <p className="text-brand text-sm font-semibold tracking-[0.12em] uppercase">
