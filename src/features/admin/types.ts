@@ -41,11 +41,34 @@ export type AdminSeller = {
   ownerName: string | null;
   bio: string | null;
   logoUrl: string | null;
+  supportEmail: string | null;
+  businessEmail: string | null;
+  phone: string | null;
+  countryCode: string | null;
+  agreementAcceptedAt: string | null;
+  rejectionReason: string | null;
+  suspensionReason: string | null;
+  resubmittedAt: string | null;
   approvedAt: string | null;
   approvedBy: string | null;
   productCount: number;
   createdAt: string;
   updatedAt: string;
+};
+
+export type AdminSellerHistoryEvent = {
+  id: string;
+  sellerId: string;
+  changedBy: string | null;
+  previousStatus: AdminSellerStatus | null;
+  newStatus: AdminSellerStatus;
+  reason: string | null;
+  createdAt: string;
+};
+
+export type AdminSellerDetail = AdminSeller & {
+  emailConfirmedAt: string | null;
+  history: AdminSellerHistoryEvent[];
 };
 
 export type AdminProduct = {

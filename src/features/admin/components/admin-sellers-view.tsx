@@ -3,6 +3,7 @@ import { AdminActionButton } from "@/features/admin/components/admin-action-butt
 import { AdminStatusBadge } from "@/features/admin/components/admin-status-badge";
 import { updateSellerStatusAction } from "@/features/admin/lib/admin-actions";
 import type { AdminSeller, AdminSellerStatus } from "@/features/admin/types";
+import Link from "next/link";
 
 type AdminSellersViewProps = {
   sellers: AdminSeller[];
@@ -100,9 +101,11 @@ export function AdminSellersView({
                     ) : null}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-                      {seller.storeName}
-                    </h2>
+                    <Link href={`/admin/sellers/${seller.id}`} className="hover:underline">
+                      <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                        {seller.storeName}
+                      </h2>
+                    </Link>
                     <p className="mt-1 text-sm text-ink-muted">
                       {seller.ownerName ?? "Seller owner"} · {seller.ownerEmail ?? "No email recorded"}
                     </p>

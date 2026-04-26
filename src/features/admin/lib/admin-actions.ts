@@ -167,9 +167,11 @@ export async function updateSellerStatusAction(formData: FormData) {
   const session = await requireAdminRole("/admin/sellers");
   const sellerId = getRequiredString(formData, "sellerId");
   const nextStatus = getRequiredString(formData, "status") as AdminSellerStatus;
+  const reason = getOptionalString(formData, "reason");
+  const returnTo = getOptionalString(formData, "returnTo") || "/admin/sellers";
 
   if (!sellerId || !["approved", "rejected", "suspended"].includes(nextStatus)) {
-    redirect(buildRedirect("/admin/sellers", "error", "Invalid seller moderation request."));
+    redirect(buildRedirect(returnTo, "error", "Invalid seller moderation request."));
   }
 
   try {
@@ -177,7 +179,7 @@ export async function updateSellerStatusAction(formData: FormData) {
       adminUserId: session.user.id,
       sellerId,
       nextStatus,
-      reason: `Admin set seller status to ${nextStatus}.`,
+      reason: reason || (nextStatus === "approved" ? "Admin approved seller." : null),
     });
 
     revalidateAdminShell();
@@ -187,13 +189,14 @@ export async function updateSellerStatusAction(formData: FormData) {
     revalidatePath("/seller/settings");
     revalidatePath("/seller/products");
     revalidatePath("/seller/orders");
+    revalidatePath(`/admin/sellers/${sellerId}`);
     revalidatePath("/");
     revalidatePath("/cart");
     revalidatePath("/checkout");
 
     redirect(
       buildRedirect(
-        "/admin/sellers",
+        returnTo,
         "notice",
         `Seller updated to ${nextStatus}.`,
       ),
@@ -204,7 +207,7 @@ export async function updateSellerStatusAction(formData: FormData) {
         ? error.message
         : "Unable to update seller status.";
 
-    redirect(buildRedirect("/admin/sellers", "error", message));
+    redirect(buildRedirect(returnTo, "error", message));
   }
 }
 
