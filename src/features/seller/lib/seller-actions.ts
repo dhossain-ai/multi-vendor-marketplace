@@ -6,6 +6,7 @@ import { requireAuthenticatedUser, requireSellerRole, requireApprovedSeller } fr
 import { getActiveCategoryOptions } from "@/features/shared/lib/category-repository";
 import {
   createSellerApplication,
+  submitSellerApplication,
   updateSellerProfile,
   SellerProfileError,
 } from "@/features/seller/lib/seller-profile-repository";
@@ -20,6 +21,7 @@ import {
   updateSellerOrderFulfillment,
 } from "@/features/seller/lib/seller-order-repository";
 import type {
+  SellerApplicationFormData,
   SellerProductFormData,
   SellerStoreProfileFormData,
 } from "@/features/seller/types";
@@ -55,6 +57,23 @@ function parseStoreProfileFormData(formData: FormData): SellerStoreProfileFormDa
   };
 }
 
+function parseSellerApplicationFormData(formData: FormData): SellerApplicationFormData {
+  const storeProfile = parseStoreProfileFormData(formData);
+  const supportEmail = (formData.get("supportEmail") as string | null) ?? "";
+  const countryCode = (formData.get("countryCode") as string | null) ?? "";
+  const businessEmail = (formData.get("businessEmail") as string | null) || null;
+  const phone = (formData.get("phone") as string | null) || null;
+
+  return {
+    ...storeProfile,
+    supportEmail: supportEmail.trim().toLowerCase(),
+    countryCode: countryCode.trim().toUpperCase(),
+    businessEmail: businessEmail ? businessEmail.trim().toLowerCase() : null,
+    phone: phone ? phone.trim() : null,
+    agreementAccepted: formData.get("agreementAccepted") === "on",
+  };
+}
+
 function validateStoreProfileForm(data: SellerStoreProfileFormData): string | null {
   if (!data.storeName || data.storeName.length < 2) {
     return "Store name must be at least 2 characters.";
@@ -66,6 +85,39 @@ function validateStoreProfileForm(data: SellerStoreProfileFormData): string | nu
 
   if (data.logoUrl && !isValidHttpUrl(data.logoUrl)) {
     return "Logo URL must be a valid http or https address.";
+  }
+
+  return null;
+}
+
+const looksLikeEmail = (value: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+function validateSellerApplicationForm(data: SellerApplicationFormData): string | null {
+  const storeError = validateStoreProfileForm(data);
+
+  if (storeError) {
+    return storeError;
+  }
+
+  if (!data.bio || data.bio.length < 20) {
+    return "Store description must be at least 20 characters.";
+  }
+
+  if (!data.supportEmail || !looksLikeEmail(data.supportEmail)) {
+    return "Enter a valid support email for your store.";
+  }
+
+  if (data.businessEmail && !looksLikeEmail(data.businessEmail)) {
+    return "Business email must be a valid email address.";
+  }
+
+  if (!data.countryCode || data.countryCode.length < 2) {
+    return "Choose the country where your store operates.";
+  }
+
+  if (!data.agreementAccepted) {
+    return "You must accept the seller terms before submitting.";
   }
 
   return null;
@@ -210,6 +262,66 @@ export async function createSellerApplicationAction(formData: FormData) {
         : "Unable to submit the seller application.";
 
     redirect(buildSellerRedirect("/sell", "error", message));
+  }
+}
+
+export async function submitSellerApplicationAction(formData: FormData) {
+  const session = await requireAuthenticatedUser("/seller/register");
+
+  if (!session.profile) {
+    redirect(buildSellerRedirect("/account", "error", "Account profile not found."));
+  }
+
+  if (session.profile.role === "admin") {
+    redirect(
+      buildSellerRedirect(
+        "/account",
+        "error",
+        "Admin accounts cannot apply through the seller onboarding flow.",
+      ),
+    );
+  }
+
+  if (session.sellerProfile?.status === "approved") {
+    redirect("/seller");
+  }
+
+  const data = parseSellerApplicationFormData(formData);
+  const validationError = validateSellerApplicationForm(data);
+
+  if (validationError) {
+    redirect(buildSellerRedirect("/seller/register", "error", validationError));
+  }
+
+  try {
+    await submitSellerApplication({
+      userId: session.user.id,
+      currentRole: session.profile.role,
+      storeProfile: data,
+    });
+
+    revalidatePath("/account");
+    revalidatePath("/sell");
+    revalidatePath("/seller/register");
+    revalidatePath("/seller");
+    revalidatePath("/seller/settings");
+    revalidatePath("/admin/sellers");
+    revalidatePath("/");
+
+    redirect(
+      buildSellerRedirect(
+        "/seller/register",
+        "notice",
+        "Your seller application has been submitted for review.",
+      ),
+    );
+  } catch (error) {
+    const message =
+      error instanceof SellerProfileError
+        ? error.message
+        : "Unable to submit the seller application.";
+
+    redirect(buildSellerRedirect("/seller/register", "error", message));
   }
 }
 
