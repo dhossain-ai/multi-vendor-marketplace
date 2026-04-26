@@ -889,3 +889,303 @@ Whole-order examples:
 - If an item is cancelled by admin, order totals/refunds require a separate refunds/payments flow outside seller MVP.
 
 Seller fulfillment actions must be idempotent where possible. Re-submitting the same tracking code/status should not corrupt order state.
+
+## 16. Security And Permissions
+
+Seller security must be enforced on the server and, where applicable, with database row-level security. UI gating is helpful but never sufficient.
+
+### Server-Derived Seller Identity
+
+All seller operations must derive seller identity from the authenticated session.
+
+Rules:
+
+- Do not trust `seller_id` from form data, query params, or client state.
+- Load the current user's seller profile on the server.
+- Use the seller profile id from the server session for reads and writes.
+- Return a generic not-found or unauthorized response when ownership checks fail.
+
+### Role/Status Checks
+
+Seller operations require both the correct role/profile and the correct seller status.
+
+Rules:
+
+- A user without a seller profile cannot perform seller operations.
+- Product and fulfillment operations require `seller_profiles.status = approved`.
+- Admin-only seller status changes require admin role checks.
+- Suspended and rejected sellers stay authenticated but operationally locked.
+- If account-level `is_active` exists, inactive accounts cannot operate as sellers.
+
+### Ownership Checks
+
+Every seller-owned resource needs an ownership check.
+
+Required ownership checks:
+
+- Store profile belongs to current user.
+- Product belongs to current seller profile.
+- Product image updates belong to current seller product.
+- Order item belongs to current seller profile.
+- Fulfillment update targets only current seller's order items.
+
+### Approved-Only Operations
+
+Approved-only operations:
+
+- Create product.
+- Publish product.
+- Edit active product.
+- Archive product.
+- Update inventory.
+- View seller order list/detail.
+- Update fulfillment.
+
+Not approved-only:
+
+- View own seller status.
+- Submit initial application.
+- Edit application/store fields where allowed by status.
+
+## 17. Database Impact Preview
+
+This is not final SQL. It identifies likely tables and fields needed by later implementation phases.
+
+### Tables Likely Needed
+
+Likely core tables:
+
+- `profiles`
+- `seller_profiles`
+- `seller_status_history` or equivalent admin audit table
+- `products`
+- `product_images`
+- `categories`
+- `orders`
+- `order_items`
+
+Likely supporting tables later:
+
+- `seller_terms_acceptances`
+- `seller_business_profiles`
+- `seller_review_notes`
+
+If the current implementation uses an existing `admin_audit_logs` table, seller lifecycle decisions may use that instead of a dedicated history table, provided status history remains easy to query.
+
+### Important Fields
+
+`seller_profiles` likely needs:
+
+- `id`
+- `user_id`
+- `store_name`
+- `slug`
+- `status`
+- `bio`
+- `logo_url`
+- `contact_email`
+- `business_name`
+- `business_type`
+- `business_country`
+- `terms_accepted_at`
+- `approved_at`
+- `approved_by`
+- `created_at`
+- `updated_at`
+
+Seller review/audit history likely needs:
+
+- `id`
+- `seller_profile_id`
+- `actor_admin_user_id`
+- `from_status`
+- `to_status`
+- `reason`
+- `seller_visible_reason`
+- `metadata`
+- `created_at`
+
+`products` likely needs:
+
+- `id`
+- `seller_id`
+- `category_id`
+- `title`
+- `slug`
+- `description`
+- `short_description`
+- `price_amount`
+- `currency_code`
+- `status`
+- `stock_quantity`
+- `is_unlimited_stock`
+- `low_stock_threshold`
+- `thumbnail_url`
+- `published_at`
+- `created_at`
+- `updated_at`
+
+`order_items` likely needs:
+
+- `id`
+- `order_id`
+- `seller_id`
+- `product_id`
+- Product snapshot fields such as title, sku, unit price, and currency.
+- `quantity`
+- `line_total_amount`
+- `fulfillment_status`
+- `tracking_code`
+- `shipment_note`
+- `shipped_at`
+- `delivered_at`
+- `created_at`
+- `updated_at`
+
+Important constraints/indexes to consider later:
+
+- Unique seller profile per user.
+- Unique seller/store slug.
+- Product ownership foreign key to `seller_profiles`.
+- Order item ownership foreign key to `seller_profiles`.
+- Index seller dashboards by `seller_id`, product status, fulfillment status, and recent order dates.
+- RLS policies that enforce own seller profile/product/order item access.
+
+## 18. API/Server Action Impact Preview
+
+This is not final implementation. It lists expected operations that later code phases should support.
+
+Seller application/profile operations:
+
+- Create seller application for current user.
+- Update current seller profile/application details.
+- Load current seller status.
+- Load current seller store settings.
+
+Admin seller operations:
+
+- List sellers with status filters.
+- Load seller detail for review.
+- Approve seller.
+- Reject seller with reason.
+- Suspend seller with reason.
+- Reactivate seller with reason.
+- Load seller status/audit history.
+
+Seller dashboard operations:
+
+- Load approved seller dashboard summary.
+- Count products by status.
+- Count low-stock products.
+- Count order items needing fulfillment.
+- Load recent seller orders.
+- Calculate seller gross sales.
+
+Seller product operations:
+
+- List current seller products.
+- Load current seller product by id.
+- Create product.
+- Save draft.
+- Publish product.
+- Edit product.
+- Archive product.
+- Manage product images.
+- Validate category, price, and stock.
+
+Seller order/fulfillment operations:
+
+- List current seller orders.
+- Load current seller order detail.
+- Update fulfillment status for seller-owned order items.
+- Save tracking code.
+- Save shipment note.
+
+All operations must be designed so server actions can be called safely even if a malicious client tampers with hidden inputs.
+
+## 19. Edge Cases
+
+Expected edge cases:
+
+- User applies, then refreshes or resubmits the form: system should not create duplicate seller profiles.
+- Two applicants attempt the same store slug: one succeeds, the other gets a clear validation error.
+- Seller is approved while viewing pending screen: next load should show approved dashboard.
+- Seller is suspended while editing a product: save/publish should fail server-side.
+- Seller is rejected after updating application details: status remains rejected unless admin changes it.
+- Admin approves a seller whose email is unverified: behavior must follow the chosen email verification policy.
+- Product category becomes inactive after product publication: product should become non-purchasable or blocked from public visibility.
+- Limited-stock product reaches zero: checkout must prevent oversell.
+- Cart has stale stock quantity: checkout must revalidate and fail gracefully.
+- Seller attempts to update another seller's product id: operation returns unauthorized/not found.
+- Seller attempts to view an order with no owned line items: operation returns unauthorized/not found.
+- Multi-vendor order has mixed fulfillment states: seller sees and updates only their own items.
+- Seller adds tracking to the wrong order item id: ownership check blocks it.
+- Admin suspends seller with active unfulfilled orders: project owner must decide whether fulfillment updates stay locked or an exception exists.
+- Store slug changes after links exist: redirects or old slug behavior must be defined before implementation.
+- Seller account is disabled while seller profile is approved: account inactivity should block seller operations.
+- Product price changes after order placement: existing order item totals remain unchanged.
+- Audit logging fails during admin status change: implementation should avoid silently changing status without an audit trail.
+
+## 20. Acceptance Criteria
+
+The seller/vendor blueprint is accepted when:
+
+- The document is the clear source of truth for seller lifecycle states.
+- Internal terminology uses `seller` and `seller_profiles`; no `vendor_profiles` table is introduced.
+- Public UI terminology flexibility is documented without affecting internal naming.
+- Roles are defined for visitor, customer/user account, applicant, approved seller, rejected seller, suspended seller, and admin.
+- No-profile, pending, approved, rejected, and suspended states have explicit behavior.
+- Public new-vendor registration and logged-in-user application flows are separately described.
+- Duplicate application behavior is explicit.
+- Application fields cover account, store, business/contact, terms agreement, and optional later fields.
+- Admin review supports pending list, detail review, approve, reject with reason, suspend with reason, reactivate, and audit/history.
+- Seller dashboard behavior is defined for every lifecycle state.
+- Approved seller dashboard requirements include store status, product counts, draft/active/archived counts, low stock, fulfillment needs, recent orders, gross sales, and quick actions.
+- Store profile/settings rules are defined.
+- Product create, draft, publish, edit, archive, image, category, price, and inventory flows are defined.
+- Inventory rules cover limited, unlimited, low stock, out of stock, and validation expectations.
+- Seller order flow is seller-scoped and line-item aware.
+- Fulfillment rules explicitly prevent sellers from changing payment status or other sellers' items.
+- Security requirements include server-derived seller identity, role/status checks, ownership checks, and approved-only operations.
+- Database and API impacts are previewed without creating final SQL or implementation.
+- Edge cases are captured for later audit and implementation phases.
+- Out-of-scope MVP items are explicitly listed.
+- Open questions are listed for project owner decisions.
+
+## 21. Out Of Scope For Seller MVP
+
+The following are intentionally out of scope for seller MVP:
+
+- Payouts.
+- Refunds.
+- Seller staff accounts.
+- Warehouse complexity.
+- Disputes.
+- Advanced analytics.
+- Seller subscription plans.
+- Seller tax remittance automation.
+- Complex shipping label purchasing.
+- SLA enforcement and penalty workflows.
+- Product review/rating systems.
+- Wishlist or favorites features.
+- Full seller messaging center.
+- Bulk product import/export.
+- Marketplace commission settlement.
+
+## 22. Open Questions For The Project Owner
+
+1. Should the public UI consistently say `Seller` or `Vendor`?
+2. What public route should be used for new seller/vendor registration?
+3. Must email be verified before a seller application can be submitted, or only before approval?
+4. Are rejected sellers allowed to edit and resubmit the same application?
+5. Should rejection and suspension reasons be visible to sellers, or admin-only?
+6. When a seller is suspended, should their active products be hidden from public catalog immediately?
+7. When a seller is suspended with unfulfilled paid orders, may they still update fulfillment for those existing order items?
+8. Is a store slug editable after approval? If yes, should old slugs redirect?
+9. Are seller support email/phone and business fields required for MVP, or only recommended?
+10. Does MVP require product images before publishing?
+11. Should out-of-stock products remain visible but unpurchasable, or be hidden from catalog?
+12. What default low-stock threshold should be used if no per-product threshold exists?
+13. Can sellers cancel fulfillment/order items, or is cancellation admin-only?
+14. Should sellers see customer email/phone, or only shipping recipient/address?
+15. Which gross sales period is required for MVP dashboard: all time, 30 days, 7 days, or multiple periods?
