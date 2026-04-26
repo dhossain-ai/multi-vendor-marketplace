@@ -246,6 +246,27 @@ export function SellerProductForm({
                   Turn this on if you do not want stock levels to limit purchases.
                 </p>
               </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="lowStockThreshold"
+                  className="text-foreground text-sm font-medium"
+                >
+                  Low-stock threshold
+                </label>
+                <input
+                  type="number"
+                  id="lowStockThreshold"
+                  name="lowStockThreshold"
+                  min="0"
+                  defaultValue={product?.lowStockThreshold ?? 5}
+                  className="border-border bg-panel-muted text-foreground block w-full rounded-xl border px-4 py-2.5 text-sm focus:border-brand focus:outline-none"
+                  placeholder="5"
+                />
+                <p className="text-ink-muted text-xs">
+                  Show a low-stock warning when inventory drops to this number.
+                </p>
+              </div>
             </div>
           </div>
         </div>
