@@ -20,6 +20,14 @@ export type SellerProfile = {
   status: SellerStatus;
   bio: string | null;
   logoUrl: string | null;
+  supportEmail: string | null;
+  businessEmail: string | null;
+  phone: string | null;
+  countryCode: string | null;
+  agreementAcceptedAt: string | null;
+  rejectionReason: string | null;
+  suspensionReason: string | null;
+  resubmittedAt: string | null;
   commissionRateBps: number | null;
   approvedAt: string | null;
   approvedBy: string | null;

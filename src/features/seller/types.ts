@@ -60,6 +60,14 @@ export type SellerStoreProfileFormData = {
   logoUrl: string | null;
 };
 
+export type SellerApplicationFormData = SellerStoreProfileFormData & {
+  supportEmail: string;
+  countryCode: string;
+  businessEmail: string | null;
+  phone: string | null;
+  agreementAccepted: boolean;
+};
+
 export type SellerOrderItem = {
   id: string;
   productId: string | null;
