@@ -38,10 +38,10 @@ export function SellerStatusGate({
           up your seller application first, then come back once it is submitted.
         </p>
         <Link
-          href={ctaHref}
+          href="/seller/register"
           className="text-brand mt-6 inline-flex text-sm font-medium"
         >
-          {ctaLabel}
+          Go to application
         </Link>
       </div>
     );

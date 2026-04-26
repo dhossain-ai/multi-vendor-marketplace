@@ -20,6 +20,10 @@ const getLinks = (status?: SellerStatus | null) => {
 
   baseLinks.push({ href: "/seller/settings", label: "Settings" });
 
+  if (status === "rejected") {
+    baseLinks.push({ href: "/seller/register", label: "Resubmit Application" });
+  }
+
   return baseLinks;
 };
 
