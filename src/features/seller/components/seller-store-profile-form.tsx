@@ -5,8 +5,11 @@ import { useFormStatus } from "react-dom";
 import { AuthMessage } from "@/features/auth/components/auth-message";
 import type { SellerStoreProfileFormData } from "@/features/seller/types";
 
+import type { SellerProfile } from "@/types/auth";
+
 type SellerStoreProfileFormProps = {
   mode: "apply" | "edit";
+  status?: SellerProfile["status"];
   initialValues?: SellerStoreProfileFormData | null;
   notice?: string | null;
   error?: string | null;
@@ -35,11 +38,26 @@ function SubmitButton({ mode }: { mode: "apply" | "edit" }) {
 
 export function SellerStoreProfileForm({
   mode,
+  status,
   initialValues,
   notice,
   error,
   action,
 }: SellerStoreProfileFormProps) {
+  const isApproved = status === "approved";
+  const isSuspended = status === "suspended";
+
+  if (isSuspended) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-[2rem] border border-red-200 bg-red-50 p-6 shadow-sm">
+          <p className="text-sm font-medium text-red-900">Your store is suspended</p>
+          <p className="mt-1 text-sm text-red-800">You cannot edit store settings at this time.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {error ? <AuthMessage tone="error" message={error} /> : null}
@@ -72,14 +90,17 @@ export function SellerStoreProfileForm({
                 id="slug"
                 name="slug"
                 required
+                readOnly={isApproved}
                 minLength={3}
                 maxLength={120}
                 defaultValue={initialValues?.slug ?? ""}
-                className="block w-full rounded-xl border border-border bg-panel-muted px-4 py-2.5 text-sm text-foreground focus:border-brand focus:outline-none"
+                className={`block w-full rounded-xl border border-border bg-panel-muted px-4 py-2.5 text-sm text-foreground focus:border-brand focus:outline-none ${isApproved ? "opacity-60 cursor-not-allowed" : ""}`}
                 placeholder="northforge-supply"
               />
               <p className="text-xs text-ink-muted">
-                Lowercase letters, numbers, and hyphens only. This helps identify your store across the marketplace.
+                {isApproved 
+                  ? "Your store slug is locked after approval. Contact support to change it."
+                  : "Lowercase letters, numbers, and hyphens only. This helps identify your store across the marketplace."}
               </p>
             </div>
 
@@ -96,6 +117,67 @@ export function SellerStoreProfileForm({
                 className="block w-full rounded-xl border border-border bg-panel-muted px-4 py-2.5 text-sm text-foreground focus:border-brand focus:outline-none"
                 placeholder="Tell customers what your store sells and what makes it worth following."
               />
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="supportEmail" className="text-sm font-medium text-foreground">
+                  Support email
+                </label>
+                <input
+                  id="supportEmail"
+                  name="supportEmail"
+                  type="email"
+                  required
+                  defaultValue={initialValues?.supportEmail ?? ""}
+                  className="block w-full rounded-xl border border-border bg-panel-muted px-4 py-2.5 text-sm text-foreground focus:border-brand focus:outline-none"
+                  placeholder="support@example.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="countryCode" className="text-sm font-medium text-foreground">
+                  Country code
+                </label>
+                <input
+                  id="countryCode"
+                  name="countryCode"
+                  required
+                  minLength={2}
+                  maxLength={2}
+                  defaultValue={initialValues?.countryCode ?? ""}
+                  className="block w-full rounded-xl border border-border bg-panel-muted px-4 py-2.5 text-sm text-foreground focus:border-brand focus:outline-none"
+                  placeholder="US"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="businessEmail" className="text-sm font-medium text-foreground">
+                  Business email <span className="font-normal text-ink-muted">(optional)</span>
+                </label>
+                <input
+                  id="businessEmail"
+                  name="businessEmail"
+                  type="email"
+                  defaultValue={initialValues?.businessEmail ?? ""}
+                  className="block w-full rounded-xl border border-border bg-panel-muted px-4 py-2.5 text-sm text-foreground focus:border-brand focus:outline-none"
+                  placeholder="business@example.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="phone" className="text-sm font-medium text-foreground">
+                  Phone number <span className="font-normal text-ink-muted">(optional)</span>
+                </label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  defaultValue={initialValues?.phone ?? ""}
+                  className="block w-full rounded-xl border border-border bg-panel-muted px-4 py-2.5 text-sm text-foreground focus:border-brand focus:outline-none"
+                  placeholder="+1 555 0123"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

@@ -48,31 +48,34 @@ function parseStoreProfileFormData(formData: FormData): SellerStoreProfileFormDa
   const slug = (formData.get("slug") as string | null) ?? "";
   const bio = (formData.get("bio") as string | null) ?? "";
   const logoUrl = (formData.get("logoUrl") as string | null) || null;
-
-  return {
-    storeName: storeName.trim(),
-    slug: sanitizeSlug(slug),
-    bio: bio.trim(),
-    logoUrl: logoUrl ? logoUrl.trim() : null,
-  };
-}
-
-function parseSellerApplicationFormData(formData: FormData): SellerApplicationFormData {
-  const storeProfile = parseStoreProfileFormData(formData);
   const supportEmail = (formData.get("supportEmail") as string | null) ?? "";
   const countryCode = (formData.get("countryCode") as string | null) ?? "";
   const businessEmail = (formData.get("businessEmail") as string | null) || null;
   const phone = (formData.get("phone") as string | null) || null;
 
   return {
-    ...storeProfile,
+    storeName: storeName.trim(),
+    slug: sanitizeSlug(slug),
+    bio: bio.trim(),
+    logoUrl: logoUrl ? logoUrl.trim() : null,
     supportEmail: supportEmail.trim().toLowerCase(),
     countryCode: countryCode.trim().toUpperCase(),
     businessEmail: businessEmail ? businessEmail.trim().toLowerCase() : null,
     phone: phone ? phone.trim() : null,
+  };
+}
+
+function parseSellerApplicationFormData(formData: FormData): SellerApplicationFormData {
+  const storeProfile = parseStoreProfileFormData(formData);
+
+  return {
+    ...storeProfile,
     agreementAccepted: formData.get("agreementAccepted") === "on",
   };
 }
+
+const looksLikeEmail = (value: string) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
 function validateStoreProfileForm(data: SellerStoreProfileFormData): string | null {
   if (!data.storeName || data.storeName.length < 2) {
@@ -81,23 +84,6 @@ function validateStoreProfileForm(data: SellerStoreProfileFormData): string | nu
 
   if (!data.slug || data.slug.length < 3) {
     return "Store slug must be at least 3 characters.";
-  }
-
-  if (data.logoUrl && !isValidHttpUrl(data.logoUrl)) {
-    return "Logo URL must be a valid http or https address.";
-  }
-
-  return null;
-}
-
-const looksLikeEmail = (value: string) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-
-function validateSellerApplicationForm(data: SellerApplicationFormData): string | null {
-  const storeError = validateStoreProfileForm(data);
-
-  if (storeError) {
-    return storeError;
   }
 
   if (!data.bio || data.bio.length < 20) {
@@ -114,6 +100,20 @@ function validateSellerApplicationForm(data: SellerApplicationFormData): string 
 
   if (!data.countryCode || data.countryCode.length < 2) {
     return "Choose the country where your store operates.";
+  }
+
+  if (data.logoUrl && !isValidHttpUrl(data.logoUrl)) {
+    return "Logo URL must be a valid http or https address.";
+  }
+
+  return null;
+}
+
+function validateSellerApplicationForm(data: SellerApplicationFormData): string | null {
+  const storeError = validateStoreProfileForm(data);
+
+  if (storeError) {
+    return storeError;
   }
 
   if (!data.agreementAccepted) {

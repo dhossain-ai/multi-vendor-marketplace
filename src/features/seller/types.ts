@@ -58,13 +58,13 @@ export type SellerStoreProfileFormData = {
   slug: string;
   bio: string;
   logoUrl: string | null;
+  supportEmail: string;
+  businessEmail: string | null;
+  phone: string | null;
+  countryCode: string;
 };
 
 export type SellerApplicationFormData = SellerStoreProfileFormData & {
-  supportEmail: string;
-  countryCode: string;
-  businessEmail: string | null;
-  phone: string | null;
   agreementAccepted: boolean;
 };
 
@@ -120,8 +120,11 @@ export type SellerDashboardSummary = {
   activeProducts: number;
   draftProducts: number;
   archivedProducts: number;
+  lowStockProducts: number;
   totalOrderItems: number;
+  unfulfilledOrders: number;
   grossSalesAmount: number;
+  last30DaysGrossSales: number;
   currencyCode: string;
 };
 

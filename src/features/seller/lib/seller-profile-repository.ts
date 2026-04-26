@@ -148,6 +148,10 @@ export async function createSellerApplication(input: {
       slug: input.storeProfile.slug,
       bio: input.storeProfile.bio || null,
       logo_url: input.storeProfile.logoUrl,
+      support_email: input.storeProfile.supportEmail,
+      business_email: input.storeProfile.businessEmail,
+      phone: input.storeProfile.phone,
+      country_code: input.storeProfile.countryCode,
       status: "pending",
     })
     .select("*")
@@ -294,6 +298,10 @@ export async function updateSellerProfile(input: {
       slug: input.storeProfile.slug,
       bio: input.storeProfile.bio || null,
       logo_url: input.storeProfile.logoUrl,
+      support_email: input.storeProfile.supportEmail,
+      business_email: input.storeProfile.businessEmail,
+      phone: input.storeProfile.phone,
+      country_code: input.storeProfile.countryCode,
     })
     .eq("id", existing.id)
     .eq("user_id", input.userId)

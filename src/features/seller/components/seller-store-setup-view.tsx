@@ -21,6 +21,10 @@ const buildInitialValues = (
         slug: sellerProfile.slug ?? "",
         bio: sellerProfile.bio ?? "",
         logoUrl: sellerProfile.logoUrl ?? null,
+        supportEmail: sellerProfile.supportEmail ?? "",
+        businessEmail: sellerProfile.businessEmail ?? null,
+        phone: sellerProfile.phone ?? null,
+        countryCode: sellerProfile.countryCode ?? "",
       }
     : null;
 
@@ -54,6 +58,7 @@ export function SellerStoreSetupView({
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_21rem]">
         <SellerStoreProfileForm
           mode={mode}
+          status={sellerProfile?.status}
           initialValues={buildInitialValues(sellerProfile)}
           notice={notice}
           error={error}
