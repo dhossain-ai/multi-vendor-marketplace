@@ -19,15 +19,11 @@ export function AccountSummary({
     profile.role === "seller" && sellerProfile?.status === "approved";
   const showSellerAccess = profile.role !== "admin";
   const showAdminAccess = profile.role === "admin";
-  const sellerLink = canAccessSellerDashboard
-    ? "/seller"
-    : sellerProfile
-      ? "/seller/settings"
-      : "/sell";
+  const sellerLink = canAccessSellerDashboard ? "/seller" : "/seller/register";
   const sellerLinkLabel = canAccessSellerDashboard
     ? "Open seller dashboard"
     : sellerProfile
-      ? "Manage store setup"
+      ? "Manage seller application"
       : "Become a seller";
 
   return (

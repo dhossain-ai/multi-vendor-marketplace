@@ -33,15 +33,11 @@ export async function SiteHeader() {
   const isApprovedSeller =
     session.profile?.role === "seller" && session.sellerProfile?.status === "approved";
   const showSellerEntry = Boolean(session.user) && session.profile?.role !== "admin";
-  const sellerEntryHref = isApprovedSeller
-    ? "/seller"
-    : session.sellerProfile
-      ? "/seller/settings"
-      : "/sell";
+  const sellerEntryHref = isApprovedSeller ? "/seller" : "/seller/register";
   const sellerEntryLabel = isApprovedSeller
     ? "Seller Dashboard"
     : session.sellerProfile
-      ? "Seller Setup"
+      ? "Seller Application"
       : "Sell";
   const isAdmin = session.profile?.role === "admin";
 
