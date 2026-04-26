@@ -369,3 +369,192 @@ Disallowed by default:
 - Creating another profile to restart review.
 - Deleting seller profiles as a normal moderation action.
 - Moving a seller to `pending` after initial submission unless a formal resubmission state is added later.
+
+## 9. Seller Dashboard Behavior By Status
+
+Seller routes should be status-aware. The UI can be welcoming, but server behavior must enforce permissions independently of UI state.
+
+### No Profile
+
+Show an apply-to-sell entry state.
+
+Expected behavior:
+
+- Explain that seller setup is required.
+- Link to the seller application/store setup form.
+- Do not show product, inventory, or order tools.
+- Server operations should reject seller actions because no seller profile id exists.
+
+### Pending
+
+Show application-in-review state.
+
+Expected behavior:
+
+- Display current status as pending review.
+- Confirm that the application was submitted.
+- Allow store/application detail edits if the MVP supports edits during review.
+- Keep product, inventory, and order operations locked.
+- Avoid implying a guaranteed approval timeline.
+
+### Rejected
+
+Show not-approved state.
+
+Expected behavior:
+
+- Display current status as rejected.
+- Show seller-visible reason or generic guidance if no seller-visible reason exists.
+- Offer update/resubmission path only if the business allows it.
+- Keep seller operations locked.
+- Do not invite the user to create a new application with the same account.
+
+### Suspended
+
+Show suspended state.
+
+Expected behavior:
+
+- Display current status as suspended.
+- Show seller-visible reason or support guidance if available.
+- Lock product publishing, inventory updates, and fulfillment updates.
+- Preserve access to basic profile/status information.
+- Avoid exposing internal moderation notes.
+
+### Approved
+
+Show the operating seller dashboard.
+
+Expected behavior:
+
+- Display store status and operational summary.
+- Provide quick access to products, orders, and store settings.
+- Show counts and alerts that help the seller act.
+- Use only server-derived seller identity for all data.
+
+## 10. Approved Seller Dashboard Requirements
+
+The approved seller dashboard should be operational, not decorative. It should help a seller answer: "What needs my attention today?"
+
+Minimum dashboard data:
+
+- Store name.
+- Store slug/public storefront link when available.
+- Seller status.
+- Total product count.
+- Draft product count.
+- Active product count.
+- Archived product count.
+- Low stock product count.
+- Orders needing fulfillment.
+- Recent seller-scoped orders.
+- Gross sales summary.
+- Quick actions.
+
+### Store Status
+
+Show the seller's current status, store name, and whether the store is eligible for public sales. If product visibility depends on seller approval and product/category status, communicate that through clear operational states.
+
+### Product Counts
+
+Product counts must be seller-scoped.
+
+Required counts:
+
+- Total products.
+- Draft products.
+- Active products.
+- Archived products.
+
+Optional later counts:
+
+- Suspended products.
+- Products missing images.
+- Products missing category.
+- Products blocked by inactive category.
+
+### Low Stock Count
+
+Low stock should count limited-stock products at or below the configured low-stock threshold and above zero. Unlimited-stock products should not appear in low-stock counts.
+
+### Orders Needing Fulfillment
+
+Orders needing fulfillment should be calculated from seller-owned order items, not whole orders. A multi-vendor order may need action from one seller while another seller's items are already shipped.
+
+Count items or grouped orders where the seller has at least one item in an actionable fulfillment state, such as:
+
+- `unfulfilled`
+- `processing`
+
+### Recent Orders
+
+Recent orders should show seller-relevant order summaries only:
+
+- Order number.
+- Placed date.
+- Seller-owned item count and quantity.
+- Seller-owned gross sales amount.
+- Fulfillment status summary for seller-owned items.
+- Link to seller order detail.
+
+Do not show other sellers' items in the seller dashboard.
+
+### Gross Sales Summary
+
+Gross sales should use seller-owned line totals before payouts, fees, refunds, or chargebacks unless a later finance module defines net sales. The MVP dashboard should label this clearly as gross sales.
+
+Recommended periods:
+
+- Today or last 24 hours.
+- Last 7 days.
+- Last 30 days.
+- All time.
+
+If only one number is available in MVP, use all-time gross sales and label it as such.
+
+### Quick Actions
+
+Recommended quick actions for approved sellers:
+
+- Create product.
+- View products.
+- View orders.
+- Edit store settings.
+
+Do not show actions that are locked by status. If the seller becomes suspended while viewing the dashboard, server actions must still reject locked operations.
+
+## 11. Store Profile/Settings Flow
+
+The store profile is the seller's public and administrative identity. Sellers should be able to keep it accurate without affecting their lifecycle status unless a future review policy requires re-approval for major changes.
+
+Seller-editable MVP fields:
+
+- Store name.
+- Store slug, if slug changes are allowed.
+- Store description/bio.
+- Logo image.
+- Support/contact email, if collected.
+- Business/contact fields used for review, if collected.
+
+Rules:
+
+- Only the owner of the seller profile or an admin can edit it.
+- Store slug must remain unique and URL-safe.
+- Editing store fields should not bypass rejection or suspension.
+- Editing store fields should not automatically approve or reactivate a seller.
+- Store profile updates should record `updated_at`.
+- Major changes may be logged for admin visibility.
+
+Recommended behavior by status:
+
+- No profile: show application form.
+- Pending: allow edits to improve review details.
+- Approved: allow store settings edits.
+- Rejected: allow edits only if resubmission is supported.
+- Suspended: allow read-only or limited edits based on business policy.
+
+Customer-facing storefront visibility should require at least:
+
+- Seller is approved.
+- Store profile has required public fields.
+- Store is not manually hidden by admin.
