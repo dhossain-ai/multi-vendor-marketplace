@@ -29,6 +29,7 @@ export type SellerProduct = {
   currencyCode: string;
   stockQuantity: number | null;
   isUnlimitedStock: boolean;
+  lowStockThreshold: number;
   status: SellerProductStatus;
   thumbnailUrl: string | null;
   galleryImages: SellerProductImage[];
@@ -47,6 +48,7 @@ export type SellerProductFormData = {
   currencyCode: string;
   stockQuantity: number | null;
   isUnlimitedStock: boolean;
+  lowStockThreshold: number;
   status: "draft" | "active";
   categoryId: string | null;
   thumbnailUrl: string | null;

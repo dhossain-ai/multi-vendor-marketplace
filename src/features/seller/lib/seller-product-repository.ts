@@ -27,6 +27,7 @@ type ProductRow = {
   currency_code?: string | null;
   stock_quantity?: number | null;
   is_unlimited_stock?: boolean | null;
+  low_stock_threshold?: number | null;
   status?: string | null;
   thumbnail_url?: string | null;
   metadata?: Json | null;
@@ -88,6 +89,7 @@ const mapProductRow = (row: ProductRow): SellerProduct | null => {
     currencyCode: row.currency_code,
     stockQuantity: row.stock_quantity ?? null,
     isUnlimitedStock: row.is_unlimited_stock ?? false,
+    lowStockThreshold: row.low_stock_threshold ?? 5,
     status: row.status as SellerProduct["status"],
     thumbnailUrl: row.thumbnail_url ?? null,
     galleryImages: (row.product_images ?? [])
@@ -236,6 +238,7 @@ export async function createSellerProduct(
       currency_code: formData.currencyCode,
       stock_quantity: formData.stockQuantity,
       is_unlimited_stock: formData.isUnlimitedStock,
+      low_stock_threshold: formData.lowStockThreshold,
       status: formData.status,
       category_id: formData.categoryId,
       thumbnail_url: formData.thumbnailUrl,
@@ -300,6 +303,7 @@ export async function updateSellerProduct(
     currency_code: formData.currencyCode,
     stock_quantity: formData.stockQuantity,
     is_unlimited_stock: formData.isUnlimitedStock,
+    low_stock_threshold: formData.lowStockThreshold,
     status: formData.status,
     category_id: formData.categoryId,
     thumbnail_url: formData.thumbnailUrl,
