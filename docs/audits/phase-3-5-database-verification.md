@@ -59,3 +59,21 @@ The Phase 3 migration contains the expected seller recovery objects:
 
 Indexes in the Phase 3 migration cover seller profile country/support email/resubmission lookups, seller status history seller/actor/date lookups, and seller low-stock product queries.
 
+## 6. Migration verification result
+
+| Command | Result | Notes |
+|---|---|---|
+| `docker info --format '{{.ServerVersion}}'` | Failed | Docker daemon/API pipe is unavailable. |
+| `npx supabase migration list` | Failed | Supabase CLI reports the project is not linked. |
+| `npx supabase db reset` | Failed before migration execution | Local Supabase could not inspect `supabase_db_multi-vendor-marketplace` because Docker Desktop is unavailable. |
+
+No migration SQL was applied during Phase 3.5. The helper-order defect was corrected in the migration files, but the full chain still requires a real reset against local Supabase or a confirmed disposable dev project.
+
+## 7. Type generation result
+
+| Command | Result | Notes |
+|---|---|---|
+| `npx supabase gen types typescript --local` | Failed | Same Docker/local Supabase blocker as reset. |
+
+`src/types/database.ts` was not regenerated and was intentionally not hand-edited.
+
