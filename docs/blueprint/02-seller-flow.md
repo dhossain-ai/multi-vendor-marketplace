@@ -239,3 +239,133 @@ The application must include an explicit agreement checkbox. It should confirm t
 - Accepts marketplace moderation rights for products and seller status.
 
 The checkbox must be required and stored as a timestamped acceptance record or equivalent auditable field.
+
+## 8. Admin Review Flow
+
+Admin review is the control point that turns an application into an operating seller account. The admin experience should support fast review while preserving enough detail to explain and audit decisions later.
+
+### Pending Seller List
+
+Admins need a seller review list with a default filter for `pending` applications.
+
+Minimum list fields:
+
+- Store name.
+- Applicant name.
+- Applicant email.
+- Seller status.
+- Submitted date.
+- Last updated date.
+- Product count, if products exist for the seller.
+- Quick actions appropriate to the current status.
+
+Useful filters:
+
+- Status: pending, approved, rejected, suspended.
+- Submitted date range.
+- Store name or applicant email search.
+
+### Seller Detail Review
+
+Admins need a detail view or expanded row that shows:
+
+- Account identity: user id, email, full name, account active state.
+- Store information: name, slug, logo, description.
+- Business/contact information submitted by the applicant.
+- Terms acceptance evidence.
+- Current seller status.
+- Previous review, rejection, suspension, and reactivation history.
+- Product and order summary once the seller has activity.
+
+Admins should not need to inspect the database to understand why a seller is pending, rejected, suspended, or reactivated.
+
+### Approve
+
+Approving a seller changes `seller_profiles.status` to `approved`.
+
+Expected side effects:
+
+- Set `approved_at`.
+- Set `approved_by` to the admin user id.
+- Preserve original application fields.
+- Record an audit/history entry with before and after status.
+- Unlock approved-only seller operations.
+
+Approval should not automatically publish products unless the product was already explicitly saved as active under a flow that allowed pre-approval product setup. For the MVP, the simpler rule is that pending sellers cannot create products, so approval only unlocks product creation.
+
+### Reject With Reason
+
+Rejecting a seller changes `seller_profiles.status` to `rejected` and requires a reason.
+
+Expected side effects:
+
+- Store the rejection reason in seller review history or an audit table.
+- Clear approval fields if the profile was previously approved.
+- Keep the seller profile row; do not delete the application.
+- Keep the store slug reserved unless an admin release process is later added.
+- Show the seller a clear rejected-state dashboard message.
+
+The rejection reason may have an internal-only version and a seller-visible version. If only one reason field exists in MVP, treat it as admin-visible and write seller-facing copy separately to avoid accidentally exposing sensitive moderation notes.
+
+### Suspend With Reason
+
+Suspending a seller changes `seller_profiles.status` to `suspended` and requires a reason.
+
+Expected side effects:
+
+- Store the suspension reason in seller review history or audit logs.
+- Keep the seller profile and product history.
+- Prevent new seller operations that could affect customers.
+- Hide or block suspended seller products from public purchase unless the project owner explicitly chooses a different policy.
+- Preserve existing orders and seller-owned order item history.
+
+Suspension is for marketplace risk control, policy violations, operational problems, or admin intervention. It is not the same as rejection because a suspended seller may already have products and orders.
+
+### Reactivate
+
+Reactivation moves a `suspended` or `rejected` seller back to `approved` when the marketplace allows the seller to operate again.
+
+Expected side effects:
+
+- Set `status = approved`.
+- Set or update `approved_at`.
+- Set `approved_by` to the reactivating admin.
+- Record the reactivation reason and audit entry.
+- Reopen approved-only operations.
+
+Product visibility after reactivation should follow product status. Products that were independently archived or suspended should not become active just because the seller is reactivated.
+
+### Audit/History Expectations
+
+Every admin seller lifecycle decision must produce an auditable record.
+
+Minimum audit fields:
+
+- Actor admin user id.
+- Seller profile id.
+- Previous status.
+- New status.
+- Reason.
+- Timestamp.
+- Before/after snapshots or structured metadata when practical.
+
+Audit history should be append-only from the application perspective. If a reason must be corrected, record a new correction entry instead of editing history silently.
+
+### Recommended Status Transitions
+
+Allowed transitions for MVP:
+
+- `pending` -> `approved`
+- `pending` -> `rejected`
+- `pending` -> `suspended`
+- `approved` -> `suspended`
+- `rejected` -> `approved`
+- `rejected` -> `suspended`
+- `suspended` -> `approved`
+- `suspended` -> `rejected`
+
+Disallowed by default:
+
+- Creating another profile to restart review.
+- Deleting seller profiles as a normal moderation action.
+- Moving a seller to `pending` after initial submission unless a formal resubmission state is added later.
