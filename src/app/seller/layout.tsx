@@ -9,14 +9,14 @@ export default async function SellerLayout({
   children: React.ReactNode;
 }) {
   const session = await getAuthSessionState();
-  const showSellerChrome = session.profile?.role === "seller";
+  const showSellerChrome = session.profile?.role === "seller" && session.sellerProfile;
 
   return (
     <div className="py-12 md:py-16">
       <Container>
         {showSellerChrome ? (
           <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-            <SellerNav />
+            <SellerNav status={session.sellerProfile?.status} />
             <Link
               href="/account"
               className="inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-panel px-4 text-sm font-medium text-foreground"

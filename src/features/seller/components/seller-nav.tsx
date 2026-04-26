@@ -2,19 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { SellerStatus } from "@/types/auth";
 
-const links = [
-  { href: "/seller", label: "Overview" },
-  { href: "/seller/products", label: "Products" },
-  { href: "/seller/orders", label: "Orders" },
-  { href: "/seller/settings", label: "Settings" },
-];
+type SellerNavProps = {
+  status?: SellerStatus | null;
+};
+
+const getLinks = (status?: SellerStatus | null) => {
+  const baseLinks = [
+    { href: "/seller", label: "Overview" },
+  ];
+
+  if (status === "approved") {
+    baseLinks.push({ href: "/seller/products", label: "Products" });
+    baseLinks.push({ href: "/seller/orders", label: "Orders" });
+  }
+
+  baseLinks.push({ href: "/seller/settings", label: "Settings" });
+
+  return baseLinks;
+};
 
 const isActive = (pathname: string, href: string) =>
   href === "/seller" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
-export function SellerNav() {
+export function SellerNav({ status }: SellerNavProps) {
   const pathname = usePathname();
+  const links = getLinks(status);
 
   return (
     <nav className="flex flex-wrap items-center gap-1 rounded-full border border-border bg-panel-muted p-1 shadow-sm">
