@@ -107,12 +107,11 @@ export type SellerOrderSummary = {
 
 export type SellerOrderDetail = SellerOrderSummary & {
   customerName: string | null;
-  customerEmail: string | null;
 };
 
 export type SellerFulfillmentUpdateInput = {
   orderId: string;
-  fulfillmentStatus: Extract<FulfillmentStatus, "processing" | "shipped" | "delivered" | "cancelled">;
+  fulfillmentStatus: Extract<FulfillmentStatus, "processing" | "shipped" | "delivered">;
   trackingCode: string | null;
   shipmentNote: string | null;
 };
