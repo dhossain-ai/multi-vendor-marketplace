@@ -322,19 +322,191 @@ Audited customer/visitor routes, customer-relevant feature modules, Supabase sch
 
 ## 12. Cart audit
 
-Pending detailed findings.
+### Finding: Authenticated cart page and actions exist
+
+- Classification: Implemented
+- Current behavior: `/cart` requires auth, loads `getCartByUserId(session.user.id)`, and renders add/update/remove/clear/apply-coupon/remove-coupon flows through server actions.
+- Target behavior from blueprint: Authenticated customers can view cart, add/update/remove/clear items, and preview coupons.
+- Gap: No customer API route exists; implementation is server-action based. That is acceptable for the current App Router UI.
+- Recommended fix phase: Keep as-is unless explicit API endpoints become required.
+- Risk level: low
+
+### Finding: Cart ownership is server-derived
+
+- Classification: Implemented
+- Current behavior: Cart actions derive `userId` from `requireAuthenticatedUser()`. Repository lookups first resolve the cart by `user_id`, then scope cart item updates/deletes by the owned `cart_id`.
+- Target behavior from blueprint: `user_id` is never accepted from client input and ownership is server-enforced.
+- Gap: None found in customer cart actions.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
+
+### Finding: Quantity and availability validation are server-side
+
+- Classification: Implemented
+- Current behavior: `assertValidQuantity()` enforces integer, greater than zero, and max 99. `assertPurchasableProduct()` checks active product, approved seller, active category, out-of-stock, and stock quantity limits.
+- Target behavior from blueprint: Quantity is server-validated and product availability is checked.
+- Gap: Stock is validated but not reserved/decremented, which is an accepted MVP limitation until stock reservation is designed.
+- Recommended fix phase: Phase 14 for cart/checkout hardening; later for stock reservation.
+- Risk level: medium
+
+### Finding: Unavailable items are flagged and checkout is blocked
+
+- Classification: Implemented
+- Current behavior: `getCartByUserId()` maps each item with availability state and `hasUnavailableItems`; `CartSummary` blocks checkout and shows warning text when any item is unavailable or limited.
+- Target behavior from blueprint: Unavailable items show warning and prevent checkout.
+- Gap: Warning is item-level and summary-level, but the item copy could be more specific for category/seller/product causes.
+- Recommended fix phase: Phase 14 copy/edge refinement.
+- Risk level: low
+
+### Finding: Cart totals are provisional and server-calculated
+
+- Classification: Implemented
+- Current behavior: Cart subtotal/discount/estimated total are computed in `cart-repository.ts`; copy says final totals are confirmed during checkout.
+- Target behavior from blueprint: Cart does not trust client totals and labels totals as provisional/estimated.
+- Gap: None found.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
 
 ## 13. Coupon audit
 
-Pending detailed findings.
+### Finding: Coupon apply/remove exists in cart
+
+- Classification: Implemented
+- Current behavior: Cart summary includes coupon code input, applied-coupon display, remove action, and server actions that update `carts.coupon_id`.
+- Target behavior from blueprint: Customer can apply and remove coupons; preview is advisory.
+- Gap: Coupon UI lives in cart, not checkout. Blueprint allows cart or checkout entry.
+- Recommended fix phase: Keep as-is for MVP.
+- Risk level: low
+
+### Finding: Coupon validation is server-side and revalidated at checkout
+
+- Classification: Implemented
+- Current behavior: `evaluateCoupon()` checks existence, active flag, start/end dates, seller scope, minimum order amount, total usage limit, and per-user usage limit. `validateCheckout()` re-evaluates the saved `coupon_id` against current cart items before order creation.
+- Target behavior from blueprint: Server validates coupons during preview and checkout.
+- Gap: Usage counts are calculated from existing orders and are not transactionally reserved, so concurrent checkout can race usage limits.
+- Recommended fix phase: Phase 14 hardening if usage limits are considered production-critical.
+- Risk level: medium
+
+### Finding: Coupon discounts persist into orders and order items
+
+- Classification: Implemented
+- Current behavior: `createPendingOrder()` writes `orders.coupon_id`, `orders.discount_amount`, and `order_items.discount_amount` after distributing the discount across eligible lines.
+- Target behavior from blueprint: `orders.coupon_id` and per-line `order_items.discount_amount` are persisted at order creation.
+- Gap: No separate coupon redemption ledger exists, so usage enforcement depends on orders with non-failed/non-cancelled statuses.
+- Recommended fix phase: Later hardening unless coupon concurrency becomes a Phase 14 priority.
+- Risk level: medium
+
+### Finding: Seller-scoped coupon support exists
+
+- Classification: Partially implemented
+- Current behavior: Admin coupon repository supports `seller_id`; `evaluateCoupon()` applies only to matching seller line subtotals and messages that the coupon applies to one seller.
+- Target behavior from blueprint: Seller-scoped coupons exist or are intentionally deferred.
+- Gap: Customer UI does not explain which lines were eligible beyond aggregate messaging, and usage/concurrency is still order-count based.
+- Recommended fix phase: Phase 14 or later coupon UX/hardening.
+- Risk level: low
+
+### Finding: Coupon RLS depends on service-role server access
+
+- Classification: Risk / needs hardening
+- Current behavior: `coupons` RLS is admin-only for authenticated users. Customer coupon evaluation works through `createSupabaseAdminClient()` when `SUPABASE_SERVICE_ROLE_KEY` exists; otherwise it falls back to a server client that may not be allowed to read coupons.
+- Target behavior from blueprint: Customer coupon validation should work reliably server-side.
+- Gap: Environments without service-role configuration may fail coupon validation.
+- Recommended fix phase: Phase 14 environment/runtime hardening.
+- Risk level: medium
 
 ## 14. Checkout audit
 
-Pending detailed findings.
+### Finding: Checkout requires auth and revalidates cart server-side
+
+- Classification: Implemented
+- Current behavior: `/checkout` requires auth, calls `validateCheckout(userId)`, reloads cart/items/products/coupon from DB, and blocks invalid items before payment.
+- Target behavior from blueprint: Checkout requires auth and revalidates cart, availability, prices, and coupons from server state.
+- Gap: None found for server-authoritative validation.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
+
+### Finding: Pending order creation is snapshot-backed for products and totals
+
+- Classification: Partially implemented
+- Current behavior: `createPendingOrder()` creates an `orders` row and `order_items` rows with title, slug, price, seller id, category/seller metadata, discount, tax, and total amounts.
+- Target behavior from blueprint: Checkout creates pending orders with immutable item snapshots.
+- Gap: The order and item inserts plus cart clearing are coordinated with application-side rollback, not a single DB transaction/RPC.
+- Recommended fix phase: Phase 14 hardening.
+- Risk level: high
+
+### Finding: Checkout clears cart after pending-order creation
+
+- Classification: Implemented
+- Current behavior: After order item insert succeeds, `clearCartAfterOrder()` deletes `cart_items` and clears saved `coupon_id`.
+- Target behavior from blueprint and D-015: Cart is cleared after pending-order creation before/around payment redirect as an MVP simplification.
+- Gap: If Stripe session creation fails after cart clearing, the pending order remains and the user retries from order detail rather than cart.
+- Recommended fix phase: Keep as accepted MVP tradeoff; Phase 14 could improve copy/retry.
+- Risk level: medium
+
+### Finding: Address selection and shipping snapshot are missing
+
+- Classification: Missing
+- Current behavior: Checkout UI has no address section or `address_id` input; `createPendingOrder()` stores both address snapshot columns as null.
+- Target behavior from blueprint: Checkout should select a saved address and snapshot it to the order once address management is implemented.
+- Gap: Physical-shipping readiness is incomplete.
+- Recommended fix phase: Phase 13 to build address book and prepare checkout address selection; Phase 14 to finish checkout wiring if split.
+- Risk level: high
+
+### Finding: Checkout idempotency is partial
+
+- Classification: Risk / needs hardening
+- Current behavior: Order numbers are unique and payment session creation reuses an existing processing payment for an order, but checkout initiation itself does not accept/persist an idempotency key or reuse an existing pending order for duplicate submits.
+- Target behavior from blueprint: Checkout should be idempotent where practical and resist duplicate submissions.
+- Gap: A double submit could create duplicate pending orders before payment session reuse applies, especially because pending order creation precedes Stripe session creation.
+- Recommended fix phase: Phase 14.
+- Risk level: high
 
 ## 15. Stripe payment flow audit
 
-Pending detailed findings.
+### Finding: Stripe Checkout session creation exists
+
+- Classification: Implemented
+- Current behavior: `createPaymentSessionForOrder()` validates order ownership/status/total, creates Stripe Checkout line items from order item snapshots, stores a `payments` row in `processing`, and redirects to the Stripe session URL.
+- Target behavior from blueprint: Checkout creates a Stripe Checkout session tied to a pending order/payment attempt.
+- Gap: The Stripe line items use unit price and quantity, while the payment record amount uses discounted order total. This can diverge for discounted orders because line items do not include discounts.
+- Recommended fix phase: Phase 14 payment handoff hardening.
+- Risk level: high
+
+### Finding: Payment session retry is order-owner scoped
+
+- Classification: Implemented
+- Current behavior: `startPaymentAction(orderId)` derives the user from session, and `createPaymentSessionForOrder()` checks `order.customer_id === userId`.
+- Target behavior from blueprint: Customer can only pay for own orders and cannot spoof payment ownership.
+- Gap: None found for ownership.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
+
+### Finding: Webhook verifies Stripe signature and updates payment/order statuses
+
+- Classification: Implemented
+- Current behavior: `/api/webhooks/stripe` reads raw request text, requires `stripe-signature`, calls `stripe.webhooks.constructEvent()`, and handles `checkout.session.completed` and `checkout.session.expired`.
+- Target behavior from blueprint: Webhook is provider-authoritative and updates payment/order state.
+- Gap: No storage of Stripe event ids exists, so idempotency relies on payment status checks and unique session/payment identifiers rather than event-level dedupe.
+- Recommended fix phase: Phase 14 or later payment hardening.
+- Risk level: medium
+
+### Finding: Webhook status transitions match D-015
+
+- Classification: Implemented
+- Current behavior: Completed session sets `payments.status = paid`, `orders.payment_status = paid`, and `orders.order_status = confirmed`; expired session sets payment/order payment status to failed and leaves order status pending.
+- Target behavior from blueprint: Server/provider confirmation transitions payment and order statuses.
+- Gap: Failed non-expired payment events beyond `checkout.session.expired` are not handled.
+- Recommended fix phase: Later payment hardening.
+- Risk level: medium
+
+### Finding: Success/cancel pages use confirmation-safe language
+
+- Classification: Implemented
+- Current behavior: Success page says "Your payment is being confirmed" and points customers to orders. Cancel page says payment was not completed and links to order retry, orders, cart, and shop.
+- Target behavior from blueprint: Success page avoids claiming durable completion before webhook confirmation; cancel page allows retry/next step.
+- Gap: Success page does not deep-link to the specific order because only `session_id` is present in the return URL.
+- Recommended fix phase: Phase 14 or later UX polish.
+- Risk level: low
 
 ## 16. Order history audit
 
