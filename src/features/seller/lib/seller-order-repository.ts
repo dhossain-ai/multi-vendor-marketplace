@@ -11,7 +11,6 @@ import type {
 } from "@/features/seller/types";
 
 type CustomerRow = {
-  email?: string | null;
   full_name?: string | null;
 };
 
@@ -152,7 +151,6 @@ const buildSellerOrderDetail = (
   return {
     ...summary,
     customerName: customer?.full_name ?? null,
-    customerEmail: customer?.email ?? null,
   };
 };
 
@@ -216,7 +214,6 @@ async function getSellerOrderRows(sellerProfileId: string, orderId?: string) {
         placed_at,
         created_at,
         profiles!orders_customer_id_fkey (
-          email,
           full_name
         )
       `,
@@ -252,13 +249,6 @@ const isAllowedTransition = (
     case "delivered":
       return currentStatuses.every(
         (status) => status === "shipped" || status === "delivered",
-      );
-    case "cancelled":
-      return currentStatuses.every(
-        (status) =>
-          status === "unfulfilled" ||
-          status === "processing" ||
-          status === "cancelled",
       );
     default:
       return false;
