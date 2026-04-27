@@ -4,16 +4,17 @@ Production-minded full-stack multi-vendor marketplace platform built with Next.j
 
 The repo now includes:
 
-- public catalog and product detail pages
-- Supabase auth and server-side session/profile loading
-- authenticated cart flow
-- server-authoritative checkout and pending orders
-- Stripe Checkout session flow and webhook confirmation
-- customer order history
-- coupon-aware cart and checkout totals
-- seller dashboard foundation plus fulfillment workflow
-- admin dashboard foundation plus operational monitoring
-- a real ordered Supabase migration chain for fresh-project setup
+- Customer storefront/cart/checkout/payment foundation
+- Seller registration and secure multi-vendor operations
+- Admin seller/product/order management foundation
+- A real ordered Supabase migration chain for fresh-project setup
+
+### Currently Deferred (Not Implemented Yet)
+- automated payouts (Stripe Connect)
+- refund workflows
+- product reviews and customer wishlists
+- transactional notification system
+- advanced seller analytics
 
 The documentation in [`docs/`](docs) remains the source of truth for product rules and architecture.
 

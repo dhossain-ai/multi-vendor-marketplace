@@ -11,35 +11,30 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Consolidate the new marketplace operations model and remove the remaining temporary infrastructure gaps.
+Consolidate the demand side of the marketplace: Begin Customer / Visitor Workflow Recovery.
 
 ---
 
 ## Immediate Next Tasks
 
-### 1. Generate Supabase types from the real schema
+### Phase 11 — Customer / Visitor Workflow Blueprint
+- Define the desired state for the visitor storefront and product browsing.
+- Detail the customer sign-up, cart, and checkout flow.
+- Establish the baseline for customer account and order history management.
 
-- link a real Supabase project or local database to the repo
-- generate database types from the finalized migration chain
-- replace the fragile hand-written subset in `src/types/database.ts`
+### Phase 12 — Customer / Visitor Code Audit
+- Audit the current storefront, cart, checkout, and account code.
+- Identify dead code, missing features, and UX gaps.
 
-### 2. Improve the customer account area
+### Phase 13 — Customer Account and Address Management
+- Recover the customer profile editing and address book.
 
-- add real profile editing and address-management groundwork
-- keep account pages customer-first instead of turning them into a system map
-- preserve separate entry points for seller and admin tooling
+### Phase 14 — Cart, Checkout, and Customer Order Cleanup
+- Solidify the cart logic, handle out-of-stock edges, and secure the checkout payment handoff.
+- Clean up the customer order history detail views.
 
-### 3. Resolve the catalog static-generation warning path
-
-- stop product slug generation from touching `cookies()` at build time
-- keep public catalog generation compatible with real Supabase reads where possible
-- preserve the demo-data fallback for local environments that still need it
-
-### 4. Harden marketplace operations after the reset
-
-- apply the new fulfillment migration to a real Supabase project and verify seller update permissions
-- harden admin audit logging around fulfillment-sensitive actions
-- refine seller/customer operational messaging once live data is flowing
+### Phase 15 — Catalog/Search/Storefront Reliability Cleanup
+- Address the `cookies()` static-generation warnings and resolve storefront hydration/reliability issues.
 
 ---
 
@@ -57,7 +52,11 @@ Consolidate the new marketplace operations model and remove the remaining tempor
 
 ## What Not To Do Next
 
-Avoid doing these before generated types, customer-account depth, and storefront reliability are stable:
+Avoid doing these before the core customer buying journey is solid:
+
+- payouts and Stripe Connect integration
+- refund workflows and admin exception operations
+- transactional notification emails
 
 - advanced analytics
 - payout automation

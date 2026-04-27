@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Reset Phase 4 — Marketplace operations completed.
+Reset Phase 10 — Seller Flow Recovery completed.
 
 ---
 
@@ -62,6 +62,22 @@ The repository now behaves like a much more operational marketplace product acro
   - customer order history/detail now show clearer operational stages and fulfillment progress
   - admin order monitoring now reflects operational stage plus line-item fulfillment details
   - admin product moderation now shows inventory state more clearly
+- seller recovery completed (Phases 0-10):
+  - seller registration/application at `/seller/register`
+  - seller pending/rejected/resubmission flow
+  - admin seller approval/rejection/suspension/reactivation
+  - verified-email approval gate
+  - seller status history/audit trail
+  - status-aware seller dashboard
+  - store settings with slug lock after approval
+  - seller-owned product management
+  - product publish validation
+  - inventory rules and low-stock threshold
+  - seller-owned order visibility
+  - seller fulfillment transitions
+  - tracking code/shipment note
+  - customer email hidden from seller views
+  - seller cancellation of paid items blocked
 - database foundation repaired for fresh Supabase projects:
   - ordered migration chain under `supabase/migrations/`
   - shared helper + enum migration
@@ -95,6 +111,16 @@ The repository now behaves like a much more operational marketplace product acro
 - refund workflows
 - review/wishlist system
 - generated Supabase types from the finalized live schema
+
+### Remaining Seller Follow-ups
+- Supabase Storage/CDN image uploads
+- bulk inventory updates
+- seller coupons/campaigns
+- seller messaging/support inbox
+- seller staff/team accounts
+- payouts/Stripe Connect
+- refund/admin exception operations
+- notifications
 
 ---
 
