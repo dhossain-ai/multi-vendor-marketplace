@@ -1,5 +1,31 @@
 # Dev Summary
 
+## 2026-04-28 - Phase 13 Customer Account and Addresses
+
+### Summary
+
+Implemented the missing customer account depth from the Phase 12 audit: profile editing, customer-owned address management, and checkout preparation for future shipping snapshots.
+
+### Added
+
+- `/account/profile` for authenticated customers to update `full_name`
+- `/account/addresses` for address create, edit, delete, and default selection
+- `public.addresses` migration with ownership RLS and default-address indexes
+- account feature boundary with profile/address repositories, validation, server actions, and UI components
+- checkout default-address preview with a link back to the address book
+- implementation note at `docs/implementation/phase-13-customer-account-addresses.md`
+
+### Notes
+
+- Customer identity is derived from the server session; address forms never accept `user_id`.
+- The first saved address becomes default automatically, and the database enforces at most one default address per user.
+- Checkout does not yet select an address or populate `orders.shipping_address_snapshot`.
+- Supabase type generation was unavailable in this environment, so the existing checked-in type subset was updated narrowly for `addresses`.
+
+### Next Recommended Slice
+
+- Phase 14: checkout shipping address selection and order shipping-address snapshots.
+
 ## 2026-04-19 - Phase 1 Bootstrap Foundation
 
 ### Summary

@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Reset Phase 10 — Seller Flow Recovery completed.
+Phase 13 — Customer Account and Address Management completed.
 
 ---
 
@@ -88,12 +88,18 @@ The repository now behaves like a much more operational marketplace product acro
   - checkout/order/payment foundation for `orders`, `order_items`, and `payments`
   - minimal RLS/policy foundation for public catalog, customer ownership, seller ownership, and admin access fallback
   - README and docs updated with exact database setup and first-admin bootstrap steps
+- customer account and address management completed:
+  - `/account/profile` added for authenticated profile editing
+  - `/account/addresses` added for customer-owned address book management
+  - `public.addresses` migration added with owner/admin RLS
+  - address create/edit/delete/default actions derive ownership from the server session
+  - checkout previews the default shipping address without requiring address selection yet
 
 ---
 
 ## In Progress
 
-- preparing the next cleanup slice around generated Supabase types, customer account depth, and catalog build-time reliability
+- preparing Phase 14 cart, checkout, and customer order cleanup
 
 ---
 
@@ -101,7 +107,6 @@ The repository now behaves like a much more operational marketplace product acro
 
 ### Product / UX
 
-- customer profile/address management
 - richer seeded order scenarios and account realism
 - storefront reliability cleanup for static catalog generation
 
@@ -126,10 +131,10 @@ The repository now behaves like a much more operational marketplace product acro
 
 ## Known Gaps
 
-- current database typing is still a hand-written subset, although it now matches the new bootstrap chain
+- current database typing is still a hand-written subset; Phase 13 added the addresses shape manually because local type generation was blocked by Docker and remote dry-run timed out
 - existing partially-manual Supabase projects should be reset or reconciled before trusting them
 - pending-order creation currently uses application-side compensation instead of a single database transaction
-- checkout now supports coupon validation and discounts, but still does not support taxes or addresses
+- checkout now supports coupon validation, discounts, and a default-address preview, but it does not yet require/select an address or populate shipping address snapshots
 - Stripe webhook endpoint needs production HTTPS and live webhook registration
 - admin audit logging is best-effort and should be hardened later
 - build output still warns that catalog slug generation falls back to demo data because `cookies()` are touched during static product slug generation
@@ -138,7 +143,7 @@ The repository now behaves like a much more operational marketplace product acro
 
 ## Current Priority
 
-Stabilize the operational model with generated Supabase types, deeper customer account realism, and the lingering catalog build-time warning cleanup.
+Move into Phase 14 to connect customer addresses into checkout selection and order snapshots while hardening the cart/checkout handoff.
 
 ---
 
@@ -146,10 +151,10 @@ Stabilize the operational model with generated Supabase types, deeper customer a
 
 The next implementation focus should be:
 
-- generate real Supabase database types from an applied project
-- improve customer profile/account management beyond the current summary view
-- resolve the catalog `cookies()` static-generation fallback warnings
-- harden fulfillment permissions and auditability after one real Supabase migration apply
+- implement checkout shipping address selection
+- populate `orders.shipping_address_snapshot` from a customer-owned address
+- keep cart/checkout totals server-authoritative
+- preserve the catalog `cookies()` warning for the later catalog reliability phase
 
 ---
 
