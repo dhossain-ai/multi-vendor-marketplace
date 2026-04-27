@@ -440,6 +440,10 @@ If a product becomes unavailable (archived, suspended, out-of-stock, seller susp
 - Invalid cart state returns clear error, no partial orders created.
 - Cart cleared after pending order creation, before payment (D-015 tradeoff).
 
+### Design rationale (D-015)
+
+Cart is cleared immediately after pending-order creation to avoid complexity around partial cart states and order-cart mismatches. If the customer cancels Stripe Checkout, they must rebuild the cart. This is an accepted MVP simplification. A future enhancement could restore cart items from a failed/cancelled pending order.
+
 ### Validation errors
 
 | Condition | Response |
