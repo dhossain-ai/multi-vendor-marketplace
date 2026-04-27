@@ -42,8 +42,8 @@ export function AccountSummary({
           {profile.fullName ?? "Welcome back"}
         </h1>
         <p className="text-ink-muted mt-3 max-w-2xl text-sm leading-7">
-          Keep an eye on your orders, confirm your account details, and jump into
-          seller or admin tools only when they apply to you.
+          Keep your profile current, manage shipping addresses, and review your
+          marketplace orders.
         </p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <div className="rounded-3xl bg-white/80 p-5">
@@ -74,6 +74,36 @@ export function AccountSummary({
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
+        <article className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
+          <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
+            Profile
+          </p>
+          <p className="text-ink-muted mt-3 text-sm leading-7">
+            Update the name shown on your customer account.
+          </p>
+          <Link
+            href="/account/profile"
+            className="text-brand mt-5 inline-flex text-sm font-medium"
+          >
+            Edit profile
+          </Link>
+        </article>
+
+        <article className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
+          <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
+            Address book
+          </p>
+          <p className="text-ink-muted mt-3 text-sm leading-7">
+            Add shipping addresses and choose the default you use most often.
+          </p>
+          <Link
+            href="/account/addresses"
+            className="text-brand mt-5 inline-flex text-sm font-medium"
+          >
+            Manage addresses
+          </Link>
+        </article>
+
         <article className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
           <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
             Orders
@@ -110,11 +140,11 @@ export function AccountSummary({
         <section className="space-y-4">
           <div>
             <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-              Access beyond shopping
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-              Role-based tools
-            </h2>
+            Selling and operations
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+              Additional tools
+          </h2>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">

@@ -20,7 +20,7 @@ export default async function AccountPage({ searchParams }: AccountPageProps) {
           </h1>
           <p className="text-ink-muted mt-4 text-sm leading-7">
             Your sign-in worked, but the marketplace profile record could not be
-            loaded yet. Check the Supabase configuration and profile tables before continuing.
+            loaded yet. Please try again shortly.
           </p>
         </Container>
       </div>

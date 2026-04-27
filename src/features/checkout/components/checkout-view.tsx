@@ -5,15 +5,22 @@ import { ProductVisual } from "@/features/catalog/components/product-visual";
 import { formatPrice } from "@/features/catalog/lib/format-price";
 import { CartSubmitButton } from "@/features/cart/components/cart-submit-button";
 import { submitCheckoutAction } from "@/features/checkout/lib/checkout-actions";
+import type { CustomerAddress } from "@/features/account/types";
 import type { CheckoutValidationResult } from "@/features/checkout/types";
 
 type CheckoutViewProps = {
   checkout: CheckoutValidationResult;
+  defaultAddress?: CustomerAddress | null;
   error?: string | null;
   notice?: string | null;
 };
 
-export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
+export function CheckoutView({
+  checkout,
+  defaultAddress,
+  error,
+  notice,
+}: CheckoutViewProps) {
   const messageTone =
     error != null ? "error" : notice != null ? "success" : null;
 
@@ -208,6 +215,37 @@ export function CheckoutView({ checkout, error, notice }: CheckoutViewProps) {
                     <p className="mt-1">{checkout.appliedCoupon.message}</p>
                   </div>
                 ) : null}
+
+                <div className="rounded-[1.5rem] bg-white/80 px-4 py-3 text-sm leading-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-foreground font-medium">
+                        Shipping address
+                      </p>
+                      {defaultAddress ? (
+                        <div className="text-ink-muted mt-1">
+                          <p>{defaultAddress.recipientName}</p>
+                          <p>{defaultAddress.line1}</p>
+                          <p>
+                            {[defaultAddress.city, defaultAddress.stateRegion]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-ink-muted mt-1">
+                          No default address saved yet.
+                        </p>
+                      )}
+                    </div>
+                    <Link
+                      href="/account/addresses"
+                      className="text-brand shrink-0 font-medium"
+                    >
+                      Manage
+                    </Link>
+                  </div>
+                </div>
 
                 <p className="text-ink-muted text-sm leading-7">
                   We save your order details first, then send you to Stripe for secure
