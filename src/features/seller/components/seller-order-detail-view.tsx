@@ -70,8 +70,6 @@ export function SellerOrderDetailView({
   const canMoveToShipped =
     order.operationalStage === "confirmed" || order.operationalStage === "processing";
   const canMoveToDelivered = order.operationalStage === "shipped";
-  const canCancel =
-    order.operationalStage === "confirmed" || order.operationalStage === "processing";
 
   return (
     <div className="space-y-8">
@@ -189,7 +187,7 @@ export function SellerOrderDetailView({
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-ink-muted">Customer</span>
                   <span className="text-right font-medium text-foreground">
-                    {order.customerName ?? order.customerEmail ?? "Customer"}
+                    {order.customerName ?? "Customer"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
@@ -289,19 +287,6 @@ export function SellerOrderDetailView({
                       className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-border px-5 text-sm font-medium text-foreground"
                     >
                       Mark as delivered
-                    </button>
-                  </form>
-                ) : null}
-
-                {canCancel ? (
-                  <form action={updateSellerOrderFulfillmentAction}>
-                    <input type="hidden" name="orderId" value={order.id} />
-                    <input type="hidden" name="fulfillmentStatus" value="cancelled" />
-                    <button
-                      type="submit"
-                      className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-red-200 px-5 text-sm font-medium text-red-700"
-                    >
-                      Cancel store items
                     </button>
                   </form>
                 ) : null}
