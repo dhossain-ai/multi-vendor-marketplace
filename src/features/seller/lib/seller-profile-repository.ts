@@ -287,6 +287,10 @@ export async function updateSellerProfile(input: {
     throw new SellerProfileError("Seller profile not found.");
   }
 
+  if (existing.status === "suspended") {
+    throw new SellerProfileError("Your seller account is suspended. Store settings cannot be edited.");
+  }
+
   if (existing.status === "approved" && input.storeProfile.slug !== existing.slug) {
     throw new SellerProfileError("Store slug changes require marketplace support after approval.");
   }
