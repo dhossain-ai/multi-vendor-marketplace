@@ -57,10 +57,14 @@ The goal remains a realistic commerce system with:
 - seller dashboard foundation
 - seller order detail and fulfillment updates
 - seller onboarding and store setup:
-  - `/sell` application flow
+  - `/sell` public landing page
+  - `/seller/register` seller application/resubmission flow
+  - admin seller review and status management at `/admin/sellers/[id]`
   - `/seller/settings` store profile management
-  - approval-state-aware seller workspace and navigation
-  - category-aware, inventory-aware seller product form
+  - approval-state-aware seller workspace and server-protected navigation
+  - category-aware, inventory-aware seller product form with server-side validation
+  - seller order privacy (customer email hidden, scoped to seller items)
+  - hardened seller fulfillment rules (no seller cancellations)
 - admin dashboard foundation
 - admin order and product monitoring with operational-state visibility
 - product UX reset:
@@ -88,7 +92,6 @@ The goal remains a realistic commerce system with:
 - wishlist
 - notification workflows
 - payout/refund tooling
-- generated Supabase database types
 
 ---
 
@@ -242,11 +245,10 @@ When extending the codebase:
 
 The next major work should generally follow this order:
 
-1. generate Supabase types from the finalized schema
+1. customer/visitor workflow recovery (storefront, cart, checkout)
 2. improve customer account/profile depth
 3. resolve the catalog build-time `cookies()` warning path
-4. harden reliability and auditability around operations
-5. add refinement features only after those are stable
+4. add refinement features (reviews, payouts, admin refunds)
 
 ---
 
@@ -266,7 +268,6 @@ A new AI session should assume:
 - the repository now includes a real Supabase bootstrap chain
 - new auth users should get app profiles automatically through DB triggers
 - the first admin must be promoted explicitly by SQL
-- generated Supabase types are still pending
 
 ---
 
