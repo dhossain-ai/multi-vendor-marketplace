@@ -680,34 +680,123 @@ Audited customer/visitor routes, customer-relevant feature modules, Supabase sch
 
 ## 20. UX/content language audit
 
-Pending detailed findings.
+### Finding: Core customer wording is mostly product-facing
+
+- Classification: Partially implemented
+- Current behavior: Cart, checkout, orders, and account pages generally use customer language such as "Your cart", "Proceed to payment", "Order history", "Payment pending", and "Continue shopping".
+- Target behavior from blueprint: Customer-visible text should avoid raw enum/developer language and use clear product language.
+- Gap: Several places still mention implementation details: "Stripe test mode" on homepage/detail, "Supabase configuration and profile tables" on account fallback, "role-specific dashboard" on sign-in, and "pending review" for order status copy.
+- Recommended fix phase: Phase 13 for auth/account copy; Phase 14 for order/checkout copy; Phase 15 for storefront copy.
+- Risk level: low
+
+### Finding: Status language avoids raw enum values but drifts from blueprint labels
+
+- Classification: Partially implemented
+- Current behavior: Payment and operational labels are mapped, not raw enum values. Fulfillment `unfulfilled` displays as "Confirmed".
+- Target behavior from blueprint: `unfulfilled` should read "Preparing Your Order"; `pending` should read "Order Received"; payment status should read "Payment Pending/Processing/Confirmed".
+- Gap: Some labels are friendly but not consistent with blueprint.
+- Recommended fix phase: Phase 14.
+- Risk level: low
 
 ## 21. Build/runtime warning audit
 
-Pending detailed findings.
+### Finding: Catalog static generation warning cause is verified
+
+- Classification: Risk / needs hardening
+- Current behavior: `src/app/products/[slug]/page.tsx` calls `listPublicProductSlugs()` inside `generateStaticParams()`. The repository creates a Supabase server client through `createSupabaseServerClient()`, which calls `cookies()` from `next/headers`. Installed Next docs for `generateStaticParams`, dynamic routes, and route handlers confirm static/build paths should not depend on request runtime APIs such as cookies.
+- Target behavior from blueprint: Catalog build/runtime behavior should be reliable and avoid demo-data fallback warnings.
+- Gap: Build-time slug generation touches cookies and falls back to demo data on failure.
+- Recommended fix phase: Phase 15.
+- Risk level: medium
+
+### Finding: Quality check results
+
+- Classification: Pending verification
+- Current behavior: `npm run lint`, `npm run typecheck`, and `npm run build` not yet recorded in this audit section.
+- Target behavior from blueprint: Document current lint/typecheck/build status and any static-generation warnings.
+- Gap: Must run after audit doc completion.
+- Recommended fix phase: Phase 12 verification only.
+- Risk level: medium
 
 ## 22. Keep / remove / rebuild recommendations
 
 ### Keep
 
-Pending detailed findings.
+- Supabase Auth + profile trigger bootstrap with `ensureProfileForUser()` reconciliation.
+- Server-side route guards for account, cart, checkout, orders, seller, and admin areas.
+- Public catalog visibility mapper that rejects inactive products, unapproved sellers, and inactive categories.
+- Server-derived cart ownership and cart item mutation scoping.
+- Server-authoritative checkout validation and order item snapshot creation.
+- Coupon validation and checkout revalidation model.
+- Stripe webhook as the only durable payment confirmation path.
+- Customer order list/detail ownership filters and fulfillment/tracking visibility.
 
 ### Remove
 
-Pending detailed findings.
+- Do not remove functional customer code in Phase 13.
+- Consider removing or production-gating silent catalog demo fallback for deployed environments in Phase 15.
+- Consider removing customer-visible implementation wording such as "Supabase configuration", "profile tables", and "Stripe test mode" from storefront/account copy.
 
 ### Rebuild / harden
 
-Pending detailed findings.
+- Build `/account/profile` with session-derived full-name update only.
+- Build `/account/addresses` with address CRUD, single-default enforcement, ownership checks, and RLS.
+- Prepare checkout address selection and populate `orders.shipping_address_snapshot`.
+- Harden checkout idempotency and transactional order creation.
+- Fix discounted Stripe session line items so provider amount matches `orders.total_amount`.
+- Build a real `/products` listing with search/filter/sort/pagination.
+- Replace static slug generation's cookie-backed Supabase path with a static-safe catalog read strategy.
+- Regenerate Supabase database types from an applied schema once address schema lands.
 
 ## 23. Highest-risk gaps
 
-Pending detailed findings.
+1. Missing address management route/app/schema/type layer blocks shipping address snapshots.
+2. Checkout writes `shipping_address_snapshot` and `billing_address_snapshot` as null, so customer orders lack shipping history.
+3. Stripe Checkout line items are built from undiscounted unit prices while the internal payment/order amount may include discounts.
+4. Checkout initiation is not idempotent enough and order creation uses application-side rollback instead of a transaction/RPC.
+5. Catalog static generation touches `cookies()` through the Supabase server client and falls back to demo data.
+6. `/products` listing plus search/filter/sort/pagination/autocomplete are missing.
+7. Database docs define `addresses`, but migrations and `src/types/database.ts` do not.
+8. Coupon usage-limit enforcement is non-transactional and can race under concurrent checkouts.
+9. Product detail availability display is static and does not disable out-of-stock add-to-cart at render time.
+10. Customer status/copy labels are friendly but not fully aligned with blueprint language.
 
 ## 24. Recommended Phase 13 scope
 
-Pending detailed findings.
+Recommendation: keep the next implementation slice as **Phase 13 — Customer Account and Address Management**.
+
+Smallest valuable Phase 13 scope:
+
+- Add `/account/profile`.
+- Add a server action/repository to update only `profiles.full_name` for the current session user.
+- Add `/account/addresses`.
+- Add address schema migration, RLS, and generated/types update plan.
+- Add address list/create/edit/delete/set-default server actions derived from session user.
+- Enforce one default shipping address per user.
+- Add account links to profile and address book.
+- Prepare checkout-facing address selection data shape, but do not complete broad checkout refactors unless explicitly included in Phase 13.
+- Prepare `shipping_address_snapshot` mapping for Phase 14 checkout integration.
+
+Reason: Address management is the highest-priority missing customer feature because checkout cannot populate immutable shipping snapshots without it. Profile editing is smaller and naturally fits the same account slice.
 
 ## 25. Later phase recommendations
 
-Pending detailed findings.
+- Phase 14 — Cart, Checkout, and Customer Order Cleanup:
+  - fix Stripe discounted line-item/amount mismatch
+  - add checkout idempotency or pending-order reuse
+  - move order creation/cart clearing into a transaction/RPC
+  - wire selected address into checkout and `shipping_address_snapshot`
+  - align customer order/payment/fulfillment labels with blueprint
+  - group order detail items by seller
+  - harden coupon usage-limit concurrency
+- Phase 15 — Catalog/Search/Storefront Reliability Cleanup:
+  - add `/products`
+  - implement search/filter/sort/pagination/category browsing
+  - add typeahead/autocomplete if still MVP-required
+  - make static slug generation static-safe or intentionally runtime-only
+  - production-gate demo catalog fallback
+  - improve stock labels on product cards/detail
+- Later:
+  - generated Supabase types from the applied live schema
+  - wishlist/reviews only after account/cart/checkout/order basics are stable
+  - refunds, payouts, notifications, and seller campaigns after core buying flow is hardened
