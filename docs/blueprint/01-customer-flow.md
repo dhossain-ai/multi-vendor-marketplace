@@ -229,6 +229,8 @@ When an order is placed, the selected address is copied into `orders.shipping_ad
 
 Address management is **not currently implemented**. The `addresses` table is defined in `DATABASE_SCHEMA.md` and the API contract exists in `API_SPEC.md`. This is a **required implementation for the next phase**.
 
+**Priority note**: Address CRUD is the highest-priority missing customer feature because checkout cannot populate `shipping_address_snapshot` without it. Profile editing (`full_name`) is a smaller gap that can ship alongside addresses.
+
 ## 10. Product discovery flow
 
 ### Homepage
