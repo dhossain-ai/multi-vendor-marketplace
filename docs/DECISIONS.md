@@ -632,6 +632,66 @@ Fulfillment states:
 
 ---
 
+## D-022: Seller Registration Routing
+
+### Date
+
+2026-04-27
+
+### Decision
+
+The `/sell` route serves exclusively as the public-facing, unauthenticated landing and pitch page for prospective sellers.
+The `/seller/register` route serves as the actual authenticated application and resubmission form.
+
+### Why
+
+- The public landing page needs to pitch the marketplace benefits and be SEO optimized without requiring an active session.
+- The actual application process requires an authenticated user session to map the resulting profile.
+- Separating these concerns keeps the codebase modular and the routing clear.
+
+---
+
+## D-023: Seller Product Publishing Validation
+
+### Date
+
+2026-04-27
+
+### Decision
+
+Product validation enforces different constraints based on the `status` requested:
+- A `draft` product can be created or updated with minimal data (e.g., without images or categories).
+- An `active` (published) product strictly requires a valid category, price, non-negative/valid inventory, and at least one image (thumbnail or gallery).
+- A `suspended` product can only be reactivated by an admin.
+
+### Why
+
+- Sellers need the flexibility to incrementally build product pages without being blocked by validation errors.
+- The storefront must be protected from displaying incomplete or broken listings.
+- Admin moderation must be unilateral and irreversible by the seller.
+
+---
+
+## D-024: Seller Order Privacy and Operations
+
+### Date
+
+2026-04-27
+
+### Decision
+
+Seller order views and operations are strictly scoped and constrained:
+- Sellers only see `order_items` that belong to their `seller_id`.
+- The customer's email address is intentionally hidden/omitted from the seller's order detail view.
+- Sellers cannot mutate the parent order status or the payment status.
+- Sellers cannot cancel paid items (this is reserved for admin/support exception operations).
+- Fulfillment states (`processing`, `shipped`, `delivered`) live on `order_items`.
+
+### Why
+
+- In a multi-vendor environment, exposing the customer's raw email to arbitrary vendors creates a data privacy and communication risk.
+- Sellers canceling paid items creates unhandled financial edge cases (refunds, Stripe disputes) that the marketplace must orchestrate centrally.
+
 ## Update Rule
 
 Add a new decision when:
