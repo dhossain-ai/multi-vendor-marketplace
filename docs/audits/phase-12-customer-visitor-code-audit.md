@@ -58,7 +58,50 @@ Audited customer/visitor routes, customer-relevant feature modules, Supabase sch
 
 ## 6. Visitor storefront audit
 
-Pending detailed findings.
+### Finding: Shopper-first homepage exists
+
+- Classification: Partially implemented
+- Current behavior: `src/app/page.tsx` loads `listPublicProducts()` and renders `StorefrontHome`. The homepage has a shopper-first hero, category highlights derived from loaded products, featured product cards, sign-up CTA, and links to cart/order/account through the header when signed in.
+- Target behavior from blueprint: Homepage/storefront displays curated product sections, shopper-first public navigation, seller entry remains available, and visitors can browse visible products.
+- Gap: Homepage is enough for MVP browsing, but it is still the only listing surface and shows a limited curated slice instead of a full paginated storefront.
+- Recommended fix phase: Keep for MVP; Phase 15 catalog/storefront cleanup.
+- Risk level: medium
+
+### Finding: Product cards show customer-facing data
+
+- Classification: Implemented
+- Current behavior: `ProductCard` shows thumbnail/visual fallback, category, title, seller label, price, short description, availability-style text, and product detail link.
+- Target behavior from blueprint: Product cards show thumbnail, title, price, seller/store name, and category.
+- Gap: Product cards do not expose stock precision, but listing-level "Available now" is acceptable for MVP if detail/cart enforce availability.
+- Recommended fix phase: Phase 15 if richer stock labels are desired on cards.
+- Risk level: low
+
+### Finding: Public product visibility is enforced in repository mapping and queries
+
+- Classification: Implemented
+- Current behavior: `listSupabaseProducts()` queries `products.status = active`; `mapProductRowToSummary()` additionally rejects non-approved sellers and inactive categories. Demo data uses the same mapper. Detail reads also pass through `mapProductRowToDetail()`, which relies on the same public visibility check.
+- Target behavior from blueprint: Public listing and detail return only active products from approved sellers and active categories.
+- Gap: The Supabase query only filters product status in SQL and filters seller/category after loading. This is still server-side but less index-efficient than pushing all visibility predicates into SQL or an RPC.
+- Recommended fix phase: Phase 15 performance/reliability hardening.
+- Risk level: low
+
+### Finding: Public navigation is shopper-first with seller entry available
+
+- Classification: Implemented
+- Current behavior: `SiteHeader` leads with Shop/Categories/Featured. Signed-out visitors see Sign in/Sign up. Signed-in non-admins see Sell/Seller Application/Seller Dashboard based on seller state; admins see Admin Dashboard.
+- Target behavior from blueprint: Public navigation is shopper-first and sell remains available as a seller landing or entry path.
+- Gap: Signed-out header does not show a direct `/sell` link, even though `/sell` exists as public seller landing. Seller entry appears after sign-in.
+- Recommended fix phase: Phase 15 navigation polish if public seller acquisition matters.
+- Risk level: low
+
+### Finding: Protected areas redirect visitors to sign-in
+
+- Classification: Implemented
+- Current behavior: Customer protected routes use `requireAuthenticatedUser()`. Visitors to `/cart`, `/checkout`, `/orders`, `/orders/[id]`, and `/account` are redirected to `/sign-in?next=...`.
+- Target behavior from blueprint: Visitors cannot access protected account/cart/order areas without auth.
+- Gap: None found for customer routes.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
 
 ## 7. Authentication audit
 
@@ -185,11 +228,97 @@ Pending detailed findings.
 
 ## 10. Product discovery audit
 
-Pending detailed findings.
+### Finding: `/products` listing route is missing
+
+- Classification: Missing
+- Current behavior: `src/app/products` contains only `[slug]`; there is no `/products/page.tsx`.
+- Target behavior from blueprint: `/products` should show a paginated product grid for browsing and search/filter results.
+- Gap: Full catalog browsing currently lives on the homepage only and is limited by `PUBLIC_PAGE_SIZE = 6` unless a caller passes a different limit.
+- Recommended fix phase: Phase 15.
+- Risk level: medium
+
+### Finding: Search/filter/sort/pagination UI is missing
+
+- Classification: Missing
+- Current behavior: No customer search box, category-filtered listing route, price filters, sort controls, pagination controls, or autocomplete/typeahead were found in customer catalog routes/components.
+- Target behavior from blueprint: Product listing supports keyword search, category, price range, sort, pagination, and autocomplete/typeahead.
+- Gap: Discovery is curated and static rather than a complete catalog tool.
+- Recommended fix phase: Phase 15.
+- Risk level: medium
+
+### Finding: Category sections exist but are not navigable filters
+
+- Classification: Partially implemented
+- Current behavior: `StorefrontHome` derives category highlights from the loaded products and renders category cards, but the cards are not links to category pages or filtered listings.
+- Target behavior from blueprint: Category browsing should allow shoppers to filter by category.
+- Gap: Category content is informational only.
+- Recommended fix phase: Phase 15.
+- Risk level: low
+
+### Finding: Demo fallback is active in catalog repository
+
+- Classification: Risk / needs hardening
+- Current behavior: If Supabase public env is missing or a catalog query throws, `withSupabaseFallback()` returns `catalogDemoData` and logs a warning.
+- Target behavior from blueprint: Public storefront should use server-filtered live products in production.
+- Gap: Demo fallback is useful for local bootstrapping but risky if production env/schema misconfiguration silently shows demo products.
+- Recommended fix phase: Phase 15; keep local fallback but make production behavior explicit.
+- Risk level: medium
+
+### Finding: Static slug generation touches cookie-backed Supabase server client
+
+- Classification: Risk / needs hardening
+- Current behavior: `/products/[slug]` exports `generateStaticParams()` which calls `listPublicProductSlugs()`. That path uses `listSupabaseProducts()`, which creates a Supabase server client via `createSupabaseServerClient()`, which calls `cookies()`.
+- Target behavior from blueprint and installed Next docs: Build-time static generation should not depend on request-time cookie APIs; `generateStaticParams()` should use static-safe data access or return runtime-only params intentionally.
+- Gap: Build currently warns and falls back to demo slugs/data in static generation.
+- Recommended fix phase: Phase 15.
+- Risk level: medium
 
 ## 11. Product detail audit
 
-Pending detailed findings.
+### Finding: Product detail route exists and returns hidden products as not found
+
+- Classification: Implemented
+- Current behavior: `/products/[slug]` loads `getPublicProductBySlug()`, calls `notFound()` if no public product is returned, and uses product metadata for page title/description.
+- Target behavior from blueprint: Public detail route exists; draft/archived/suspended/seller-unapproved products return not-found/unavailable without leaking status.
+- Gap: None found for public visibility. Hidden statuses are not displayed to shoppers.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
+
+### Finding: Product detail display is mostly complete
+
+- Classification: Partially implemented
+- Current behavior: `ProductDetailView` shows image(s), category, title, description, price, availability label, seller/store name, secure checkout copy, add-to-cart, and related products.
+- Target behavior from blueprint: Product detail shows title, images, description, price, category, seller/store, availability, related products, and add-to-cart.
+- Gap: Availability label is always `"Available now"` from catalog detail mapping. It does not derive "Low Stock" or "Out of Stock" from stock fields.
+- Recommended fix phase: Phase 15 for detail display; Phase 14 if cart/checkout edge copy is bundled there.
+- Risk level: medium
+
+### Finding: Out-of-stock add-to-cart disable is missing at UI level
+
+- Classification: Missing
+- Current behavior: `AddToCartForm` always renders an enabled "Add to cart" button. The server action rejects unavailable/out-of-stock products through `addItemToCart()` and redirects with an error.
+- Target behavior from blueprint: Out-of-stock products disable add-to-cart with an "Out of Stock" label.
+- Gap: Server enforcement exists, but the product detail UI does not pre-disable based on stock.
+- Recommended fix phase: Phase 14 or Phase 15, depending on whether it is handled as cart hardening or catalog detail cleanup.
+- Risk level: medium
+
+### Finding: Visitor add-to-cart redirects cleanly to sign-in
+
+- Classification: Implemented
+- Current behavior: `addToCartAction()` calls `requireAuthenticatedUser(nextPath)`. For visitors, the hidden `nextPath` is the current product detail path, so they are redirected to sign-in with return URL.
+- Target behavior from blueprint: Button is visible to visitors but action requires auth and returns them to the product page.
+- Gap: None found.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
+
+### Finding: Related product query is basic
+
+- Classification: Partially implemented
+- Current behavior: Related products are same-category filtered when a category slug exists and share the same public visibility mapper.
+- Target behavior from blueprint: Related products should come from same category or similar products.
+- Gap: Similarity is not implemented beyond same-category/newest.
+- Recommended fix phase: Later refinement after core customer flow.
+- Risk level: low
 
 ## 12. Cart audit
 
