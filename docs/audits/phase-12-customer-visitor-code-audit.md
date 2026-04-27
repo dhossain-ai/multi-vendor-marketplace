@@ -703,18 +703,21 @@ Audited customer/visitor routes, customer-relevant feature modules, Supabase sch
 ### Finding: Catalog static generation warning cause is verified
 
 - Classification: Risk / needs hardening
-- Current behavior: `src/app/products/[slug]/page.tsx` calls `listPublicProductSlugs()` inside `generateStaticParams()`. The repository creates a Supabase server client through `createSupabaseServerClient()`, which calls `cookies()` from `next/headers`. Installed Next docs for `generateStaticParams`, dynamic routes, and route handlers confirm static/build paths should not depend on request runtime APIs such as cookies.
+- Current behavior: `src/app/products/[slug]/page.tsx` calls `listPublicProductSlugs()` inside `generateStaticParams()`. The repository creates a Supabase server client through `createSupabaseServerClient()`, which calls `cookies()` from `next/headers`. The same repository path is used by `/`. Installed Next docs for `generateStaticParams`, dynamic routes, and route handlers confirm static/build paths should not depend on request runtime APIs such as cookies.
 - Target behavior from blueprint: Catalog build/runtime behavior should be reliable and avoid demo-data fallback warnings.
-- Gap: Build-time slug generation touches cookies and falls back to demo data on failure.
+- Gap: Build-time slug generation and catalog rendering touch cookies and fall back to demo data on failure.
 - Recommended fix phase: Phase 15.
 - Risk level: medium
 
 ### Finding: Quality check results
 
-- Classification: Pending verification
-- Current behavior: `npm run lint`, `npm run typecheck`, and `npm run build` not yet recorded in this audit section.
+- Classification: Implemented
+- Current behavior: `npm run lint` passed. `npm run typecheck` passed after `next typegen`. `npm run build` passed on Next.js 16.2.4/Turbopack and generated all routes successfully.
 - Target behavior from blueprint: Document current lint/typecheck/build status and any static-generation warnings.
-- Gap: Must run after audit doc completion.
+- Gap: Build still logs catalog fallback warnings:
+  - `/products/[slug]` used `cookies()` inside `generateStaticParams`, which is unsupported because it runs at build time without an HTTP request.
+  - `/products/[slug]` and `/` could not be rendered statically because catalog reads used `cookies`.
+  - The catalog repository used demo data after those failures.
 - Recommended fix phase: Phase 12 verification only.
 - Risk level: medium
 
