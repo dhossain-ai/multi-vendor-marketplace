@@ -245,10 +245,11 @@ When extending the codebase:
 
 The next major work should generally follow this order:
 
-1. customer/visitor workflow recovery (storefront, cart, checkout)
-2. improve customer account/profile depth
-3. resolve the catalog build-time `cookies()` warning path
-4. add refinement features (reviews, payouts, admin refunds)
+1. customer/visitor code audit against `docs/blueprint/01-customer-flow.md`
+2. implement customer account/address management
+3. cart, checkout, and order cleanup
+4. resolve the catalog build-time `cookies()` warning path
+5. add refinement features (reviews, payouts, admin refunds)
 
 ---
 
@@ -268,6 +269,8 @@ A new AI session should assume:
 - the repository now includes a real Supabase bootstrap chain
 - new auth users should get app profiles automatically through DB triggers
 - the first admin must be promoted explicitly by SQL
+- the customer/visitor workflow blueprint exists at `docs/blueprint/01-customer-flow.md`
+- address management is schema-defined but not yet implemented in the app
 
 ---
 

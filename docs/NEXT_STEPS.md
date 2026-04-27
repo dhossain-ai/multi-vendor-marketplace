@@ -11,16 +11,18 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Consolidate the demand side of the marketplace: Begin Customer / Visitor Workflow Recovery.
+Phase 11 (Customer / Visitor Workflow Blueprint) is complete. The customer-side source of truth is `docs/blueprint/01-customer-flow.md`.
+
+Next: begin Phase 12 — Customer / Visitor Code Audit.
 
 ---
 
 ## Immediate Next Tasks
 
-### Phase 11 — Customer / Visitor Workflow Blueprint
-- Define the desired state for the visitor storefront and product browsing.
-- Detail the customer sign-up, cart, and checkout flow.
-- Establish the baseline for customer account and order history management.
+### Phase 11 — Customer / Visitor Workflow Blueprint ✅
+- Blueprint created at `docs/blueprint/01-customer-flow.md`.
+- Covers visitor journey, auth, account, addresses, cart, coupon, checkout, Stripe payment, orders, fulfillment, status labels, security, edge cases, and acceptance criteria.
+- Open questions documented for Phase 12+ decisions.
 
 ### Phase 12 — Customer / Visitor Code Audit
 - Audit the current storefront, cart, checkout, and account code.
