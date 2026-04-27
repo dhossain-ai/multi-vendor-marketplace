@@ -1,5 +1,7 @@
 # 01 — Customer / Visitor Flow Blueprint
 
+> **Related docs**: [02-seller-flow.md](./02-seller-flow.md) · [FEATURE_SPEC.md](../FEATURE_SPEC.md) · [DATABASE_SCHEMA.md](../DATABASE_SCHEMA.md) · [API_SPEC.md](../API_SPEC.md) · [DECISIONS.md](../DECISIONS.md) · [checkout-and-payments.md](../architecture/checkout-and-payments.md) · [auth-and-roles.md](../architecture/auth-and-roles.md) · [catalog-and-search.md](../architecture/catalog-and-search.md)
+
 ## 1. Purpose
 
 This document is the customer and visitor source of truth for the marketplace MVP. It defines the complete demand-side journey: how visitors browse, how customers authenticate, how accounts, addresses, carts, coupons, checkout, payment, orders, and fulfillment visibility should behave.
