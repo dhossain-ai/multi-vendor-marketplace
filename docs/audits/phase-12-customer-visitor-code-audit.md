@@ -510,19 +510,173 @@ Audited customer/visitor routes, customer-relevant feature modules, Supabase sch
 
 ## 16. Order history audit
 
-Pending detailed findings.
+### Finding: Customer order history route exists and is owner-scoped
+
+- Classification: Implemented
+- Current behavior: `/orders` requires auth and calls `getCustomerOrders(session.user.id)`, which filters `orders.customer_id = userId`.
+- Target behavior from blueprint: Customer sees only their own orders.
+- Gap: None found in customer order list query.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
+
+### Finding: Order list shows core customer fields
+
+- Classification: Implemented
+- Current behavior: `OrdersListView` shows order number, item count, operational status, payment status, date, total, and links to order detail.
+- Target behavior from blueprint: Order history shows order number/date/status/payment/total/action.
+- Gap: Pagination is missing.
+- Recommended fix phase: Later phase unless order volume grows; Phase 14 if order cleanup includes pagination.
+- Risk level: low
+
+### Finding: Customer-facing order labels are mostly friendly but not blueprint-exact
+
+- Classification: Partially implemented
+- Current behavior: `order-status-copy.ts` maps payment statuses to labels, and `order-progress.ts` derives operational stages. `unfulfilled` currently labels as "Confirmed" rather than blueprint "Preparing Your Order". `pending` order status maps to "Pending review", although the list mostly uses operational-stage labels.
+- Target behavior from blueprint: Customer-facing labels include "Order Received", "Payment Pending", and "Preparing Your Order"; raw enum values should not be shown.
+- Gap: Raw enum values are avoided, but some labels drift from the blueprint language.
+- Recommended fix phase: Phase 14 order/customer copy cleanup.
+- Risk level: low
 
 ## 17. Order detail and fulfillment visibility audit
 
-Pending detailed findings.
+### Finding: Customer order detail route exists and is owner-scoped
+
+- Classification: Implemented
+- Current behavior: `/orders/[id]` requires auth and calls `getCustomerOrderById(session.user.id, id)`, filtering by both `customer_id` and `id`; missing/non-owned orders render `notFound()`.
+- Target behavior from blueprint: Customer can only view own order detail.
+- Gap: None found.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
+
+### Finding: Detail displays item snapshots, totals, discounts, tracking, and shipment notes
+
+- Classification: Implemented
+- Current behavior: Order detail maps `order_items` snapshot fields and renders product title snapshot, quantity, unit price, line total, discount/tax/order totals, fulfillment status, tracking code, shipment note, shipped/delivered timestamps, and seller/category names from `product_metadata_snapshot`.
+- Target behavior from blueprint: Detail shows item snapshots, seller/store per item, totals/discounts, fulfillment status, tracking code, and shipment note.
+- Gap: Seller/store display depends on metadata snapshot, not an explicit joined seller snapshot column. This is acceptable but should remain stable.
+- Recommended fix phase: Keep current snapshot approach; consider typed metadata improvements later.
+- Risk level: low
+
+### Finding: Shipping address snapshot is not shown because it is not loaded/populated
+
+- Classification: Missing
+- Current behavior: `getCustomerOrderById()` does not select `shipping_address_snapshot`, and checkout stores it as null.
+- Target behavior from blueprint: Order detail shows shipping address snapshot if available.
+- Gap: Address display is blocked by missing address management and checkout snapshot population.
+- Recommended fix phase: Phase 13/14.
+- Risk level: high
+
+### Finding: Multi-vendor item grouping is missing
+
+- Classification: Partially implemented
+- Current behavior: Items show seller name per line but render as one flat list.
+- Target behavior from blueprint: Multi-vendor order detail groups items by seller for clarity.
+- Gap: Per-line seller visibility exists, but grouping by seller is not implemented.
+- Recommended fix phase: Phase 14 order detail cleanup.
+- Risk level: medium
+
+### Finding: Customer cannot mutate order/payment state
+
+- Classification: Implemented
+- Current behavior: Customer order detail exposes only payment retry for own pending/unpaid or failed orders. Fulfillment/order/payment state updates are handled by seller/admin/webhook paths, not customer forms.
+- Target behavior from blueprint: Customer can view but not mutate order/payment state.
+- Gap: None found.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
 
 ## 18. Customer security and ownership audit
 
-Pending detailed findings.
+### Finding: Customer identity is consistently derived from session in audited flows
+
+- Classification: Implemented
+- Current behavior: Cart, checkout, account, orders, and payment retry call `requireAuthenticatedUser()` and use `session.user.id` as `userId`/`customer_id`.
+- Target behavior from blueprint: Customer identity comes from server-side Supabase session, never client-submitted `user_id`.
+- Gap: None found in customer server actions/pages.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
+
+### Finding: Cart/order ownership is enforced in both app queries and RLS
+
+- Classification: Implemented
+- Current behavior: App repositories scope carts by `carts.user_id`, cart items by owned cart, and orders by `orders.customer_id`. Migrations add RLS policies/functions for owned carts, cart items, orders, order items, and payments.
+- Target behavior from blueprint: Cart and order ownership must be server-enforced.
+- Gap: App code often uses service-role clients when configured, so RLS is a backstop rather than the primary app guard. The app-level filters are present in the customer paths reviewed.
+- Recommended fix phase: Keep, and test ownership regressions in Phase 14.
+- Risk level: low
+
+### Finding: Checkout does not trust client totals
+
+- Classification: Implemented
+- Current behavior: Checkout action accepts no total/price/coupon values from the client; it reloads current cart/product/coupon data and computes totals server-side.
+- Target behavior from blueprint: Checkout totals are server-authoritative.
+- Gap: None found.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
+
+### Finding: Payment success is webhook/provider authoritative
+
+- Classification: Implemented
+- Current behavior: Success page does not update order status. Webhook handles status changes after verifying the Stripe signature.
+- Target behavior from blueprint: Customer cannot claim payment success through redirect alone.
+- Gap: Event-id persistence is missing, but redirect is not authoritative.
+- Recommended fix phase: Phase 14/later payment hardening.
+- Risk level: medium
+
+### Finding: Address ownership does not exist because addresses do not exist
+
+- Classification: Missing
+- Current behavior: No address table, route, action, or RLS policy exists.
+- Target behavior from blueprint: Customers can only manage own addresses.
+- Gap: Address ownership cannot be enforced until address management is implemented.
+- Recommended fix phase: Phase 13.
+- Risk level: high
+
+### Finding: Customer access to seller/admin pages is server-guarded
+
+- Classification: Implemented
+- Current behavior: Seller/admin layouts and pages use role/status guard utilities. Header visibility is UX only and backed by server checks.
+- Target behavior from blueprint: Customer cannot access seller/admin pages without role/status.
+- Gap: No customer-side role bypass found in audited route guards.
+- Recommended fix phase: Keep as-is.
+- Risk level: low
 
 ## 19. Database/schema alignment audit
 
-Pending detailed findings.
+### Finding: Profile and role schema is aligned
+
+- Classification: Implemented
+- Current behavior: Migrations and `src/types/database.ts` include `profiles.full_name`, `profiles.role`, `profiles.is_active`, timestamps, and auth trigger bootstrap.
+- Target behavior from blueprint: Profiles support email/full name/role, with role defaulting to customer.
+- Gap: No customer profile update action yet.
+- Recommended fix phase: Phase 13.
+- Risk level: low
+
+### Finding: Address schema docs contradict migrations/types
+
+- Classification: Missing
+- Current behavior: `docs/DATABASE_SCHEMA.md` defines an `addresses` table, but migrations and `src/types/database.ts` do not include it.
+- Target behavior from blueprint: Address table exists and is app-owned by customer.
+- Gap: Documentation is ahead of actual schema.
+- Recommended fix phase: Phase 13.
+- Risk level: high
+
+### Finding: Order snapshot and coupon columns exist
+
+- Classification: Implemented
+- Current behavior: Migrations and types include `orders.shipping_address_snapshot`, `orders.billing_address_snapshot`, `orders.coupon_id`, `orders.discount_amount`, `order_items.discount_amount`, `order_items.fulfillment_status`, `tracking_code`, and `shipment_note`.
+- Target behavior from blueprint: Orders and order items support address snapshots, coupons, discounts, and fulfillment/tracking visibility.
+- Gap: Address snapshot columns exist but are not populated or displayed in customer detail.
+- Recommended fix phase: Phase 13/14.
+- Risk level: high
+
+### Finding: `src/types/database.ts` is hand-written/subset-like despite schema alignment
+
+- Classification: Risk / needs hardening
+- Current behavior: `docs/STATUS.md` says database typing is a hand-written subset. The file looks generated-shaped but includes only current tables and lacks `addresses`.
+- Target behavior from blueprint/status docs: Generated Supabase types should be produced from the finalized live schema after migrations are applied.
+- Gap: Risk of type drift remains. If docs say generated types are pending while the file appears generated, contributors may overtrust it.
+- Recommended fix phase: Dedicated generated-types phase or the first implementation phase that applies address migrations.
+- Risk level: medium
 
 ## 20. UX/content language audit
 
