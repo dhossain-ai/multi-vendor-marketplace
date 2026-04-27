@@ -58,6 +58,65 @@ export type Database = {
           },
         ]
       }
+      addresses: {
+        Row: {
+          city: string
+          country_code: string
+          created_at: string
+          id: string
+          is_default: boolean
+          label: string | null
+          line_1: string
+          line_2: string | null
+          phone: string | null
+          postal_code: string | null
+          recipient_name: string
+          state_region: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city: string
+          country_code: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          line_1: string
+          line_2?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          recipient_name: string
+          state_region?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          country_code?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          line_1?: string
+          line_2?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          recipient_name?: string
+          state_region?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addresses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cart_items: {
         Row: {
           cart_id: string
