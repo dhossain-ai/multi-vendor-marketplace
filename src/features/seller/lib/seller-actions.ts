@@ -488,6 +488,20 @@ export async function updateSellerOrderFulfillmentAction(formData: FormData) {
   const trackingCode = String(formData.get("trackingCode") ?? "").trim() || null;
   const shipmentNote = String(formData.get("shipmentNote") ?? "").trim() || null;
 
+  if (trackingCode && trackingCode.length > 100) {
+    redirect(
+      `/seller/orders/${orderId}?error=` +
+        encodeURIComponent("Tracking code cannot exceed 100 characters."),
+    );
+  }
+
+  if (shipmentNote && shipmentNote.length > 500) {
+    redirect(
+      `/seller/orders/${orderId}?error=` +
+        encodeURIComponent("Shipment note cannot exceed 500 characters."),
+    );
+  }
+
   if (!sellerProfileId || !orderId) {
     redirect(
       "/seller/orders?error=" +
@@ -498,8 +512,7 @@ export async function updateSellerOrderFulfillmentAction(formData: FormData) {
   if (
     fulfillmentStatus !== "processing" &&
     fulfillmentStatus !== "shipped" &&
-    fulfillmentStatus !== "delivered" &&
-    fulfillmentStatus !== "cancelled"
+    fulfillmentStatus !== "delivered"
   ) {
     redirect(
       `/seller/orders/${orderId}?error=` +
