@@ -537,3 +537,26 @@ Made the marketplace feel operationally real: sellers now work from seller-scope
 - deepen customer profile/account management
 - resolve the catalog build-time `cookies()` warning
 - harden post-reset auditability and reliability
+
+## 2026-04-27 - Seller Flow Recovery Phases 0–10
+
+### Summary
+
+Successfully planned, audited, and implemented a robust, secure, and production-ready seller/vendor workflow. This recovery hardens the platform into a true multi-vendor marketplace by establishing strict boundaries between customers, sellers, and admins. 
+
+### Completed
+
+- **Phases 0-2**: Created the seller workflow blueprint, audited the previous codebase, and laid out the implementation plan.
+- **Phase 3**: Consolidated the database foundation and type subset for sellers.
+- **Phase 4**: Implemented the seller registration and application/resubmission flow (`/seller/register`).
+- **Phase 5**: Developed the admin moderation tools to review, approve, reject, and suspend sellers, including a verified-email approval gate and status history tracking.
+- **Phase 6**: Cleaned up the status-aware seller dashboard and store settings, introducing slug locks after approval.
+- **Phase 7**: Hardened product and inventory rules, requiring active products to possess categories, valid prices, images, and valid stock levels.
+- **Phase 8**: Refined seller order privacy and fulfillment rules. Scoped order views to strictly seller-owned items, hid customer email addresses by default, bound fulfillment transitions, and removed seller-side cancellation of paid items.
+- **Phases 9-10**: Executed a comprehensive manual QA and server-side security audit, followed by this documentation checkpoint and handoff.
+
+### Next Recommended Slice
+
+- customer/visitor workflow blueprint and audit
+- deepen customer account management (profile and addresses)
+- cart, checkout, and order history cleanup
