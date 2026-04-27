@@ -564,6 +564,10 @@ Fulfillment status is per-item (on `order_items`), reflecting seller-driven upda
 - Customer sees per-item fulfillment status, not a single order-level status.
 - Group items by seller in the order detail view for clarity.
 
+### Order-level status derivation
+
+The parent `orders.order_status` is synchronized from line-item fulfillment through a database trigger (per D-021). The customer sees the order-level label for the overall status and per-item labels for fulfillment detail. When all items are delivered, the order transitions to `completed`.
+
 ## 19. Customer-facing status language
 
 ### Order status labels
