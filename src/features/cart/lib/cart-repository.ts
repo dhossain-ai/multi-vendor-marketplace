@@ -85,7 +85,7 @@ const getAvailability = (product: CartMutationProduct, quantity: number) => {
   ) {
     return {
       state: "unavailable" as CartItemAvailability,
-      label: "Currently unavailable",
+      label: "Unavailable now. Remove this item before checkout.",
     };
   }
 
@@ -96,7 +96,7 @@ const getAvailability = (product: CartMutationProduct, quantity: number) => {
   ) {
     return {
       state: "unavailable" as CartItemAvailability,
-      label: "Out of stock",
+      label: "Out of stock. Remove this item before checkout.",
     };
   }
 
@@ -107,7 +107,7 @@ const getAvailability = (product: CartMutationProduct, quantity: number) => {
   ) {
     return {
       state: "limited_stock" as CartItemAvailability,
-      label: `Only ${product.stockQuantity} available right now`,
+      label: `Only ${product.stockQuantity} available. Update the quantity before checkout.`,
     };
   }
 

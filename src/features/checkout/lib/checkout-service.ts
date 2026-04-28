@@ -134,15 +134,15 @@ const getAvailabilityLabel = (input: {
   const issues: string[] = [];
 
   if (input.productStatus !== "active") {
-    issues.push("Product is no longer active for checkout.");
+    issues.push("An item in your cart is no longer available. Remove it before checkout.");
   }
 
   if (input.sellerStatus !== "approved") {
-    issues.push("Seller is not currently approved for public sales.");
+    issues.push("A seller in your cart is not currently available for public sales.");
   }
 
   if (input.categoryIsActive === false) {
-    issues.push("Product category is not currently active.");
+    issues.push("An item category is not currently available for checkout.");
   }
 
   if (!Number.isInteger(input.quantity) || input.quantity <= 0) {
@@ -171,7 +171,7 @@ const getAvailabilityLabel = (input: {
 
   return {
     issues,
-    label: issues[0] ?? "Ready for pending order creation",
+    label: issues[0] ?? "Ready for payment review",
   };
 };
 

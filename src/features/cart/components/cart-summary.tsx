@@ -110,8 +110,8 @@ export function CartSummary({ cart }: CartSummaryProps) {
 
         {cart.hasUnavailableItems ? (
           <p className="rounded-[1.5rem] bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-700">
-            One or more items are no longer fully purchasable. Remove or adjust
-            them before checking out.
+            One or more items need attention. Remove unavailable items or update
+            limited quantities before checkout.
           </p>
         ) : null}
 
