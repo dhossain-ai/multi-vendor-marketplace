@@ -84,24 +84,40 @@ Each policy is scoped to `authenticated` users and requires `user_id = auth.uid(
 
 ## 7. Type generation result
 
-Pending.
+- `npx supabase gen types typescript --project-id hhfcmcopjvyitjxcrmoy > src/types/database.ts` succeeded.
+- `src/types/database.ts` is now generated from the linked dev project.
+- The generated `public.addresses` type includes the Phase 13 address columns and `addresses_user_id_fkey` relationship.
+- The generated `orders` type still includes `shipping_address_snapshot` and `billing_address_snapshot` as nullable JSON fields.
 
 ## 8. Type fallout fixes
 
-Pending.
+- No account/address code fixes were required after type generation.
+- `src/types/database.ts` changed because generated output placed `addresses` in schema order and normalized the checked-in type file to the dev database state.
 
 ## 9. Quality checks
 
 Baseline checks passed before migration/typegen work.
 
-Final checks are pending.
+Final checks after remote type generation:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with the known catalog `cookies()` static-generation/demo fallback warnings.
 
 ## 10. Remaining risks
 
-- Type generation still needs to be completed from the linked dev project.
 - Phase 14 still needs checkout address selection and `orders.shipping_address_snapshot` population.
+- Phase 14 should also audit/fix the discounted Stripe total mismatch and checkout idempotency/rollback risks documented in Phase 12.
 - The known catalog `cookies()` static-generation/demo fallback warning remains intentionally deferred.
 
 ## 11. Phase 14 readiness
 
-Pending type generation and final quality checks.
+Phase 14 is unblocked from the address database/type foundation perspective.
+
+Recommended first Phase 14 focus:
+
+- checkout address selection
+- `orders.shipping_address_snapshot` population
+- customer order detail shipping address display
+- discounted Stripe total mismatch audit/fix
+- checkout idempotency/rollback risk review
