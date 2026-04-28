@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 14 — Cart, Checkout, and Customer Order Cleanup completed.
+Phase 15 — Catalog, Search, and Storefront Reliability completed.
 
 ---
 
@@ -106,12 +106,16 @@ The repository now behaves like a much more operational marketplace product acro
   - customer order detail displays the saved shipping snapshot
   - Stripe Checkout now charges the server-calculated order total
   - cart and checkout unavailable-item copy now gives clearer next actions
+- catalog static generation `cookies()` warnings fixed by separating public Supabase client
+- `/products` storefront listing route added with search, category, sort, and pagination
+- catalog queries enforce strict visibility rules (active product, approved seller, active category)
+- demo fallback data scoped cleanly, no longer masking real Supabase failures
 
 ---
 
 ## In Progress
 
-- preparing Phase 15 catalog/search/storefront reliability cleanup
+- preparing Phase 16
 
 ---
 
@@ -120,7 +124,6 @@ The repository now behaves like a much more operational marketplace product acro
 ### Product / UX
 
 - richer seeded order scenarios and account realism
-- storefront reliability cleanup for static catalog generation
 
 ### Backend / Business Logic
 
@@ -148,24 +151,19 @@ The repository now behaves like a much more operational marketplace product acro
 - pending-order creation currently needs stronger idempotency around duplicate submissions
 - Stripe webhook endpoint needs production HTTPS and live webhook registration
 - admin audit logging is best-effort and should be hardened later
-- build output still warns that catalog slug generation falls back to demo data because `cookies()` are touched during static product slug generation
+- build output still warns that catalog slug generation falls back to demo data because `cookies()` are touched during static product slug generation (FIXED)
 
 ---
 
 ## Current Priority
 
-Move into Phase 15 to clean up catalog/search/storefront reliability and resolve the lingering catalog static-generation warning.
+Move into Phase 16 to tackle remaining customer, seller, or infrastructure priorities.
 
 ---
 
 ## Immediate Focus
 
-The next implementation focus should be:
-
-- resolve catalog `cookies()` static-generation warnings
-- add or harden `/products` listing/search/filter/sort/pagination
-- reduce reliance on demo-data fallback in production-like paths
-- keep shopper storefront navigation and product discovery customer-first
+The next implementation focus should be planned and documented before coding starts.
 
 ---
 
@@ -182,10 +180,7 @@ The next implementation focus should be:
 
 ## Readiness Assessment
 
-The project is ready to move into Phase 15 once:
+The project is ready to move into Phase 16 once:
 
-- the address migration has been applied to the target Supabase project
-- the first admin has been promoted explicitly
-- Stripe test-mode keys are configured locally
-- the next slice is limited to catalog/search/storefront reliability cleanup
+- the next slice is defined (e.g. Stripe webhooks, real reviews, wishlist, or admin tools)
 - docs continue to be updated alongside implementation

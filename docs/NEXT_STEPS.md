@@ -11,9 +11,9 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Phase 14 (Cart, Checkout, and Customer Order Cleanup) is complete.
+Phase 15 (Catalog/Search/Storefront Reliability Cleanup) is complete.
 
-Next: begin Phase 15 — Catalog/Search/Storefront Reliability Cleanup.
+Next: begin Phase 16 (TBD, likely Stripe Webhooks, Refinement, or Admin Tooling).
 
 ---
 
@@ -47,11 +47,11 @@ Next: begin Phase 15 — Catalog/Search/Storefront Reliability Cleanup.
 - Reviewed checkout idempotency and rollback risk.
 - Kept cart, coupon, and checkout totals server-authoritative.
 
-### Phase 15 — Catalog/Search/Storefront Reliability Cleanup
-- Address the `cookies()` static-generation warnings.
-- Add or harden `/products` listing/search/filter/sort/pagination.
-- Reduce production-like reliance on demo-data fallback.
-- Keep product discovery customer-first.
+### Phase 15 — Catalog/Search/Storefront Reliability Cleanup ✅
+- Addressed the `cookies()` static-generation warnings by separating public Supabase client.
+- Added `/products` listing with search, category, sort, and pagination.
+- Reduced production-like reliance on demo-data fallback.
+- Kept product discovery customer-first.
 
 ---
 
