@@ -33,6 +33,18 @@ export type OrderItemSnapshotMetadata = {
   categorySlug?: string | null;
 } & Record<string, Json | undefined>;
 
+export type CustomerShippingAddressSnapshot = {
+  recipientName: string;
+  line1: string;
+  line2: string | null;
+  city: string;
+  stateRegion: string | null;
+  postalCode: string | null;
+  countryCode: string;
+  phone: string | null;
+  label: string | null;
+};
+
 export type CustomerOrderSummary = {
   id: string;
   orderNumber: string;
@@ -71,5 +83,6 @@ export type CustomerOrderDetail = CustomerOrderSummary & {
   subtotalAmount: number;
   discountAmount: number;
   taxAmount: number;
+  shippingAddress: CustomerShippingAddressSnapshot | null;
   items: CustomerOrderItem[];
 };

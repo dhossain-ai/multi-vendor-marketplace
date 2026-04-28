@@ -56,6 +56,9 @@ const canRetryPayment = (order: CustomerOrderDetail): boolean =>
   order.orderStatus === "pending" &&
   (order.paymentStatus === "unpaid" || order.paymentStatus === "failed");
 
+const formatAddressLine = (parts: Array<string | null>) =>
+  parts.filter(Boolean).join(", ");
+
 export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) {
   return (
     <div className="py-12 md:py-16">
@@ -212,6 +215,36 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
                   </span>
                 </div>
               </div>
+
+              <section className="rounded-[1.5rem] bg-white/80 px-4 py-3 text-sm leading-6">
+                <p className="text-foreground font-medium">Shipping address</p>
+                {order.shippingAddress ? (
+                  <div className="text-ink-muted mt-2 space-y-1">
+                    <p className="text-foreground">
+                      {order.shippingAddress.recipientName}
+                    </p>
+                    <p>{order.shippingAddress.line1}</p>
+                    {order.shippingAddress.line2 ? (
+                      <p>{order.shippingAddress.line2}</p>
+                    ) : null}
+                    <p>
+                      {formatAddressLine([
+                        order.shippingAddress.city,
+                        order.shippingAddress.stateRegion,
+                        order.shippingAddress.postalCode,
+                      ])}
+                    </p>
+                    <p>{order.shippingAddress.countryCode}</p>
+                    {order.shippingAddress.phone ? (
+                      <p>{order.shippingAddress.phone}</p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="text-ink-muted mt-2">
+                    No shipping address was saved for this order.
+                  </p>
+                )}
+              </section>
 
               {order.paymentStatus === "paid" ? (
                 <div className="rounded-[1.5rem] bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-800">

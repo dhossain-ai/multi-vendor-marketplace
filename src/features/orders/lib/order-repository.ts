@@ -7,6 +7,7 @@ import type {
   CustomerOrderDetail,
   CustomerOrderItem,
   CustomerOrderSummary,
+  CustomerShippingAddressSnapshot,
   OrderItemSnapshotMetadata,
 } from "@/features/orders/types";
 
@@ -59,6 +60,7 @@ type OrderDetailRow = {
   discount_amount?: number | string | null;
   tax_amount?: number | string | null;
   total_amount?: number | string | null;
+  shipping_address_snapshot?: Json | null;
   placed_at?: string | null;
   created_at?: string | null;
   order_items?: OrderItemRow[] | null;
@@ -152,6 +154,44 @@ const mapOrderItem = (row: OrderItemRow): CustomerOrderItem | null => {
   };
 };
 
+const getSnapshotString = (
+  snapshot: Record<string, Json | undefined>,
+  key: string,
+) => {
+  const value = snapshot[key];
+
+  return typeof value === "string" ? value : null;
+};
+
+const mapShippingAddressSnapshot = (
+  snapshot: Json | null | undefined,
+): CustomerShippingAddressSnapshot | null => {
+  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
+    return null;
+  }
+
+  const recipientName = getSnapshotString(snapshot, "recipient_name");
+  const line1 = getSnapshotString(snapshot, "line_1");
+  const city = getSnapshotString(snapshot, "city");
+  const countryCode = getSnapshotString(snapshot, "country_code");
+
+  if (!recipientName || !line1 || !city || !countryCode) {
+    return null;
+  }
+
+  return {
+    recipientName,
+    line1,
+    line2: getSnapshotString(snapshot, "line_2"),
+    city,
+    stateRegion: getSnapshotString(snapshot, "state_region"),
+    postalCode: getSnapshotString(snapshot, "postal_code"),
+    countryCode,
+    phone: getSnapshotString(snapshot, "phone"),
+    label: getSnapshotString(snapshot, "label"),
+  };
+};
+
 const mapOrderDetail = (row: OrderDetailRow): CustomerOrderDetail | null => {
   if (
     !row.id ||
@@ -190,6 +230,7 @@ const mapOrderDetail = (row: OrderDetailRow): CustomerOrderDetail | null => {
     subtotalAmount: Number(row.subtotal_amount),
     discountAmount: Number(row.discount_amount),
     taxAmount: Number(row.tax_amount),
+    shippingAddress: mapShippingAddressSnapshot(row.shipping_address_snapshot),
     items,
   };
 };
@@ -242,6 +283,7 @@ export async function getCustomerOrderById(userId: string, orderId: string) {
         discount_amount,
         tax_amount,
         total_amount,
+        shipping_address_snapshot,
         placed_at,
         created_at,
         order_items (
