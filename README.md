@@ -10,6 +10,7 @@ The repo now includes:
 - A real ordered Supabase migration chain for fresh-project setup
 
 ### Currently Deferred (Not Implemented Yet)
+
 - automated payouts (Stripe Connect)
 - refund workflows
 - product reviews and customer wishlists
@@ -28,6 +29,28 @@ The documentation in [`docs/`](docs) remains the source of truth for product rul
 - Stripe
 - ESLint 9
 - Prettier 3
+
+## DevOps and AWS Deployment
+
+This project is prepared for a real containerized AWS deployment:
+
+```text
+GitHub Actions -> Docker -> Amazon ECR -> ECS Fargate -> ALB -> CloudWatch
+```
+
+- Containerization: multi-stage `Dockerfile` using Next.js standalone output.
+- CI/CD: GitHub Actions CI for lint/typecheck/build and remote Docker builds.
+- AWS deployment: production deploy workflow for ECR and ECS Fargate on pushes to `main`.
+- Infrastructure as Code: Terraform scaffold in [`infra/`](infra) for ECR, ECS, ALB, IAM, security groups, and CloudWatch logs.
+- Monitoring/logging: ECS task logs are sent to CloudWatch through the `awslogs` driver.
+- Operations docs: deployment, rollback, troubleshooting, and environment variable docs are in [`docs/`](docs).
+
+Deployment references:
+
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+- [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)
+- [`docs/ROLLBACK.md`](docs/ROLLBACK.md)
+- [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.md)
 
 ## Project Structure
 
@@ -95,13 +118,13 @@ SQL editor fallback:
 
 Run the files in `supabase/migrations/` in filename order:
 
-1. `202604200001_base_helpers_and_enums.sql`
-2. `202604200002_auth_profile_foundation.sql`
-3. `202604200003_catalog_foundation.sql`
-4. `202604200004_cart_foundation.sql`
-5. `202604200005_coupon_and_audit_foundation.sql`
-6. `202604200006_checkout_orders_payments_foundation.sql`
-7. `202604200007_marketplace_operations_reset.sql`
+- `202604200001_base_helpers_and_enums.sql`
+- `202604200002_auth_profile_foundation.sql`
+- `202604200003_catalog_foundation.sql`
+- `202604200004_cart_foundation.sql`
+- `202604200005_coupon_and_audit_foundation.sql`
+- `202604200006_checkout_orders_payments_foundation.sql`
+- `202604200007_marketplace_operations_reset.sql`
 
 5. Promote the first admin explicitly after the target user has signed up:
 
@@ -150,6 +173,8 @@ Seller onboarding now happens through the app at `/sell`. Admin approval is stil
 - `npm run typecheck` - run TypeScript type checking
 - `npm run format` - format the repository with Prettier
 - `npm run format:check` - verify formatting without writing changes
+- `npm run docker:build` - optionally build the Docker image locally
+- `npm run docker:run` - optionally run the Docker image locally on port 3000
 
 ## Documentation Map
 
@@ -161,4 +186,8 @@ Seller onboarding now happens through the app at `/sell`. Admin approval is stil
 - [`docs/DECISIONS.md`](docs/DECISIONS.md)
 - [`docs/STATUS.md`](docs/STATUS.md)
 - [`docs/NEXT_STEPS.md`](docs/NEXT_STEPS.md)
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+- [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md)
+- [`docs/ROLLBACK.md`](docs/ROLLBACK.md)
+- [`docs/ENVIRONMENT_VARIABLES.md`](docs/ENVIRONMENT_VARIABLES.md)
 - [`docs/architecture/ARCHITECTURE_OVERVIEW.md`](docs/architecture/ARCHITECTURE_OVERVIEW.md)
