@@ -45,6 +45,22 @@ export type ProductListResult = {
   source: "supabase" | "demo";
 };
 
+export type ProductSearchParams = {
+  q?: string;
+  category?: string;
+  sort?: "newest" | "price_asc" | "price_desc" | "relevance";
+  page?: number;
+  pageSize?: number;
+};
+
+export type ProductSearchResult = {
+  products: ProductSummary[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  source: "supabase" | "demo";
+};
+
 export type ProductDetailResult = {
   product: ProductDetail | null;
   source: "supabase" | "demo";
