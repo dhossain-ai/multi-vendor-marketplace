@@ -10,7 +10,9 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "docker:build": "docker build -t marketplace .",
+    "docker:run": "docker run -p 3000:3000 marketplace"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
