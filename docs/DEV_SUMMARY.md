@@ -1,5 +1,33 @@
 # Dev Summary
 
+## 2026-04-28 - Phase 14 Cart Checkout and Orders
+
+### Summary
+
+Connected customer addresses into checkout, made shipping address selection required for payment, snapshotted the selected address onto new orders, and fixed the Stripe total mismatch around discounted orders.
+
+### Added
+
+- saved-address selection on `/checkout`
+- server-side selected-address ownership verification
+- `orders.shipping_address_snapshot` population during pending order creation
+- shipping address display on customer order detail
+- aggregate Stripe Checkout line item that charges `orders.total_amount`
+- clearer cart and checkout unavailable-item messages
+- shopper-facing order copy refinements
+- implementation note at `docs/implementation/phase-14-cart-checkout-orders.md`
+
+### Notes
+
+- Checkout still derives customer identity from the server session.
+- Checkout accepts only `shippingAddressId`, not raw address fields or `user_id`.
+- Billing address remains deferred.
+- Pending order creation still uses application-side compensation rather than a transaction/RPC.
+
+### Next Recommended Slice
+
+- Phase 15: catalog/search/storefront reliability cleanup, including the catalog `cookies()` static-generation warning.
+
 ## 2026-04-28 - Phase 13 Customer Account and Addresses
 
 ### Summary

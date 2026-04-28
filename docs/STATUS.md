@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 13.5 — Address Migration Verification and Typegen Unblock completed.
+Phase 14 — Cart, Checkout, and Customer Order Cleanup completed.
 
 ---
 
@@ -99,12 +99,19 @@ The repository now behaves like a much more operational marketplace product acro
   - address migration applied to the linked dev database
   - remote schema/RLS/index/trigger checks completed for `public.addresses`
   - `src/types/database.ts` regenerated from the linked dev project
+- cart, checkout, and customer order cleanup completed:
+  - checkout now requires a saved customer shipping address
+  - checkout verifies selected address ownership server-side
+  - pending orders snapshot the selected shipping address at creation time
+  - customer order detail displays the saved shipping snapshot
+  - Stripe Checkout now charges the server-calculated order total
+  - cart and checkout unavailable-item copy now gives clearer next actions
 
 ---
 
 ## In Progress
 
-- preparing Phase 14 cart, checkout, and customer order cleanup
+- preparing Phase 15 catalog/search/storefront reliability cleanup
 
 ---
 
@@ -138,7 +145,7 @@ The repository now behaves like a much more operational marketplace product acro
 
 - existing partially-manual Supabase projects should be reset or reconciled before trusting them
 - pending-order creation currently uses application-side compensation instead of a single database transaction
-- checkout now supports coupon validation, discounts, and a default-address preview, but it does not yet require/select an address or populate shipping address snapshots
+- pending-order creation currently needs stronger idempotency around duplicate submissions
 - Stripe webhook endpoint needs production HTTPS and live webhook registration
 - admin audit logging is best-effort and should be hardened later
 - build output still warns that catalog slug generation falls back to demo data because `cookies()` are touched during static product slug generation
@@ -147,7 +154,7 @@ The repository now behaves like a much more operational marketplace product acro
 
 ## Current Priority
 
-Move into Phase 14 to connect customer addresses into checkout selection and order snapshots while hardening the cart/checkout handoff.
+Move into Phase 15 to clean up catalog/search/storefront reliability and resolve the lingering catalog static-generation warning.
 
 ---
 
@@ -155,13 +162,10 @@ Move into Phase 14 to connect customer addresses into checkout selection and ord
 
 The next implementation focus should be:
 
-- implement checkout shipping address selection
-- populate `orders.shipping_address_snapshot` from a customer-owned address
-- display the saved shipping snapshot on customer order detail
-- audit/fix the discounted Stripe total mismatch
-- review checkout idempotency and rollback risk
-- keep cart/checkout totals server-authoritative
-- preserve the catalog `cookies()` warning for the later catalog reliability phase
+- resolve catalog `cookies()` static-generation warnings
+- add or harden `/products` listing/search/filter/sort/pagination
+- reduce reliance on demo-data fallback in production-like paths
+- keep shopper storefront navigation and product discovery customer-first
 
 ---
 
@@ -178,10 +182,10 @@ The next implementation focus should be:
 
 ## Readiness Assessment
 
-The project is ready to move into Phase 14 once:
+The project is ready to move into Phase 15 once:
 
 - the address migration has been applied to the target Supabase project
 - the first admin has been promoted explicitly
 - Stripe test-mode keys are configured locally
-- the next slice is limited to checkout address selection, order address snapshots, and cart/checkout/order hardening
+- the next slice is limited to catalog/search/storefront reliability cleanup
 - docs continue to be updated alongside implementation

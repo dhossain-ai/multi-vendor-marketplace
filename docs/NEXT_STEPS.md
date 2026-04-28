@@ -11,9 +11,9 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Phase 13.5 (Address Migration Verification and Typegen Unblock) is complete.
+Phase 14 (Cart, Checkout, and Customer Order Cleanup) is complete.
 
-Next: begin Phase 14 — Cart, Checkout, and Customer Order Cleanup.
+Next: begin Phase 15 — Catalog/Search/Storefront Reliability Cleanup.
 
 ---
 
@@ -39,17 +39,19 @@ Next: begin Phase 14 — Cart, Checkout, and Customer Order Cleanup.
 - Confirmed `public.addresses` schema, RLS, indexes, and `updated_at` trigger in the dev database.
 - Regenerated `src/types/database.ts` from the linked dev project.
 
-### Phase 14 — Cart, Checkout, and Customer Order Cleanup
-- Add checkout shipping address selection.
-- Populate `orders.shipping_address_snapshot` from a customer-owned address.
-- Display the saved shipping snapshot on customer order detail.
-- Audit/fix the discounted Stripe total mismatch.
-- Review checkout idempotency and rollback risk.
-- Keep cart, coupon, and checkout totals server-authoritative.
-- Clean up customer order detail shipping-address display once snapshots exist.
+### Phase 14 — Cart, Checkout, and Customer Order Cleanup ✅
+- Added checkout shipping address selection.
+- Populated `orders.shipping_address_snapshot` from a customer-owned address.
+- Displayed the saved shipping snapshot on customer order detail.
+- Fixed the discounted Stripe total mismatch by charging the server-calculated order total.
+- Reviewed checkout idempotency and rollback risk.
+- Kept cart, coupon, and checkout totals server-authoritative.
 
 ### Phase 15 — Catalog/Search/Storefront Reliability Cleanup
-- Address the `cookies()` static-generation warnings and resolve storefront hydration/reliability issues.
+- Address the `cookies()` static-generation warnings.
+- Add or harden `/products` listing/search/filter/sort/pagination.
+- Reduce production-like reliance on demo-data fallback.
+- Keep product discovery customer-first.
 
 ---
 
@@ -95,7 +97,8 @@ Recommended order:
 5. generated types
 6. customer account depth
 7. checkout address snapshots
-8. refinement features
+8. catalog/search/storefront reliability
+9. refinement features
 
 ---
 
