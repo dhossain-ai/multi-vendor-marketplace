@@ -69,10 +69,10 @@ export function StorefrontHome({ products }: StorefrontHomeProps) {
 
             <div className="flex flex-wrap items-center gap-3">
               <Link
-                href="/#featured"
+                href="/products"
                 className="inline-flex min-h-11 items-center justify-center rounded-full bg-brand px-5 text-sm font-semibold text-white"
               >
-                Shop featured picks
+                Shop all products
               </Link>
               <Link
                 href="/sign-up"
