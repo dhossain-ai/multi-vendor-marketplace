@@ -28,13 +28,6 @@ type OrderRow = {
   currency_code?: string | null;
 };
 
-type OrderItemRow = {
-  product_title_snapshot?: string | null;
-  quantity?: number | null;
-  unit_price_amount?: number | string | null;
-  currency_code?: string | null;
-};
-
 export class PaymentServiceError extends Error {
   constructor(message: string) {
     super(message);
@@ -114,42 +107,39 @@ export async function createPaymentSessionForOrder(
     }
   }
 
-  // Load order items for Stripe line items
-  const { data: itemsData, error: itemsError } = await client
-    .from("order_items")
-    .select("product_title_snapshot, quantity, unit_price_amount, currency_code")
-    .eq("order_id", orderId);
-
-  if (itemsError || !itemsData || itemsData.length === 0) {
-    throw new PaymentServiceError("Order items could not be loaded for payment.");
-  }
-
-  const lineItems = (itemsData as OrderItemRow[]).map((item) => ({
-    price_data: {
-      currency: (item.currency_code ?? currencyCode).toLowerCase(),
-      product_data: {
-        name: item.product_title_snapshot ?? "Product",
+  const lineItems = [
+    {
+      price_data: {
+        currency: currencyCode.toLowerCase(),
+        product_data: {
+          name: `Marketplace order ${order.order_number ?? orderId}`,
+        },
+        unit_amount: Math.round(totalAmount * 100),
       },
-      unit_amount: Math.round(Number(item.unit_price_amount ?? 0) * 100),
+      quantity: 1,
     },
-    quantity: item.quantity ?? 1,
-  }));
+  ];
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const idempotencyKey = randomUUID();
 
   const stripe = getStripe();
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    line_items: lineItems,
-    metadata: {
-      order_id: orderId,
-      order_number: order.order_number ?? "",
+  const session = await stripe.checkout.sessions.create(
+    {
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      metadata: {
+        order_id: orderId,
+        order_number: order.order_number ?? "",
+      },
+      success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/checkout/cancel?order_id=${orderId}`,
     },
-    success_url: `${appUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${appUrl}/checkout/cancel?order_id=${orderId}`,
-  });
+    {
+      idempotencyKey,
+    },
+  );
 
   if (!session.url) {
     throw new PaymentServiceError("Stripe did not return a checkout URL.");
