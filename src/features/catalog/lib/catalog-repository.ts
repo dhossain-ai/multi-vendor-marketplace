@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { hasSupabasePublicEnv } from "@/lib/config/env";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { catalogDemoData } from "@/features/catalog/lib/catalog-demo-data";
 import type {
   CatalogProductRecord,
@@ -8,6 +8,8 @@ import type {
   ProductDetailResult,
   ProductImage,
   ProductListResult,
+  ProductSearchParams,
+  ProductSearchResult,
   ProductSlugsResult,
   ProductSummary,
   RelatedProductsResult,
@@ -276,6 +278,56 @@ const listDemoProductSlugs = (): ProductSlugsResult => ({
   source: "demo",
 });
 
+const searchDemoProducts = (params: ProductSearchParams): ProductSearchResult => {
+  let filtered = catalogDemoData.products
+    .map(mapDemoProductToSummary)
+    .filter((product): product is ProductSummary => Boolean(product));
+
+  if (params.q) {
+    const query = params.q.toLowerCase();
+    filtered = filtered.filter(
+      (product) =>
+        product.title.toLowerCase().includes(query) ||
+        product.shortDescription.toLowerCase().includes(query),
+    );
+  }
+
+  if (params.category) {
+    filtered = filtered.filter(
+      (product) => product.category?.slug === params.category,
+    );
+  }
+
+  const sort = params.sort ?? (params.q ? "relevance" : "newest");
+
+  filtered.sort((left, right) => {
+    switch (sort) {
+      case "price_asc":
+        return left.priceAmount - right.priceAmount;
+      case "price_desc":
+        return right.priceAmount - left.priceAmount;
+      case "newest":
+      case "relevance":
+      default:
+        return comparePublishedAtDesc(left, right);
+    }
+  });
+
+  const page = Math.max(1, params.page ?? 1);
+  const pageSize = Math.min(50, Math.max(1, params.pageSize ?? 20));
+  const totalCount = filtered.length;
+  const start = (page - 1) * pageSize;
+  const paginated = filtered.slice(start, start + pageSize);
+
+  return {
+    products: paginated,
+    totalCount,
+    page,
+    pageSize,
+    source: "demo",
+  };
+};
+
 const getFallbackReason = (error: unknown) => {
   if (
     error &&
@@ -311,7 +363,7 @@ const withSupabaseFallback = async <T>(
 const listSupabaseProducts = async (
   limit = PUBLIC_PAGE_SIZE,
 ): Promise<ProductListResult> => {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   const { data, error } = await supabase
     .from("products")
     .select(
@@ -361,7 +413,7 @@ const listSupabaseProducts = async (
 const getSupabaseProductBySlug = async (
   slug: string,
 ): Promise<ProductDetailResult> => {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   const { data, error } = await supabase
     .from("products")
     .select(
@@ -415,7 +467,7 @@ const listSupabaseRelatedProducts = async (
   categorySlug?: string | null,
   limit = 3,
 ): Promise<RelatedProductsResult> => {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createSupabasePublicClient();
   let query = supabase
     .from("products")
     .select(
@@ -479,6 +531,93 @@ const listSupabaseProductSlugs = async (): Promise<ProductSlugsResult> => {
   };
 };
 
+const searchSupabaseProducts = async (
+  params: ProductSearchParams,
+): Promise<ProductSearchResult> => {
+  const supabase = createSupabasePublicClient();
+  let query = supabase
+    .from("products")
+    .select(
+      `
+        id,
+        seller_id,
+        category_id,
+        title,
+        slug,
+        description,
+        short_description,
+        price_amount,
+        currency_code,
+        status,
+        thumbnail_url,
+        published_at,
+        categories!inner (
+          id,
+          name,
+          slug,
+          is_active
+        ),
+        seller_profiles!inner!products_seller_id_fkey (
+          id,
+          store_name,
+          slug,
+          status
+        )
+      `,
+      { count: "exact" }
+    )
+    .eq("status", "active")
+    .eq("seller_profiles.status", "approved")
+    .eq("categories.is_active", true);
+
+  if (params.q) {
+    query = query.ilike("title", `%${params.q}%`); // Note: In a real app we'd use full-text search
+  }
+
+  if (params.category) {
+    query = query.eq("categories.slug", params.category);
+  }
+
+  const sort = params.sort ?? (params.q ? "relevance" : "newest");
+
+  switch (sort) {
+    case "price_asc":
+      query = query.order("price_amount", { ascending: true });
+      break;
+    case "price_desc":
+      query = query.order("price_amount", { ascending: false });
+      break;
+    case "newest":
+    case "relevance":
+    default:
+      query = query.order("published_at", { ascending: false });
+      break;
+  }
+
+  const page = Math.max(1, params.page ?? 1);
+  const pageSize = Math.min(50, Math.max(1, params.pageSize ?? 20));
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize - 1;
+
+  query = query.range(start, end);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  return {
+    products: (data as CatalogProductRow[])
+      .map(mapProductRowToSummary)
+      .filter((product): product is ProductSummary => Boolean(product)),
+    totalCount: count ?? 0,
+    page,
+    pageSize,
+    source: "supabase",
+  };
+};
+
 export const listPublicProducts = cache(async (limit = PUBLIC_PAGE_SIZE) =>
   withSupabaseFallback(
     () => listSupabaseProducts(limit),
@@ -503,4 +642,11 @@ export const listRelatedProducts = cache(
 
 export const listPublicProductSlugs = cache(async () =>
   withSupabaseFallback(listSupabaseProductSlugs, listDemoProductSlugs),
+);
+
+export const searchPublicProducts = cache(async (params: ProductSearchParams) =>
+  withSupabaseFallback(
+    () => searchSupabaseProducts(params),
+    () => searchDemoProducts(params),
+  ),
 );
