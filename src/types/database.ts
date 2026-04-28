@@ -14,50 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      admin_audit_logs: {
-        Row: {
-          action_type: string
-          admin_user_id: string
-          after_data: Json | null
-          before_data: Json | null
-          created_at: string
-          id: string
-          reason: string | null
-          target_id: string | null
-          target_table: string
-        }
-        Insert: {
-          action_type: string
-          admin_user_id: string
-          after_data?: Json | null
-          before_data?: Json | null
-          created_at?: string
-          id?: string
-          reason?: string | null
-          target_id?: string | null
-          target_table: string
-        }
-        Update: {
-          action_type?: string
-          admin_user_id?: string
-          after_data?: Json | null
-          before_data?: Json | null
-          created_at?: string
-          id?: string
-          reason?: string | null
-          target_id?: string | null
-          target_table?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "admin_audit_logs_admin_user_id_fkey"
-            columns: ["admin_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       addresses: {
         Row: {
           city: string
@@ -111,6 +67,50 @@ export type Database = {
           {
             foreignKeyName: "addresses_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_audit_logs: {
+        Row: {
+          action_type: string
+          admin_user_id: string
+          after_data: Json | null
+          before_data: Json | null
+          created_at: string
+          id: string
+          reason: string | null
+          target_id: string | null
+          target_table: string
+        }
+        Insert: {
+          action_type: string
+          admin_user_id: string
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          target_id?: string | null
+          target_table: string
+        }
+        Update: {
+          action_type?: string
+          admin_user_id?: string
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          id?: string
+          reason?: string | null
+          target_id?: string | null
+          target_table?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_audit_logs_admin_user_id_fkey"
+            columns: ["admin_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
