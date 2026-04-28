@@ -11,7 +11,7 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Phase 13 (Customer Account and Address Management) is complete.
+Phase 13.5 (Address Migration Verification and Typegen Unblock) is complete.
 
 Next: begin Phase 14 — Cart, Checkout, and Customer Order Cleanup.
 
@@ -34,9 +34,17 @@ Next: begin Phase 14 — Cart, Checkout, and Customer Order Cleanup.
 - Added `public.addresses` migration and customer-owned address actions.
 - Added checkout default-address preview without changing Stripe checkout behavior.
 
+### Phase 13.5 — Address Migration Verification and Typegen Unblock ✅
+- Applied `202604280001_customer_addresses.sql` to linked dev project `hhfcmcopjvyitjxcrmoy`.
+- Confirmed `public.addresses` schema, RLS, indexes, and `updated_at` trigger in the dev database.
+- Regenerated `src/types/database.ts` from the linked dev project.
+
 ### Phase 14 — Cart, Checkout, and Customer Order Cleanup
 - Add checkout shipping address selection.
 - Populate `orders.shipping_address_snapshot` from a customer-owned address.
+- Display the saved shipping snapshot on customer order detail.
+- Audit/fix the discounted Stripe total mismatch.
+- Review checkout idempotency and rollback risk.
 - Keep cart, coupon, and checkout totals server-authoritative.
 - Clean up customer order detail shipping-address display once snapshots exist.
 

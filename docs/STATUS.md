@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 13 — Customer Account and Address Management completed.
+Phase 13.5 — Address Migration Verification and Typegen Unblock completed.
 
 ---
 
@@ -94,6 +94,11 @@ The repository now behaves like a much more operational marketplace product acro
   - `public.addresses` migration added with owner/admin RLS
   - address create/edit/delete/default actions derive ownership from the server session
   - checkout previews the default shipping address without requiring address selection yet
+- address database verification and typegen unblock completed:
+  - linked dev project `hhfcmcopjvyitjxcrmoy` verified
+  - address migration applied to the linked dev database
+  - remote schema/RLS/index/trigger checks completed for `public.addresses`
+  - `src/types/database.ts` regenerated from the linked dev project
 
 ---
 
@@ -115,7 +120,7 @@ The repository now behaves like a much more operational marketplace product acro
 - commission logic
 - refund workflows
 - review/wishlist system
-- generated Supabase types from the finalized live schema
+- keep generated Supabase types current as migrations change
 
 ### Remaining Seller Follow-ups
 - Supabase Storage/CDN image uploads
@@ -131,7 +136,6 @@ The repository now behaves like a much more operational marketplace product acro
 
 ## Known Gaps
 
-- current database typing is still a hand-written subset; Phase 13 added the addresses shape manually because local type generation was blocked by Docker and remote dry-run timed out
 - existing partially-manual Supabase projects should be reset or reconciled before trusting them
 - pending-order creation currently uses application-side compensation instead of a single database transaction
 - checkout now supports coupon validation, discounts, and a default-address preview, but it does not yet require/select an address or populate shipping address snapshots
@@ -153,6 +157,9 @@ The next implementation focus should be:
 
 - implement checkout shipping address selection
 - populate `orders.shipping_address_snapshot` from a customer-owned address
+- display the saved shipping snapshot on customer order detail
+- audit/fix the discounted Stripe total mismatch
+- review checkout idempotency and rollback risk
 - keep cart/checkout totals server-authoritative
 - preserve the catalog `cookies()` warning for the later catalog reliability phase
 
@@ -160,7 +167,7 @@ The next implementation focus should be:
 
 ## Risks
 
-- letting the hand-written database types drift again after the schema is now stabilized
+- letting generated database types drift after new migrations
 - continuing development against a partially initialized Supabase project instead of a clean migration run
 - docs drifting from code as more features are added
 - webhook endpoint not being HTTPS-accessible in local development without Stripe CLI
@@ -171,10 +178,10 @@ The next implementation focus should be:
 
 ## Readiness Assessment
 
-The project is ready to move into the next refinement slice once:
+The project is ready to move into Phase 14 once:
 
-- the new migration chain has been applied to the target Supabase project
+- the address migration has been applied to the target Supabase project
 - the first admin has been promoted explicitly
 - Stripe test-mode keys are configured locally
-- the next slice is limited to generated types, customer-account realism, storefront reliability cleanup, and post-operations hardening
+- the next slice is limited to checkout address selection, order address snapshots, and cart/checkout/order hardening
 - docs continue to be updated alongside implementation

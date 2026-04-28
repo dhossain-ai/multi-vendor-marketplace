@@ -62,6 +62,14 @@ Type generation status:
 
 Because the repo currently tracks a hand-maintained/generated-shaped schema subset, `src/types/database.ts` was updated narrowly to include `public.addresses`. Types were not regenerated from Supabase in this environment.
 
+Phase 13.5 follow-up:
+
+- Linked dev project `hhfcmcopjvyitjxcrmoy` was verified.
+- `202604280001_customer_addresses.sql` was pushed successfully to the linked dev database.
+- Remote SQL inspection confirmed the `public.addresses` schema, RLS policies, indexes, and update trigger.
+- `src/types/database.ts` was regenerated from the linked dev project with `npx supabase gen types typescript --project-id hhfcmcopjvyitjxcrmoy`.
+- See `docs/audits/phase-13-5-address-db-verification.md`.
+
 ## Profile Behavior
 
 - Profile update is handled by `updateProfileAction`.
