@@ -29,11 +29,18 @@ const buildCheckoutPath = (params?: { error?: string; notice?: string }) => {
   return query ? `/checkout?${query}` : "/checkout";
 };
 
-export async function submitCheckoutAction() {
+const getShippingAddressId = (formData: FormData) => {
+  const value = formData.get("shippingAddressId");
+
+  return typeof value === "string" ? value.trim() : "";
+};
+
+export async function submitCheckoutAction(formData: FormData) {
   const session = await requireAuthenticatedUser("/checkout");
+  const shippingAddressId = getShippingAddressId(formData);
 
   try {
-    const order = await createPendingOrder(session.user.id);
+    const order = await createPendingOrder(session.user.id, shippingAddressId);
 
     revalidatePath("/cart");
     revalidatePath("/checkout");

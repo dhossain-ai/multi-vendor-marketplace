@@ -33,13 +33,13 @@ export type AddressWriteInput = {
 };
 
 export type ShippingAddressSnapshot = {
-  recipientName: string;
-  line1: string;
-  line2: string | null;
+  recipient_name: string;
+  line_1: string;
+  line_2: string | null;
   city: string;
-  stateRegion: string | null;
-  postalCode: string | null;
-  countryCode: string;
+  state_region: string | null;
+  postal_code: string | null;
+  country_code: string;
   phone: string | null;
   label: string | null;
 } & Record<string, Json | undefined>;

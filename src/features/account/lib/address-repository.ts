@@ -245,13 +245,13 @@ export function buildShippingAddressSnapshot(
   address: CustomerAddress,
 ): ShippingAddressSnapshot {
   return {
-    recipientName: address.recipientName,
-    line1: address.line1,
-    line2: address.line2,
+    recipient_name: address.recipientName,
+    line_1: address.line1,
+    line_2: address.line2,
     city: address.city,
-    stateRegion: address.stateRegion,
-    postalCode: address.postalCode,
-    countryCode: address.countryCode,
+    state_region: address.stateRegion,
+    postal_code: address.postalCode,
+    country_code: address.countryCode,
     phone: address.phone,
     label: address.label,
   };

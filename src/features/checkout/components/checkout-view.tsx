@@ -10,19 +10,22 @@ import type { CheckoutValidationResult } from "@/features/checkout/types";
 
 type CheckoutViewProps = {
   checkout: CheckoutValidationResult;
-  defaultAddress?: CustomerAddress | null;
+  addresses: CustomerAddress[];
   error?: string | null;
   notice?: string | null;
 };
 
 export function CheckoutView({
   checkout,
-  defaultAddress,
+  addresses,
   error,
   notice,
 }: CheckoutViewProps) {
   const messageTone =
     error != null ? "error" : notice != null ? "success" : null;
+  const selectedAddress =
+    addresses.find((address) => address.isDefault) ?? addresses[0] ?? null;
+  const canSubmitCheckout = checkout.canSubmit && addresses.length > 0;
 
   return (
     <div className="py-12 md:py-16">
@@ -216,27 +219,15 @@ export function CheckoutView({
                   </div>
                 ) : null}
 
-                <div className="rounded-[1.5rem] bg-white/80 px-4 py-3 text-sm leading-6">
-                  <div className="flex items-start justify-between gap-3">
+                <section className="rounded-[1.5rem] bg-white/80 px-4 py-3 text-sm leading-6">
+                  <div className="mb-3 flex items-start justify-between gap-3">
                     <div>
                       <p className="text-foreground font-medium">
                         Shipping address
                       </p>
-                      {defaultAddress ? (
-                        <div className="text-ink-muted mt-1">
-                          <p>{defaultAddress.recipientName}</p>
-                          <p>{defaultAddress.line1}</p>
-                          <p>
-                            {[defaultAddress.city, defaultAddress.stateRegion]
-                              .filter(Boolean)
-                              .join(", ")}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-ink-muted mt-1">
-                          No default address saved yet.
-                        </p>
-                      )}
+                      <p className="text-ink-muted mt-1">
+                        Choose a saved address before payment.
+                      </p>
                     </div>
                     <Link
                       href="/account/addresses"
@@ -245,7 +236,58 @@ export function CheckoutView({
                       Manage
                     </Link>
                   </div>
-                </div>
+
+                  {addresses.length > 0 ? (
+                    <div className="space-y-2">
+                      {addresses.map((address) => (
+                        <label
+                          key={address.id}
+                          className="border-border flex gap-3 rounded-2xl border bg-panel px-3 py-3"
+                        >
+                          <input
+                            form="checkout-submit-form"
+                            type="radio"
+                            name="shippingAddressId"
+                            value={address.id}
+                            defaultChecked={address.id === selectedAddress?.id}
+                            className="mt-1 size-4"
+                          />
+                          <span>
+                            <span className="text-foreground block font-medium">
+                              {address.label ?? address.recipientName}
+                              {address.isDefault ? " (default)" : ""}
+                            </span>
+                            <span className="text-ink-muted block">
+                              {address.recipientName}
+                            </span>
+                            <span className="text-ink-muted block">
+                              {[address.line1, address.line2]
+                                .filter(Boolean)
+                                .join(", ")}
+                            </span>
+                            <span className="text-ink-muted block">
+                              {[
+                                address.city,
+                                address.stateRegion,
+                                address.postalCode,
+                                address.countryCode,
+                              ]
+                                .filter(Boolean)
+                                .join(", ")}
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl bg-amber-50 px-4 py-3 text-amber-800">
+                      <p className="font-medium">Shipping address required</p>
+                      <p className="mt-1">
+                        Add a saved shipping address before continuing to payment.
+                      </p>
+                    </div>
+                  )}
+                </section>
 
                 <p className="text-ink-muted text-sm leading-7">
                   We save your order details first, then send you to Stripe for secure
@@ -264,8 +306,8 @@ export function CheckoutView({
                 ) : null}
 
                 <div className="flex flex-col gap-3">
-                  {checkout.canSubmit ? (
-                    <form action={submitCheckoutAction}>
+                  {canSubmitCheckout ? (
+                    <form id="checkout-submit-form" action={submitCheckoutAction}>
                       <CartSubmitButton
                         idleLabel="Proceed to payment"
                         pendingLabel="Redirecting to Stripe..."
@@ -274,7 +316,9 @@ export function CheckoutView({
                     </form>
                   ) : (
                     <span className="border-border bg-panel-muted text-ink-muted inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium">
-                      Resolve cart issues before checkout
+                      {addresses.length === 0
+                        ? "Add a shipping address before checkout"
+                        : "Resolve cart issues before checkout"}
                     </span>
                   )}
 

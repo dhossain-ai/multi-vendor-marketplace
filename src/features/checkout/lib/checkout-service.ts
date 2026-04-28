@@ -3,6 +3,10 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { hasSupabaseServiceRoleEnv } from "@/lib/config/env";
 import {
+  buildShippingAddressSnapshot,
+  getAddressForUser,
+} from "@/features/account/lib/address-repository";
+import {
   evaluateCoupon,
   type AppliedCoupon,
 } from "@/features/checkout/lib/coupon-service";
@@ -549,7 +553,14 @@ async function clearCartAfterOrder(cartId: string) {
   }
 }
 
-export async function createPendingOrder(userId: string): Promise<PendingOrderResult> {
+export async function createPendingOrder(
+  userId: string,
+  shippingAddressId: string,
+): Promise<PendingOrderResult> {
+  if (!shippingAddressId) {
+    throw new CheckoutOperationError("Choose a shipping address before payment.");
+  }
+
   const checkout = await validateCheckout(userId);
 
   if (checkout.status === "empty") {
@@ -559,6 +570,25 @@ export async function createPendingOrder(userId: string): Promise<PendingOrderRe
   if (!checkout.canSubmit || !checkout.cartId) {
     throw new CheckoutOperationError(
       checkout.errors[0] ?? "Checkout cannot continue until the cart issues are resolved.",
+    );
+  }
+
+  let shippingAddress;
+
+  try {
+    shippingAddress = await getAddressForUser(userId, shippingAddressId);
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unable to verify your shipping address.";
+
+    throw new CheckoutOperationError(message);
+  }
+
+  if (!shippingAddress) {
+    throw new CheckoutOperationError(
+      "Choose a saved shipping address that belongs to your account.",
     );
   }
 
@@ -573,7 +603,7 @@ export async function createPendingOrder(userId: string): Promise<PendingOrderRe
     tax_amount: checkout.totals.taxAmount,
     total_amount: checkout.totals.totalAmount,
     coupon_id: checkout.appliedCoupon?.isValid ? checkout.appliedCoupon.id : null,
-    shipping_address_snapshot: null,
+    shipping_address_snapshot: buildShippingAddressSnapshot(shippingAddress),
     billing_address_snapshot: null,
     placed_at: new Date().toISOString(),
   });

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { CheckoutView } from "@/features/checkout/components/checkout-view";
-import { getDefaultAddressForUser } from "@/features/account/lib/address-repository";
+import { listAddressesForUser } from "@/features/account/lib/address-repository";
 import { validateCheckout } from "@/features/checkout/lib/checkout-service";
 import { readSearchParam } from "@/lib/auth/navigation";
 import { requireAuthenticatedUser } from "@/lib/auth/guards";
@@ -19,18 +19,18 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
   const search = await searchParams;
   const session = await requireAuthenticatedUser("/checkout");
   const checkout = await validateCheckout(session.user.id);
-  let defaultAddress: CustomerAddress | null = null;
+  let addresses: CustomerAddress[] = [];
 
   try {
-    defaultAddress = await getDefaultAddressForUser(session.user.id);
+    addresses = await listAddressesForUser(session.user.id);
   } catch {
-    defaultAddress = null;
+    addresses = [];
   }
 
   return (
     <CheckoutView
       checkout={checkout}
-      defaultAddress={defaultAddress}
+      addresses={addresses}
       error={readSearchParam(search.error)}
       notice={readSearchParam(search.notice)}
     />
