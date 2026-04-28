@@ -9,10 +9,10 @@ import type {
 } from "@/features/orders/types";
 
 const orderLabels: Record<OrderStatus, string> = {
-  pending: "Pending review",
+  pending: "Order received",
   confirmed: "Confirmed",
-  processing: "Processing",
-  completed: "Completed",
+  processing: "Preparing",
+  completed: "Delivered",
   cancelled: "Cancelled",
   refunded: "Refunded",
   partially_refunded: "Partially refunded",

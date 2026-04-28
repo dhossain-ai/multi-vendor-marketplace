@@ -197,9 +197,9 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-ink-muted">Discount</span>
+                  <span className="text-ink-muted">Savings</span>
                   <span className="text-foreground font-medium">
-                    {formatPrice(order.discountAmount, order.currencyCode)}
+                    -{formatPrice(order.discountAmount, order.currencyCode)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
