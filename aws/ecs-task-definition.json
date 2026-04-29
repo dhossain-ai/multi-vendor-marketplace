@@ -12,11 +12,11 @@
       "essential": true,
       "portMappings": [
         {
+          "name": "marketplace-3000",
           "containerPort": 3000,
           "hostPort": 3000,
           "protocol": "tcp",
-          "appProtocol": "http",
-          "name": "marketplace-3000"
+          "appProtocol": "http"
         }
       ],
       "environment": [
@@ -33,13 +33,12 @@
           "value": "http://marketplace-alb-1795663621.eu-central-1.elb.amazonaws.com"
         },
         {
-          "name": "NEXT_PUBLIC_SUPABASE_URL",
-          "value": "https://hhfcmcopjvyitjxcrmoy.supabase.co"
+          "name": "PORT",
+          "value": "3000"
         },
         {
-          "name": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoZmNtY29wanZ5aXRqeGNybW95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2NzkxMTQsImV4cCI6MjA5MjI1NTExNH0.eBrIIE2FcQYVyxKbDTrtruN2m_Ehqsyqg-xoemm2OIQ
-"
+          "name": "HOSTNAME",
+          "value": "0.0.0.0"
         }
       ],
       "logConfiguration": {
