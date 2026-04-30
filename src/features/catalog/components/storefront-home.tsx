@@ -133,8 +133,9 @@ export function StorefrontHome({ products }: StorefrontHomeProps) {
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {categoryHighlights.map((category) => (
-              <div
+              <Link
                 key={category.slug}
+                href={`/products?category=${category.slug}`}
                 className="rounded-[1.75rem] border border-border bg-panel p-6 shadow-[var(--shadow-panel)]"
               >
                 <p className="text-sm font-semibold uppercase tracking-[0.12em] text-brand">
@@ -146,7 +147,7 @@ export function StorefrontHome({ products }: StorefrontHomeProps) {
                 <p className="mt-2 text-sm text-ink-muted">
                   Fresh picks from independent sellers in {category.name.toLowerCase()}.
                 </p>
-              </div>
+              </Link>
             ))}
           </div>
         </Container>
