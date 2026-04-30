@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { formatPrice } from "@/features/catalog/lib/format-price";
 import { getSellerStatusDetails, getSellerStatusLabel } from "@/features/seller/lib/seller-status";
 import type { SellerDashboardSummary } from "@/features/seller/types";
@@ -59,9 +60,7 @@ export function SellerDashboardView({
             <p className="text-brand text-sm font-semibold tracking-[0.12em] uppercase">
               Current seller status
             </p>
-            <div className="inline-flex rounded-full bg-panel-muted px-3 py-1 text-xs font-semibold text-foreground">
-              {getSellerStatusLabel(sellerProfile?.status)}
-            </div>
+            <StatusBadge label={getSellerStatusLabel(sellerProfile?.status)} />
             <div className="space-y-2">
               <h2 className="text-foreground text-2xl font-semibold">
                 {statusDetails?.title ?? "Store profile ready"}
@@ -195,7 +194,8 @@ export function SellerDashboardView({
                 Keep your storefront details current
               </p>
               <p className="text-ink-muted mt-2 text-sm leading-7">
-                Add a clear name, slug, description, and optional logo so the marketplace team can review your application with the right context.
+                Add a clear name, slug, description, and optional logo so the
+                marketplace team can review your application with the right context.
               </p>
             </div>
           )}
@@ -208,7 +208,8 @@ export function SellerDashboardView({
               Product and order tools unlock after approval
             </p>
             <p className="text-ink-muted mt-2 text-sm leading-7">
-              Once your seller account is approved, the products and orders tabs become your day-to-day workspace for inventory and sales.
+              Once your seller account is approved, the products and orders tabs
+              become your day-to-day workspace for inventory and sales.
             </p>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { AuthMessage } from "@/features/auth/components/auth-message";
 import { CartSubmitButton } from "@/features/cart/components/cart-submit-button";
 import { formatPrice } from "@/features/catalog/lib/format-price";
@@ -9,13 +10,6 @@ type SellerProductsViewProps = {
   products: SellerProduct[];
   notice?: string | null;
   error?: string | null;
-};
-
-const statusColors: Record<string, string> = {
-  active: "bg-emerald-100 text-emerald-800",
-  draft: "bg-amber-100 text-amber-800",
-  archived: "bg-gray-100 text-gray-700",
-  suspended: "bg-red-100 text-red-800",
 };
 
 const getInventoryLabel = (product: SellerProduct) => {
@@ -98,11 +92,7 @@ export function SellerProductsView({
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusColors[product.status] ?? "bg-gray-100 text-gray-700"}`}
-                    >
-                      {product.status}
-                    </span>
+                    <StatusBadge label={product.status} />
                     <span className="text-ink-muted text-xs">
                       /{product.slug}
                     </span>
@@ -117,7 +107,7 @@ export function SellerProductsView({
                   ) : null}
                 </div>
 
-                <div className="flex flex-col items-end gap-3">
+                <div className="flex flex-col items-start gap-3 md:items-end">
                   <p className="text-foreground text-xl font-semibold">
                     {formatPrice(product.priceAmount, product.currencyCode)}
                   </p>
@@ -152,8 +142,17 @@ export function SellerProductsView({
                 </div>
               </div>
 
-              <div className="text-ink-muted mt-3 flex flex-wrap items-center gap-4 text-xs">
-                <span>Inventory: {getInventoryLabel(product)}</span>
+              <div className="text-ink-muted mt-3 flex flex-wrap items-center gap-3 text-xs">
+                <StatusBadge
+                  label={getInventoryLabel(product)}
+                  tone={
+                    getInventoryLabel(product).startsWith("Out")
+                      ? "danger"
+                      : getInventoryLabel(product).startsWith("Low")
+                        ? "warning"
+                        : "neutral"
+                  }
+                />
                 <span>
                   Category: {product.categoryName ?? "Not assigned"}
                 </span>

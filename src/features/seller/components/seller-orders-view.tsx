@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { formatPrice } from "@/features/catalog/lib/format-price";
 import {
   getOperationalStageTone,
@@ -10,36 +11,11 @@ type SellerOrdersViewProps = {
   orders: SellerOrderSummary[];
 };
 
-const getStatusColor = (tone: ReturnType<typeof getOperationalStageTone>): string => {
-  switch (tone) {
-    case "success":
-      return "bg-emerald-100 text-emerald-800";
-    case "info":
-      return "bg-blue-100 text-blue-800";
-    case "warning":
-      return "bg-amber-100 text-amber-800";
-    case "danger":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-gray-100 text-gray-700";
-  }
-};
+type BadgeTone = Parameters<typeof StatusBadge>[0]["tone"];
 
-function StatusBadge({
-  label,
-  tone,
-}: {
-  label: string;
-  tone: ReturnType<typeof getOperationalStageTone>;
-}) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(tone)}`}
-    >
-      {label.replace(/_/g, " ")}
-    </span>
-  );
-}
+const mapOrderTone = (
+  tone: ReturnType<typeof getOperationalStageTone>,
+): BadgeTone => (tone === "neutral" ? "neutral" : tone);
 
 export function SellerOrdersView({ orders }: SellerOrdersViewProps) {
   return (
@@ -83,7 +59,7 @@ export function SellerOrdersView({ orders }: SellerOrdersViewProps) {
                     </span>
                     <StatusBadge
                       label={getOrderOperationalStageLabel(order.operationalStage)}
-                      tone={getOperationalStageTone(order.operationalStage)}
+                      tone={mapOrderTone(getOperationalStageTone(order.operationalStage))}
                     />
                     <StatusBadge
                       label={order.paymentStatus.replace(/_/g, " ")}

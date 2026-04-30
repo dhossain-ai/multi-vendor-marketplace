@@ -27,7 +27,9 @@ export default async function SellPage() {
               Apply to open your store on the marketplace
             </h1>
             <p className="max-w-3xl text-sm leading-7 text-ink-muted">
-              Sellers are reviewed before they can publish products or fulfill marketplace orders. Create an account, submit your store details, and the marketplace team will review your application.
+              Sellers are reviewed before they can publish products or fulfill
+              marketplace orders. Create an account, submit your store details,
+              and the marketplace team will review your application.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -50,10 +52,19 @@ export default async function SellPage() {
               Application steps
             </p>
             <ol className="mt-4 space-y-3 text-sm leading-7 text-ink-muted">
-              <li>1. Sign in or create a customer account.</li>
-              <li>2. Submit store, support, and country details.</li>
-              <li>3. Wait for admin review and approval.</li>
-              <li>4. Add products after seller access is approved.</li>
+              {[
+                "Sign in or create a customer account.",
+                "Submit store, support, and country details.",
+                "Wait for admin review and approval.",
+                "Add products after seller access is approved.",
+              ].map((step, index) => (
+                <li key={step} className="flex gap-3">
+                  <span className="bg-brand-soft text-brand inline-flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
+                    {index + 1}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))}
             </ol>
           </aside>
         </div>
