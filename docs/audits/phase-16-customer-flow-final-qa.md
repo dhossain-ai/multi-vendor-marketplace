@@ -18,6 +18,12 @@ Baseline checks before Phase 16 fixes:
 
 Final checks are recorded after the fixes below.
 
+Final checks after Phase 16 fixes:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed, with no catalog `cookies()` static-generation warning. `/products/[slug]` was prerendered with `generateStaticParams`.
+
 ## 4. Manual QA checklist
 
 - Visitor storefront and product discovery.
@@ -49,8 +55,8 @@ Findings:
 - Build no longer emits the prior catalog `cookies()` warning.
 - Public product listing and detail routes do not require auth.
 - Product visibility is enforced server-side before rendering.
-- Query params needed tighter bounds and normalization.
-- Product detail needed clearer out-of-stock presentation.
+- Query params are bounded and normalized before reaching the catalog repository.
+- Product detail now presents out-of-stock products as visible but not addable to cart.
 
 ## 6. Authentication QA
 
@@ -188,11 +194,20 @@ Findings:
 - Product detail showed out-of-stock items as generally available.
 - Catalog Supabase reads could enforce seller/category visibility more directly in queries.
 - Checkout post-order cart cleanup could include a second owner check before deleting cart items.
+- Payment retry/cancel edges accepted broader state/input than needed.
 - Customer-facing copy still mentioned implementation/test-mode language in a few places.
 
 ## 15. Fixes applied
 
-To be finalized after code cleanup commits.
+- Bounded and normalized `/products` search, category, sort, and page parameters.
+- Removed a server-rendered sort `onChange` handler and replaced it with an explicit submit button.
+- Added stock-aware public catalog availability labels.
+- Kept out-of-stock products visible while disabling add-to-cart from product detail.
+- Added direct Supabase query filters for active product, approved seller, and active category on public catalog reads.
+- Rechecked cart ownership before checkout post-order cart item cleanup and coupon cleanup.
+- Tightened payment retry behavior for terminal payment states.
+- Sanitized `/checkout/cancel` order retry links to UUID-shaped order IDs.
+- Replaced customer-visible implementation/test-mode wording with production-facing copy.
 
 ## 16. Remaining risks
 

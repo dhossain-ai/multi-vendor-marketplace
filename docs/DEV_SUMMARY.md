@@ -1,5 +1,43 @@
 # Dev Summary
 
+## 2026-04-30 - Phase 16 Customer Flow Final QA and Security Cleanup
+
+### Summary
+
+Completed final QA and security cleanup for the customer/visitor lifecycle. The pass stayed scoped to customer-facing routes and fixed only defects found during review.
+
+### Added
+
+- final QA audit at `docs/audits/phase-16-customer-flow-final-qa.md`
+- final documentation checkpoint for Phase 16 status and next steps
+
+### Changed
+
+- public catalog query params are now bounded and normalized
+- public Supabase catalog reads now enforce active product, approved seller, and active category more directly in queries
+- out-of-stock product detail pages remain visible but cannot add to cart
+- checkout post-order cart cleanup rechecks cart ownership before deleting cart items or clearing coupon state
+- terminal payment statuses cannot start another customer payment session
+- checkout cancel retry links only render for UUID-shaped order IDs
+- customer-facing implementation/test-mode wording was replaced with production-facing copy
+
+### Checks
+
+- `npm run lint`: passed
+- `npm run typecheck`: passed
+- `npm run build`: passed
+
+### Notes
+
+- Payment success remains webhook-authoritative.
+- Order and payment status remain separate.
+- Order snapshots remain historical and customer order reads remain customer-owned.
+- Pending-order transaction/RPC and stronger duplicate-submit idempotency remain later reliability work.
+
+### Next Recommended Slice
+
+- Phase 17: Frontend UX and Presentation Polish.
+
 ## 2026-04-28 - Phase 14 Cart Checkout and Orders
 
 ### Summary

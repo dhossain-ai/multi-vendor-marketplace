@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 15 — Catalog, Search, and Storefront Reliability completed.
+Phase 16 — Customer Flow Final QA and Security Cleanup completed.
 
 ---
 
@@ -110,12 +110,19 @@ The repository now behaves like a much more operational marketplace product acro
 - `/products` storefront listing route added with search, category, sort, and pagination
 - catalog queries enforce strict visibility rules (active product, approved seller, active category)
 - demo fallback data scoped cleanly, no longer masking real Supabase failures
+- customer flow final QA completed:
+  - baseline and final lint/typecheck/build checks passed
+  - public catalog query params bounded and normalized
+  - out-of-stock product detail remains visible but cannot add to cart
+  - checkout post-order cart cleanup ownership rechecked server-side
+  - payment retry/cancel edges tightened
+  - customer-facing implementation/test-mode wording cleaned up
 
 ---
 
 ## In Progress
 
-- preparing Phase 16
+- preparing Phase 17
 
 ---
 
@@ -151,19 +158,19 @@ The repository now behaves like a much more operational marketplace product acro
 - pending-order creation currently needs stronger idempotency around duplicate submissions
 - Stripe webhook endpoint needs production HTTPS and live webhook registration
 - admin audit logging is best-effort and should be hardened later
-- build output still warns that catalog slug generation falls back to demo data because `cookies()` are touched during static product slug generation (FIXED)
+- full-text catalog search remains deferred until the catalog grows beyond simple search needs
 
 ---
 
 ## Current Priority
 
-Move into Phase 16 to tackle remaining customer, seller, or infrastructure priorities.
+Move into Phase 17 — Frontend UX and Presentation Polish.
 
 ---
 
 ## Immediate Focus
 
-The next implementation focus should be planned and documented before coding starts.
+Polish the customer-facing presentation without changing the payment/order/security model.
 
 ---
 
@@ -180,7 +187,7 @@ The next implementation focus should be planned and documented before coding sta
 
 ## Readiness Assessment
 
-The project is ready to move into Phase 16 once:
+The project is ready to move into Phase 17 once:
 
-- the next slice is defined (e.g. Stripe webhooks, real reviews, wishlist, or admin tools)
+- the presentation-polish scope is defined
 - docs continue to be updated alongside implementation
