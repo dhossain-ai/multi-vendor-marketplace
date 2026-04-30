@@ -537,14 +537,20 @@ const buildOrderItemInserts = (
     product_metadata_snapshot: item.snapshotMetadata,
   }));
 
-async function rollbackPendingOrder(orderId: string) {
+async function rollbackPendingOrder(orderId: string, userId: string) {
   const client = await getCheckoutClient();
 
   await client.from("order_items").delete().eq("order_id", orderId);
-  await client.from("orders").delete().eq("id", orderId);
+  await client.from("orders").delete().eq("id", orderId).eq("customer_id", userId);
 }
 
-async function clearCartAfterOrder(cartId: string) {
+async function clearCartAfterOrder(cartId: string, userId: string) {
+  const cart = await findCartByUserId(userId);
+
+  if (cart?.id !== cartId) {
+    throw new CheckoutOperationError("Unable to verify the cart owner before checkout cleanup.");
+  }
+
   const client = await getCheckoutClient();
   const { error } = await client.from("cart_items").delete().eq("cart_id", cartId);
 
@@ -623,16 +629,17 @@ export async function createPendingOrder(
       throw new CheckoutOperationError("Unable to create the pending order items.");
     }
 
-    await clearCartAfterOrder(checkout.cartId);
+    await clearCartAfterOrder(checkout.cartId, userId);
 
     if (checkout.appliedCoupon?.isValid) {
       await client
         .from("carts")
         .update({ coupon_id: null })
-        .eq("id", checkout.cartId);
+        .eq("id", checkout.cartId)
+        .eq("user_id", userId);
     }
   } catch (error) {
-    await rollbackPendingOrder(order.id);
+    await rollbackPendingOrder(order.id, userId);
 
     if (error instanceof CheckoutOperationError) {
       throw error;
