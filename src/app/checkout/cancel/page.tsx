@@ -11,17 +11,23 @@ export const metadata: Metadata = {
   description: "Your payment was not completed.",
 };
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default async function CheckoutCancelPage({
   searchParams,
 }: CheckoutCancelPageProps) {
   const search = await searchParams;
   const orderId =
-    typeof search.order_id === "string" ? search.order_id : null;
+    typeof search.order_id === "string" && UUID_PATTERN.test(search.order_id)
+      ? search.order_id
+      : null;
 
   return (
     <div className="py-12 md:py-16">
-      <Container className="max-w-2xl space-y-8 text-center">
-        <div className="space-y-4">
+      <Container className="max-w-2xl">
+        <div className="border-border bg-panel space-y-8 rounded-[2rem] border p-8 text-center shadow-[var(--shadow-panel)]">
+          <div className="space-y-4">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -48,10 +54,10 @@ export default async function CheckoutCancelPage({
             completing the transaction. Your order has been saved and you can
             retry payment at any time from your order history.
           </p>
-        </div>
+          </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          {orderId ? (
+          <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap">
+            {orderId ? (
             <Link
               href={`/orders/${orderId}`}
               className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
@@ -73,11 +79,12 @@ export default async function CheckoutCancelPage({
             Return to cart
           </Link>
           <Link
-            href="/"
+            href="/products"
             className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium"
           >
             Continue shopping
           </Link>
+          </div>
         </div>
       </Container>
     </div>

@@ -75,8 +75,8 @@ export async function createPaymentSessionForOrder(
     throw new PaymentServiceError("Only pending orders can start a payment session.");
   }
 
-  if (order.payment_status === "paid") {
-    throw new PaymentServiceError("This order has already been paid.");
+  if (TERMINAL_PAYMENT_STATUSES.has(order.payment_status ?? "")) {
+    throw new PaymentServiceError("This order cannot start another payment session.");
   }
 
   const totalAmount = Number(order.total_amount);

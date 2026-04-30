@@ -52,7 +52,7 @@ export function ProductDetailView({
             ) : null}
           </div>
 
-          <div className="border-border bg-panel rounded-[2rem] border p-7 shadow-[var(--shadow-panel)]">
+          <div className="border-border bg-panel rounded-[2rem] border p-5 shadow-[var(--shadow-panel)] sm:p-7">
             <div className="space-y-5">
               <div className="space-y-3">
                 {product.category ? (
@@ -60,7 +60,7 @@ export function ProductDetailView({
                     {product.category.name}
                   </p>
                 ) : null}
-                <h1 className="text-foreground text-4xl font-semibold tracking-tight">
+                <h1 className="text-foreground text-3xl font-semibold tracking-tight md:text-4xl">
                   {product.title}
                 </h1>
                 <p className="text-ink-muted text-base leading-7">
@@ -96,7 +96,13 @@ export function ProductDetailView({
               </div>
 
               <div className="bg-panel-muted rounded-[1.5rem] p-5">
-                <AddToCartForm productId={product.id} nextPath={nextPath} />
+                {product.isPurchasable ? (
+                  <AddToCartForm productId={product.id} nextPath={nextPath} />
+                ) : (
+                  <p className="text-sm font-medium text-amber-800">
+                    This product is currently out of stock and cannot be added to cart.
+                  </p>
+                )}
                 {cartError ? (
                   <p className="mt-3 text-sm leading-6 text-rose-700">
                     {cartError}
@@ -104,7 +110,7 @@ export function ProductDetailView({
                 ) : null}
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-3">
                 <div className="rounded-[1.5rem] bg-panel-muted p-4">
                   <p className="text-sm font-medium text-foreground">Saved orders</p>
                   <p className="mt-2 text-sm leading-6 text-ink-muted">
@@ -120,7 +126,7 @@ export function ProductDetailView({
                 <div className="rounded-[1.5rem] bg-panel-muted p-4">
                   <p className="text-sm font-medium text-foreground">Secure checkout</p>
                   <p className="mt-2 text-sm leading-6 text-ink-muted">
-                    Payment is completed securely with Stripe test mode.
+                    Payment is completed securely with Stripe.
                   </p>
                 </div>
               </div>

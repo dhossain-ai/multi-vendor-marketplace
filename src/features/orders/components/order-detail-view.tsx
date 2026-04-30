@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { AuthMessage } from "@/features/auth/components/auth-message";
 import { formatPrice } from "@/features/catalog/lib/format-price";
 import { CartSubmitButton } from "@/features/cart/components/cart-submit-button";
@@ -21,36 +22,11 @@ type OrderDetailViewProps = {
   error?: string | null;
 };
 
-const getStatusColor = (tone: ReturnType<typeof getOperationalStageTone>): string => {
-  switch (tone) {
-    case "success":
-      return "bg-emerald-100 text-emerald-800";
-    case "info":
-      return "bg-blue-100 text-blue-800";
-    case "warning":
-      return "bg-amber-100 text-amber-800";
-    case "danger":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-gray-100 text-gray-700";
-  }
-};
+type BadgeTone = Parameters<typeof StatusBadge>[0]["tone"];
 
-function StatusBadge({
-  label,
-  tone,
-}: {
-  label: string;
-  tone: ReturnType<typeof getOperationalStageTone>;
-}) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(tone)}`}
-    >
-      {label}
-    </span>
-  );
-}
+const mapOrderTone = (
+  tone: ReturnType<typeof getOperationalStageTone>,
+): BadgeTone => (tone === "neutral" ? "neutral" : tone);
 
 const canRetryPayment = (order: CustomerOrderDetail): boolean =>
   order.orderStatus === "pending" &&
@@ -110,19 +86,9 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
                     {item.metadata.sellerName ? (
                       <p className="text-ink-muted text-sm">Sold by {item.metadata.sellerName}</p>
                     ) : null}
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        item.fulfillmentStatus === "delivered"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : item.fulfillmentStatus === "shipped" || item.fulfillmentStatus === "processing"
-                            ? "bg-blue-100 text-blue-800"
-                            : item.fulfillmentStatus === "cancelled"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-amber-100 text-amber-800"
-                      }`}
-                    >
-                      {getCustomerFulfillmentStatusLabel(item.fulfillmentStatus)}
-                    </span>
+                    <StatusBadge
+                      label={getCustomerFulfillmentStatusLabel(item.fulfillmentStatus)}
+                    />
                   </div>
 
                   <div className="text-right">
@@ -165,7 +131,7 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge
                     label={getCustomerOperationalStageLabel(order.operationalStage)}
-                    tone={getOperationalStageTone(order.operationalStage)}
+                    tone={mapOrderTone(getOperationalStageTone(order.operationalStage))}
                   />
                   <StatusBadge
                     label={getCustomerPaymentStatusLabel(order.paymentStatus)}

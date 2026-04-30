@@ -11,9 +11,9 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Phase 15 (Catalog/Search/Storefront Reliability Cleanup) is complete.
+Phase 16 (Customer Flow Final QA and Security Cleanup) is complete.
 
-Next: begin Phase 16 (TBD, likely Stripe Webhooks, Refinement, or Admin Tooling).
+Next: begin Phase 17 — Frontend UX and Presentation Polish.
 
 ---
 
@@ -53,6 +53,15 @@ Next: begin Phase 16 (TBD, likely Stripe Webhooks, Refinement, or Admin Tooling)
 - Reduced production-like reliance on demo-data fallback.
 - Kept product discovery customer-first.
 
+### Phase 16 — Customer Flow Final QA and Security Cleanup ✅
+- Added final customer QA audit at `docs/audits/phase-16-customer-flow-final-qa.md`.
+- Confirmed baseline and final `lint`, `typecheck`, and `build` pass.
+- Hardened public catalog query bounds and visibility filters.
+- Made out-of-stock product detail visible but not addable to cart.
+- Rechecked cart ownership during checkout cleanup.
+- Tightened payment retry/cancel edge handling.
+- Cleaned customer-facing implementation/test-mode wording.
+
 ---
 
 ## After That
@@ -60,9 +69,8 @@ Next: begin Phase 16 (TBD, likely Stripe Webhooks, Refinement, or Admin Tooling)
 ### Refinement
 
 - richer seeded marketplace scenarios
-- review/wishlist system
-- notification workflows
-- refund workflows
+- frontend UX and presentation polish
+- reliability hardening for checkout idempotency/RPC
 - broader reliability hardening
 
 ---
@@ -98,7 +106,8 @@ Recommended order:
 6. customer account depth
 7. checkout address snapshots
 8. catalog/search/storefront reliability
-9. refinement features
+9. customer flow final QA and security cleanup
+10. frontend UX and presentation polish
 
 ---
 

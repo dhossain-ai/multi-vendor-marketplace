@@ -62,7 +62,7 @@ export function StorefrontHome({ products }: StorefrontHomeProps) {
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-ink-muted">
                 Shop curated essentials for your desk, studio, and daily workflow.
-                Browse real products, save favorites to your cart, and check out
+                Browse real products, add them to your cart, and check out
                 securely when you&apos;re ready.
               </p>
             </div>
@@ -107,7 +107,7 @@ export function StorefrontHome({ products }: StorefrontHomeProps) {
                 Shop with confidence
               </p>
               <ul className="space-y-2 text-sm leading-6 text-ink-muted">
-                <li>Secure checkout powered by Stripe test mode.</li>
+                <li>Secure checkout powered by Stripe.</li>
                 <li>Order history stays available in your account after purchase.</li>
                 <li>Seller and admin tools stay separate from the customer journey.</li>
               </ul>
@@ -133,8 +133,9 @@ export function StorefrontHome({ products }: StorefrontHomeProps) {
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {categoryHighlights.map((category) => (
-              <div
+              <Link
                 key={category.slug}
+                href={`/products?category=${category.slug}`}
                 className="rounded-[1.75rem] border border-border bg-panel p-6 shadow-[var(--shadow-panel)]"
               >
                 <p className="text-sm font-semibold uppercase tracking-[0.12em] text-brand">
@@ -146,7 +147,7 @@ export function StorefrontHome({ products }: StorefrontHomeProps) {
                 <p className="mt-2 text-sm text-ink-muted">
                   Fresh picks from independent sellers in {category.name.toLowerCase()}.
                 </p>
-              </div>
+              </Link>
             ))}
           </div>
         </Container>

@@ -18,8 +18,8 @@ export function ProductCard({ product }: ProductCardProps) {
         />
 
         <div className="space-y-4 p-5">
-          <div className="flex items-center justify-between gap-4">
-            <div className="space-y-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 space-y-1">
               {product.category ? (
                 <p className="text-brand text-xs font-semibold tracking-[0.16em] uppercase">
                   {product.category.name}
@@ -32,7 +32,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 <p className="text-ink-muted text-sm">Sold by {product.seller.name}</p>
               ) : null}
             </div>
-            <p className="text-foreground text-base font-semibold">
+            <p className="text-foreground shrink-0 text-base font-semibold">
               {formatPrice(product.priceAmount, product.currencyCode)}
             </p>
           </div>
@@ -42,7 +42,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </p>
 
           <div className="text-ink-muted flex items-center justify-between gap-3 text-sm">
-            <span>Available now</span>
+            <span>{product.availabilityLabel}</span>
             <span className="text-brand font-medium">View details</span>
           </div>
         </div>

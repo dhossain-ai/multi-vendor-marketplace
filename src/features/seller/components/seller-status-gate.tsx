@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { getSellerStatusDetails, getSellerStatusLabel } from "@/features/seller/lib/seller-status";
 import type { SellerStatus } from "@/types/auth";
 
@@ -64,13 +65,13 @@ export function SellerStatusGate({
         {info?.nextStep ??
           "Update your store details and wait for marketplace approval before using seller tools."}
       </p>
-      <div className="bg-panel-muted mt-6 rounded-2xl px-4 py-3 text-sm text-foreground">
+      <div className="bg-panel-muted mt-6 flex flex-wrap items-center gap-2 rounded-2xl px-4 py-3 text-sm text-foreground">
         Current status:{" "}
-        <span className="font-medium">{getSellerStatusLabel(status)}</span>
+        <StatusBadge label={getSellerStatusLabel(status)} />
       </div>
       <Link
         href={ctaHref}
-        className="text-brand mt-6 inline-flex text-sm font-medium"
+        className="border-border bg-panel-muted text-foreground mt-6 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
       >
         {ctaLabel}
       </Link>

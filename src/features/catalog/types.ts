@@ -27,6 +27,8 @@ export type ProductSummary = {
   category?: ProductCategorySummary | null;
   seller?: ProductSellerSummary | null;
   publishedAt?: string | null;
+  availabilityLabel: string;
+  isPurchasable: boolean;
 };
 
 export type ProductDetail = ProductSummary & {
