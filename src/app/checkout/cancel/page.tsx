@@ -11,12 +11,17 @@ export const metadata: Metadata = {
   description: "Your payment was not completed.",
 };
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default async function CheckoutCancelPage({
   searchParams,
 }: CheckoutCancelPageProps) {
   const search = await searchParams;
   const orderId =
-    typeof search.order_id === "string" ? search.order_id : null;
+    typeof search.order_id === "string" && UUID_PATTERN.test(search.order_id)
+      ? search.order_id
+      : null;
 
   return (
     <div className="py-12 md:py-16">
