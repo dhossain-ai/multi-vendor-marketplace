@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { AuthMessage } from "@/features/auth/components/auth-message";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { formatPrice } from "@/features/catalog/lib/format-price";
 import { OrdersEmptyState } from "@/features/orders/components/orders-empty-state";
 import {
@@ -71,39 +72,19 @@ export function OrdersListView({ orders, notice }: OrdersListViewProps) {
                     {order.itemCount} item{order.itemCount === 1 ? "" : "s"}
                   </h2>
                   <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        order.operationalStage === "delivered" || order.operationalStage === "confirmed"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : order.operationalStage === "cancelled" || order.operationalStage === "payment_failed"
-                            ? "bg-red-100 text-red-800"
-                            : order.operationalStage === "processing" || order.operationalStage === "shipped" || order.operationalStage === "payment_processing"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-amber-100 text-amber-800"
-                      }`}
-                    >
-                      {getCustomerOperationalStageLabel(order.operationalStage)}
-                    </span>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        order.paymentStatus === "paid"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : order.paymentStatus === "failed"
-                            ? "bg-red-100 text-red-800"
-                            : order.paymentStatus === "processing"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-amber-100 text-amber-800"
-                      }`}
-                    >
-                      {getCustomerPaymentStatusLabel(order.paymentStatus)}
-                    </span>
+                    <StatusBadge
+                      label={getCustomerOperationalStageLabel(order.operationalStage)}
+                    />
+                    <StatusBadge
+                      label={getCustomerPaymentStatusLabel(order.paymentStatus)}
+                    />
                     <span className="text-ink-muted">
                       {new Date(order.placedAt ?? order.createdAt).toLocaleString()}
                     </span>
                   </div>
                 </div>
 
-                <div className="text-right">
+                <div className="text-left md:text-right">
                   <p className="text-ink-muted text-sm">Order total</p>
                   <p className="text-foreground mt-1 text-2xl font-semibold">
                     {formatPrice(order.totalAmount, order.currencyCode)}

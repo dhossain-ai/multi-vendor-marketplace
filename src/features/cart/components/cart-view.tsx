@@ -61,7 +61,9 @@ export function CartView({ cart, notice, error }: CartViewProps) {
             ))}
           </section>
 
-          <CartSummary cart={cart} />
+          <div className="xl:sticky xl:top-28 xl:self-start">
+            <CartSummary cart={cart} />
+          </div>
         </div>
       </Container>
     </div>

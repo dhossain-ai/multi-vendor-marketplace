@@ -156,7 +156,7 @@ export function CheckoutView({
               ))}
             </section>
 
-            <aside className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
+            <aside className="border-border bg-panel rounded-[2rem] border p-5 shadow-[var(--shadow-panel)] sm:p-6 xl:sticky xl:top-28 xl:self-start">
               <div className="space-y-5">
                 <div className="space-y-2">
                   <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
@@ -242,7 +242,7 @@ export function CheckoutView({
                       {addresses.map((address) => (
                         <label
                           key={address.id}
-                          className="border-border flex gap-3 rounded-2xl border bg-panel px-3 py-3"
+                          className="border-border flex gap-3 rounded-2xl border bg-panel px-3 py-3 transition has-[:checked]:border-brand has-[:checked]:bg-brand-soft/40"
                         >
                           <input
                             form="checkout-submit-form"
@@ -315,7 +315,7 @@ export function CheckoutView({
                       />
                     </form>
                   ) : (
-                    <span className="border-border bg-panel-muted text-ink-muted inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium">
+                    <span className="border-border bg-panel-muted text-ink-muted inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-center text-sm font-medium">
                       {addresses.length === 0
                         ? "Add a shipping address before checkout"
                         : "Resolve cart issues before checkout"}

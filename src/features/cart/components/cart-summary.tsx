@@ -74,7 +74,7 @@ export function CartSummary({ cart }: CartSummaryProps) {
                 <CartSubmitButton
                   idleLabel="Remove coupon"
                   pendingLabel="Removing..."
-                  className={`inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60 ${
+                  className={`inline-flex min-h-10 w-full items-center justify-center rounded-full border px-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60 ${
                     cart.appliedCoupon.isValid
                       ? "border-emerald-200 text-emerald-800"
                       : "border-amber-200 text-amber-800"
@@ -83,7 +83,10 @@ export function CartSummary({ cart }: CartSummaryProps) {
               </form>
             </div>
           ) : (
-            <form action={applyCartCouponAction} className="space-y-3 rounded-[1.5rem] border border-border bg-panel-muted p-4">
+            <form
+              action={applyCartCouponAction}
+              className="space-y-3 rounded-[1.5rem] border border-border bg-panel-muted p-4"
+            >
               <div className="space-y-2">
                 <label
                   htmlFor="coupon-code"

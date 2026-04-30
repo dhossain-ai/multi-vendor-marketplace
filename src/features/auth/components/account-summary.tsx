@@ -60,9 +60,10 @@ export function AccountSummary({
           </div>
           <div className="rounded-3xl bg-white/80 p-5">
             <p className="text-ink-muted text-sm">Account status</p>
-            <p className="mt-2 text-base font-medium text-foreground">
-              {profile.isActive ? "Active" : "Inactive"}
-            </p>
+            <StatusBadge
+              label={profile.isActive ? "active" : "inactive"}
+              className="mt-2"
+            />
           </div>
           <div className="rounded-3xl bg-white/80 p-5">
             <p className="text-ink-muted text-sm">Member since</p>
@@ -83,7 +84,7 @@ export function AccountSummary({
           </p>
           <Link
             href="/account/profile"
-            className="text-brand mt-5 inline-flex text-sm font-medium"
+            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
           >
             Edit profile
           </Link>
@@ -98,7 +99,7 @@ export function AccountSummary({
           </p>
           <Link
             href="/account/addresses"
-            className="text-brand mt-5 inline-flex text-sm font-medium"
+            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
           >
             Manage addresses
           </Link>
@@ -113,7 +114,7 @@ export function AccountSummary({
           </p>
           <Link
             href="/orders"
-            className="text-brand mt-5 inline-flex text-sm font-medium"
+            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
           >
             View your orders
           </Link>
@@ -129,7 +130,7 @@ export function AccountSummary({
           </p>
           <Link
             href="/"
-            className="text-brand mt-5 inline-flex text-sm font-medium"
+            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
           >
             Continue shopping
           </Link>
@@ -140,11 +141,11 @@ export function AccountSummary({
         <section className="space-y-4">
           <div>
             <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-            Selling and operations
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+              Selling and operations
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
               Additional tools
-          </h2>
+            </h2>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
@@ -165,7 +166,7 @@ export function AccountSummary({
                 </p>
                 <Link
                   href={sellerLink}
-                  className="text-brand mt-5 inline-flex text-sm font-medium"
+                  className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
                 >
                   {sellerLinkLabel}
                 </Link>
@@ -186,7 +187,7 @@ export function AccountSummary({
                 </p>
                 <Link
                   href="/admin"
-                  className="text-brand mt-5 inline-flex text-sm font-medium"
+                  className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
                 >
                   Open admin dashboard
                 </Link>
@@ -207,3 +208,4 @@ export function AccountSummary({
     </div>
   );
 }
+import { StatusBadge } from "@/components/ui/status-badge";

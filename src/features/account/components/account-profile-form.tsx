@@ -35,7 +35,7 @@ export function AccountProfileForm({
         {!error && notice ? <AuthMessage tone="success" message={notice} /> : null}
       </div>
 
-      <section className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
+      <section className="border-border bg-panel rounded-[2rem] border p-5 shadow-[var(--shadow-panel)] sm:p-6">
         <form action={updateProfileAction} className="space-y-6">
           <div className="grid gap-5 md:grid-cols-2">
             <label className="space-y-2">

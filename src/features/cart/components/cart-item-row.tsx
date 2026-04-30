@@ -50,7 +50,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
               </p>
             </div>
 
-            <div className="text-right">
+            <div className="text-left md:text-right">
               <p className="text-ink-muted text-sm">Line total</p>
               <p className="text-foreground mt-1 text-xl font-semibold">
                 {formatPrice(item.lineTotalAmount, item.currencyCode)}
@@ -78,7 +78,7 @@ export function CartItemRow({ item }: CartItemRowProps) {
               <CartSubmitButton
                 idleLabel="Update"
                 pendingLabel="Saving..."
-                className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
+                className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
               />
             </form>
 

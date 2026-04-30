@@ -61,12 +61,12 @@ export function AddressListView({
         </div>
 
         {addresses.length === 0 ? (
-          <div className="border-border bg-panel rounded-[2rem] border p-8 text-center shadow-[var(--shadow-panel)]">
+          <div className="border-border bg-panel rounded-[2rem] border border-dashed p-8 text-center shadow-[var(--shadow-panel)]">
             <h3 className="text-foreground text-2xl font-semibold tracking-tight">
               Add your first shipping address
             </h3>
             <p className="text-ink-muted mx-auto mt-3 max-w-2xl text-sm leading-7">
-              Saved addresses make future checkout steps faster and clearer.
+              Use the form above to save an address. Checkout will automatically preselect your first saved address.
             </p>
           </div>
         ) : (
