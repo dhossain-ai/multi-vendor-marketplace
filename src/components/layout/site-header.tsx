@@ -19,7 +19,7 @@ function HeaderLink({
       className={
         tone === "primary"
           ? "inline-flex min-h-10 items-center justify-center rounded-full bg-brand px-4 text-sm font-semibold text-white"
-          : "inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-panel px-4 text-sm font-medium text-foreground"
+          : "inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-panel px-4 text-sm font-medium text-foreground transition hover:border-foreground/25"
       }
     >
       {label}
@@ -43,13 +43,13 @@ export async function SiteHeader() {
 
   return (
     <header className="border-border/80 sticky top-0 z-20 border-b bg-white/70 backdrop-blur-xl">
-      <Container className="py-4">
+      <Container className="py-3 md:py-4">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="bg-brand inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white">
+          <Link href="/" className="flex min-w-0 items-center gap-3">
+            <span className="bg-brand inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white">
               NM
             </span>
-            <div>
+            <div className="min-w-0">
               <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
                 {siteConfig.name}
               </p>
@@ -59,7 +59,7 @@ export async function SiteHeader() {
 
           <div className="flex flex-col gap-3 xl:items-end">
             <nav className="flex flex-wrap items-center gap-2">
-              <HeaderLink href="/" label="Shop" tone="primary" />
+              <HeaderLink href="/products" label="Browse products" tone="primary" />
               <HeaderLink href="/#categories" label="Categories" />
               <HeaderLink href="/#featured" label="Featured" />
             </nav>
