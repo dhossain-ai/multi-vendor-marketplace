@@ -74,6 +74,9 @@ export function AdminDashboardView({
           <p className="mt-2 text-sm text-ink-muted">
             Review applications and keep seller status changes deliberate.
           </p>
+          <span className="mt-4 inline-flex text-sm font-medium text-brand">
+            Open seller queue
+          </span>
         </Link>
 
         <Link
@@ -89,6 +92,9 @@ export function AdminDashboardView({
           <p className="mt-2 text-sm text-ink-muted">
             Keep unsafe or unavailable inventory out of the storefront.
           </p>
+          <span className="mt-4 inline-flex text-sm font-medium text-brand">
+            Review products
+          </span>
         </Link>
 
         <Link
@@ -104,6 +110,9 @@ export function AdminDashboardView({
           <p className="mt-2 text-sm text-ink-muted">
             Track order health without stepping into refund or payout tooling yet.
           </p>
+          <span className="mt-4 inline-flex text-sm font-medium text-brand">
+            Monitor orders
+          </span>
         </Link>
       </div>
     </div>

@@ -33,7 +33,7 @@ export function AdminSellerDetailView({
   const allowedActions = sellerActions[seller.status];
 
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="max-w-4xl space-y-8">
       <div className="space-y-3">
         <Link 
           href="/admin/sellers"
@@ -49,10 +49,10 @@ export function AdminSellerDetailView({
       {error ? <AuthMessage tone="error" message={error} /> : null}
       {notice && !error ? <AuthMessage tone="success" message={notice} /> : null}
 
-      <div className="rounded-[1.75rem] border border-border bg-panel p-6 shadow-[var(--shadow-panel)] space-y-8">
-        <div className="flex items-start justify-between">
+      <div className="space-y-8 rounded-[1.75rem] border border-border bg-panel p-5 shadow-[var(--shadow-panel)] sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <AdminStatusBadge label={seller.status} />
               <h2 className="text-2xl font-semibold text-foreground">
                 {seller.storeName}
@@ -67,14 +67,14 @@ export function AdminSellerDetailView({
             <img 
               src={seller.logoUrl} 
               alt={`${seller.storeName} logo`}
-              className="w-16 h-16 rounded-xl object-cover border border-border"
+              className="h-16 w-16 rounded-xl border border-border object-cover"
             />
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid gap-8 md:grid-cols-2">
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold tracking-wider text-brand uppercase">Store Details</h3>
+            <h3 className="text-sm font-semibold tracking-wider text-brand uppercase">Store details</h3>
             <div className="space-y-3 text-sm">
               <div>
                 <span className="block text-ink-muted">Owner Name</span>
@@ -92,7 +92,7 @@ export function AdminSellerDetailView({
               </div>
               <div>
                 <span className="block text-ink-muted">Bio</span>
-                <p className="text-foreground leading-relaxed mt-1">
+                <p className="mt-1 leading-relaxed text-foreground">
                   {seller.bio || "No bio provided."}
                 </p>
               </div>
@@ -100,7 +100,7 @@ export function AdminSellerDetailView({
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold tracking-wider text-brand uppercase">Contact & Info</h3>
+            <h3 className="text-sm font-semibold tracking-wider text-brand uppercase">Contact and info</h3>
             <div className="space-y-3 text-sm">
               <div>
                 <span className="block text-ink-muted">Support Email</span>
@@ -122,8 +122,8 @@ export function AdminSellerDetailView({
           </div>
         </div>
 
-        <div className="border-t border-border pt-6 space-y-4">
-          <h3 className="text-sm font-semibold tracking-wider text-brand uppercase">Moderation Status</h3>
+        <div className="space-y-4 border-t border-border pt-6">
+          <h3 className="text-sm font-semibold tracking-wider text-brand uppercase">Moderation status</h3>
           <div className="space-y-3 text-sm">
             {seller.status === "rejected" && seller.rejectionReason && (
               <div className="rounded-xl border border-red-200 bg-red-50 p-4">
@@ -138,7 +138,7 @@ export function AdminSellerDetailView({
               </div>
             )}
             
-            <div className="grid grid-cols-2 gap-4 text-ink-muted">
+            <div className="grid gap-4 text-ink-muted sm:grid-cols-2">
               <div>Created: {new Date(seller.createdAt).toLocaleString()}</div>
               {seller.resubmittedAt && <div>Resubmitted: {new Date(seller.resubmittedAt).toLocaleString()}</div>}
               {seller.approvedAt && <div>Approved: {new Date(seller.approvedAt).toLocaleString()}</div>}
@@ -146,7 +146,7 @@ export function AdminSellerDetailView({
             </div>
           </div>
 
-          <form action={updateSellerStatusAction} className="mt-6 rounded-2xl border border-border bg-panel-muted p-5 space-y-4">
+          <form action={updateSellerStatusAction} className="mt-6 space-y-4 rounded-2xl border border-border bg-panel-muted p-5">
             <input type="hidden" name="sellerId" value={seller.id} />
             <input type="hidden" name="returnTo" value={`/admin/sellers/${seller.id}`} />
             
@@ -163,7 +163,7 @@ export function AdminSellerDetailView({
               />
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               {allowedActions.map((nextStatus) => (
                 <AdminActionButton
                   key={nextStatus}
@@ -192,7 +192,7 @@ export function AdminSellerDetailView({
         ) : (
           <div className="space-y-3">
             {seller.history.map((event) => (
-              <div key={event.id} className="rounded-xl border border-border bg-panel p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div key={event.id} className="flex flex-col gap-4 rounded-xl border border-border bg-panel p-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-sm">
                     <span className="font-medium text-foreground">
@@ -206,7 +206,7 @@ export function AdminSellerDetailView({
                     <p className="text-sm text-ink-muted italic">&quot;{event.reason}&quot;</p>
                   )}
                 </div>
-                <div className="text-xs text-ink-muted whitespace-nowrap">
+                <div className="whitespace-nowrap text-xs text-ink-muted">
                   {new Date(event.createdAt).toLocaleString()}
                 </div>
               </div>

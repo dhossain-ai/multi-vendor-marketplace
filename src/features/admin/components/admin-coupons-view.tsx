@@ -42,8 +42,8 @@ export function AdminCouponsView({
           Coupons
         </h1>
         <p className="max-w-3xl text-sm leading-7 text-ink-muted">
-          Create and manage discount codes at the marketplace level. This phase focuses
-          on clean setup and activation controls before checkout redemption is expanded.
+          Create and manage discount codes at the marketplace level. Checkout
+          revalidates coupons server-side before discounts are saved to orders.
         </p>
       </div>
 
@@ -51,7 +51,7 @@ export function AdminCouponsView({
       {notice && !error ? <AuthMessage tone="success" message={notice} /> : null}
       <AuthMessage
         tone="info"
-        message="Coupons are managed here now, but redemption during checkout is still a later step."
+        message="Use activation, date windows, limits, and seller scope carefully. Customers only receive valid discounts after checkout revalidation."
       />
 
       <section className="rounded-[2rem] border border-border bg-panel p-6 shadow-[var(--shadow-panel)]">
@@ -177,6 +177,17 @@ export function AdminCouponsView({
       </section>
 
       <div className="space-y-3">
+        {coupons.length === 0 ? (
+          <div className="rounded-[2rem] border border-dashed border-border bg-panel p-8 text-center shadow-[var(--shadow-panel)]">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              No coupons yet
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-ink-muted">
+              Create a coupon above when the marketplace is ready to offer a
+              customer discount.
+            </p>
+          </div>
+        ) : null}
         {coupons.map((coupon) => (
           <article
             key={coupon.id}

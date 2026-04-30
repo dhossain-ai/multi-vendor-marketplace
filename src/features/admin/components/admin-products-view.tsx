@@ -33,7 +33,7 @@ export function AdminProductsView({
         </p>
       </div>
 
-      <form method="get" className="flex flex-wrap items-end gap-3 rounded-[1.75rem] border border-border bg-panel p-5 shadow-[var(--shadow-panel)]">
+      <form method="get" className="flex flex-col gap-3 rounded-[1.75rem] border border-border bg-panel p-5 shadow-[var(--shadow-panel)] sm:flex-row sm:flex-wrap sm:items-end">
         <div className="space-y-2">
           <label htmlFor="status" className="text-sm font-medium text-foreground">
             Filter by status
@@ -42,7 +42,7 @@ export function AdminProductsView({
             id="status"
             name="status"
             defaultValue={currentStatus ?? ""}
-            className="block min-w-48 rounded-xl border border-border bg-panel-muted px-4 py-2.5 text-sm text-foreground focus:border-brand focus:outline-none"
+            className="block w-full rounded-xl border border-border bg-panel-muted px-4 py-2.5 text-sm text-foreground focus:border-brand focus:outline-none sm:min-w-48"
           >
             <option value="">All statuses</option>
             <option value="draft">Draft</option>

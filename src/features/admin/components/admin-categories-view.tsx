@@ -121,6 +121,17 @@ export function AdminCategoriesView({
       </section>
 
       <div className="space-y-3">
+        {categories.length === 0 ? (
+          <div className="rounded-[2rem] border border-dashed border-border bg-panel p-8 text-center shadow-[var(--shadow-panel)]">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              No categories yet
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-ink-muted">
+              Create the first category above so approved sellers can assign
+              products to a customer-facing department.
+            </p>
+          </div>
+        ) : null}
         {categories.map((category) => (
           <article
             key={category.id}
