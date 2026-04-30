@@ -21,22 +21,52 @@ const SORT_OPTIONS = [
   { label: "Relevance", value: "relevance" },
 ];
 
+const MAX_QUERY_LENGTH = 80;
+const MAX_PAGE = 50;
+const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{0,79}$/;
+
+const readSingleParam = (value: string | string[] | undefined) =>
+  typeof value === "string" ? value : undefined;
+
+const normalizeSearchQuery = (value: string | undefined) => {
+  const normalized = value?.replace(/\s+/g, " ").trim().slice(0, MAX_QUERY_LENGTH);
+
+  return normalized || undefined;
+};
+
+const normalizeCategory = (value: string | undefined) => {
+  const normalized = value?.trim().toLowerCase();
+
+  return normalized && SLUG_PATTERN.test(normalized) ? normalized : undefined;
+};
+
+const normalizeSort = (value: string | undefined) =>
+  value === "price_asc" ||
+  value === "price_desc" ||
+  value === "newest" ||
+  value === "relevance"
+    ? value
+    : undefined;
+
+const normalizePage = (value: string | undefined) => {
+  const rawPage = value ? Number.parseInt(value, 10) : 1;
+
+  if (!Number.isInteger(rawPage) || rawPage < 1) {
+    return 1;
+  }
+
+  return Math.min(rawPage, MAX_PAGE);
+};
+
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
   const params = await searchParams;
 
-  const q = typeof params.q === "string" ? params.q : undefined;
-  const category = typeof params.category === "string" ? params.category : undefined;
-  
-  const rawSort = typeof params.sort === "string" ? params.sort : undefined;
-  const sort =
-    rawSort === "price_asc" || rawSort === "price_desc" || rawSort === "newest" || rawSort === "relevance"
-      ? rawSort
-      : undefined;
-
-  const rawPage = typeof params.page === "string" ? parseInt(params.page, 10) : 1;
-  const page = !isNaN(rawPage) && rawPage > 0 ? rawPage : 1;
+  const q = normalizeSearchQuery(readSingleParam(params.q));
+  const category = normalizeCategory(readSingleParam(params.category));
+  const sort = normalizeSort(readSingleParam(params.sort));
+  const page = normalizePage(readSingleParam(params.page));
 
   const result = await searchPublicProducts({
     q,
@@ -87,7 +117,6 @@ export default async function ProductsPage({
               <select 
                 name="sort" 
                 defaultValue={sort ?? (q ? "relevance" : "newest")}
-                onChange={(e) => e.target.form?.submit()}
                 className="h-10 cursor-pointer rounded-full border border-border bg-panel px-4 pr-10 text-sm text-foreground focus:border-brand focus:outline-none"
               >
                 {SORT_OPTIONS.map((option) => (
@@ -96,6 +125,12 @@ export default async function ProductsPage({
                   </option>
                 ))}
               </select>
+              <button
+                type="submit"
+                className="h-10 rounded-full border border-border bg-panel px-4 text-sm font-medium text-foreground transition-colors hover:bg-panel-muted"
+              >
+                Apply
+              </button>
             </form>
           </div>
         </div>

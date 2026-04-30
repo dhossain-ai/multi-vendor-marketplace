@@ -47,6 +47,8 @@ type CatalogProductRow = {
   price_amount?: number | string | null;
   currency_code?: string | null;
   status?: string | null;
+  stock_quantity?: number | null;
+  is_unlimited_stock?: boolean | null;
   thumbnail_url?: string | null;
   published_at?: string | null;
   categories?: CatalogCategoryRow | CatalogCategoryRow[] | null;
@@ -82,6 +84,21 @@ const isPublicVisibilitySatisfied = (input: {
   input.productStatus === "active" &&
   input.sellerStatus === "approved" &&
   input.categoryIsActive !== false;
+
+const getPublicAvailability = (input: {
+  stockQuantity?: number | null;
+  isUnlimitedStock?: boolean | null;
+}) => {
+  const isOutOfStock =
+    !input.isUnlimitedStock &&
+    input.stockQuantity != null &&
+    input.stockQuantity <= 0;
+
+  return {
+    availabilityLabel: isOutOfStock ? "Out of stock" : "Available now",
+    isPurchasable: !isOutOfStock,
+  };
+};
 
 const mapImages = (
   images: CatalogImageRow[] | null | undefined,
@@ -122,6 +139,11 @@ const mapProductRowToSummary = (
     return null;
   }
 
+  const availability = getPublicAvailability({
+    stockQuantity: row.stock_quantity,
+    isUnlimitedStock: row.is_unlimited_stock,
+  });
+
   return {
     id: row.id,
     slug: row.slug,
@@ -147,6 +169,8 @@ const mapProductRowToSummary = (
         }
       : null,
     publishedAt: row.published_at,
+    availabilityLabel: availability.availabilityLabel,
+    isPurchasable: availability.isPurchasable,
   };
 };
 
@@ -173,7 +197,7 @@ const mapProductRowToDetail = (
         : summary.thumbnailUrl
           ? [{ url: summary.thumbnailUrl, alt: `${summary.title} thumbnail` }]
           : [],
-    availabilityLabel: "Available now",
+    availabilityLabel: summary.availabilityLabel,
   };
 };
 
@@ -213,6 +237,8 @@ const mapDemoProductToSummary = (
     category: category ? { name: category.name, slug: category.slug } : null,
     seller: { name: seller.storeName, slug: seller.slug },
     publishedAt: product.publishedAt,
+    availabilityLabel: "Available now",
+    isPurchasable: true,
   };
 };
 
@@ -234,7 +260,7 @@ const mapDemoProductToDetail = (
         : summary.thumbnailUrl
           ? [{ url: summary.thumbnailUrl, alt: `${summary.title} thumbnail` }]
           : [],
-    availabilityLabel: "Available now",
+    availabilityLabel: summary.availabilityLabel,
   };
 };
 
@@ -313,7 +339,7 @@ const searchDemoProducts = (params: ProductSearchParams): ProductSearchResult =>
     }
   });
 
-  const page = Math.max(1, params.page ?? 1);
+  const page = Math.min(50, Math.max(1, params.page ?? 1));
   const pageSize = Math.min(50, Math.max(1, params.pageSize ?? 20));
   const totalCount = filtered.length;
   const start = (page - 1) * pageSize;
@@ -340,6 +366,9 @@ const getFallbackReason = (error: unknown) => {
 
   return "Unknown Supabase catalog error.";
 };
+
+const escapeIlikePattern = (value: string) =>
+  value.replace(/[%,_()\\]/g, " ").replace(/\s+/g, " ").trim();
 
 const withSupabaseFallback = async <T>(
   query: () => Promise<T>,
@@ -378,15 +407,17 @@ const listSupabaseProducts = async (
         price_amount,
         currency_code,
         status,
+        stock_quantity,
+        is_unlimited_stock,
         thumbnail_url,
         published_at,
-        categories (
+        categories!inner (
           id,
           name,
           slug,
           is_active
         ),
-        seller_profiles!products_seller_id_fkey (
+        seller_profiles!inner!products_seller_id_fkey (
           id,
           store_name,
           slug,
@@ -395,6 +426,8 @@ const listSupabaseProducts = async (
       `,
     )
     .eq("status", "active")
+    .eq("seller_profiles.status", "approved")
+    .eq("categories.is_active", true)
     .order("published_at", { ascending: false })
     .limit(limit);
 
@@ -428,15 +461,17 @@ const getSupabaseProductBySlug = async (
         price_amount,
         currency_code,
         status,
+        stock_quantity,
+        is_unlimited_stock,
         thumbnail_url,
         published_at,
-        categories (
+        categories!inner (
           id,
           name,
           slug,
           is_active
         ),
-        seller_profiles!products_seller_id_fkey (
+        seller_profiles!inner!products_seller_id_fkey (
           id,
           store_name,
           slug,
@@ -450,6 +485,9 @@ const getSupabaseProductBySlug = async (
       `,
     )
     .eq("slug", slug)
+    .eq("status", "active")
+    .eq("seller_profiles.status", "approved")
+    .eq("categories.is_active", true)
     .maybeSingle();
 
   if (error) {
@@ -482,15 +520,17 @@ const listSupabaseRelatedProducts = async (
         price_amount,
         currency_code,
         status,
+        stock_quantity,
+        is_unlimited_stock,
         thumbnail_url,
         published_at,
-        categories (
+        categories!inner (
           id,
           name,
           slug,
           is_active
         ),
-        seller_profiles!products_seller_id_fkey (
+        seller_profiles!inner!products_seller_id_fkey (
           id,
           store_name,
           slug,
@@ -499,6 +539,8 @@ const listSupabaseRelatedProducts = async (
       `,
     )
     .eq("status", "active")
+    .eq("seller_profiles.status", "approved")
+    .eq("categories.is_active", true)
     .neq("id", productId)
     .order("published_at", { ascending: false })
     .limit(limit + 2);
@@ -549,6 +591,8 @@ const searchSupabaseProducts = async (
         price_amount,
         currency_code,
         status,
+        stock_quantity,
+        is_unlimited_stock,
         thumbnail_url,
         published_at,
         categories!inner (
@@ -571,7 +615,10 @@ const searchSupabaseProducts = async (
     .eq("categories.is_active", true);
 
   if (params.q) {
-    query = query.ilike("title", `%${params.q}%`); // Note: In a real app we'd use full-text search
+    const pattern = `%${escapeIlikePattern(params.q)}%`;
+    query = query.or(
+      `title.ilike.${pattern},short_description.ilike.${pattern},description.ilike.${pattern}`,
+    );
   }
 
   if (params.category) {
@@ -594,7 +641,7 @@ const searchSupabaseProducts = async (
       break;
   }
 
-  const page = Math.max(1, params.page ?? 1);
+  const page = Math.min(50, Math.max(1, params.page ?? 1));
   const pageSize = Math.min(50, Math.max(1, params.pageSize ?? 20));
   const start = (page - 1) * pageSize;
   const end = start + pageSize - 1;

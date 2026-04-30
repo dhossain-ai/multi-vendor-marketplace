@@ -42,7 +42,7 @@ export function ProductCard({ product }: ProductCardProps) {
           </p>
 
           <div className="text-ink-muted flex items-center justify-between gap-3 text-sm">
-            <span>Available now</span>
+            <span>{product.availabilityLabel}</span>
             <span className="text-brand font-medium">View details</span>
           </div>
         </div>

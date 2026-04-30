@@ -96,7 +96,13 @@ export function ProductDetailView({
               </div>
 
               <div className="bg-panel-muted rounded-[1.5rem] p-5">
-                <AddToCartForm productId={product.id} nextPath={nextPath} />
+                {product.isPurchasable ? (
+                  <AddToCartForm productId={product.id} nextPath={nextPath} />
+                ) : (
+                  <p className="text-sm font-medium text-amber-800">
+                    This product is currently out of stock and cannot be added to cart.
+                  </p>
+                )}
                 {cartError ? (
                   <p className="mt-3 text-sm leading-6 text-rose-700">
                     {cartError}
