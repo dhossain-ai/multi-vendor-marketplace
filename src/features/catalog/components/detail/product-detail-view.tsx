@@ -126,7 +126,7 @@ export function ProductDetailView({
                 <div className="rounded-[1.5rem] bg-panel-muted p-4">
                   <p className="text-sm font-medium text-foreground">Secure checkout</p>
                   <p className="mt-2 text-sm leading-6 text-ink-muted">
-                    Payment is completed securely with Stripe test mode.
+                    Payment is completed securely with Stripe.
                   </p>
                 </div>
               </div>

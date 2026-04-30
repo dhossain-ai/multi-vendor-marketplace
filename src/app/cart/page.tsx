@@ -10,7 +10,7 @@ type CartPageProps = {
 
 export const metadata: Metadata = {
   title: "Cart",
-  description: "Review the authenticated customer cart before checkout is implemented.",
+  description: "Review your cart before checkout.",
 };
 
 export default async function CartPage({ searchParams }: CartPageProps) {

@@ -190,7 +190,7 @@ const mapProductRowToDetail = (
     description:
       row.description ??
       row.short_description ??
-      "A richer product description will be available once seller tooling is implemented.",
+      "More product details will be available soon.",
     images:
       images.length > 0
         ? images
