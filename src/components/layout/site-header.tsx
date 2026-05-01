@@ -32,7 +32,7 @@ function HeaderSearch() {
     <form
       action="/products"
       method="GET"
-      className="flex min-w-0 flex-1 items-center rounded-full border border-border bg-white p-1 shadow-sm"
+      className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_4.75rem] items-center rounded-full border border-border bg-white p-1 shadow-sm sm:grid-cols-[minmax(0,1fr)_5.5rem]"
     >
       <label htmlFor="site-product-search" className="sr-only">
         Search products
@@ -41,12 +41,12 @@ function HeaderSearch() {
         id="site-product-search"
         name="q"
         type="search"
-        placeholder="Search products, categories, shops"
+        placeholder="Search products"
         className="h-10 min-w-0 flex-1 rounded-full bg-transparent px-4 text-sm text-foreground placeholder:text-ink-muted focus:outline-none"
       />
       <button
         type="submit"
-        className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-foreground px-4 text-sm font-semibold text-white transition hover:bg-brand"
+        className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-foreground px-3 text-sm font-semibold text-white transition hover:bg-brand sm:px-4"
       >
         Search
       </button>
@@ -108,14 +108,14 @@ export async function SiteHeader() {
         </div>
 
         <div className="mt-3 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-          <nav className="flex flex-wrap items-center gap-2 xl:hidden">
+          <nav className="grid w-full min-w-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center xl:hidden">
             <HeaderLink href="/products" label="Browse products" tone="primary" />
             <HeaderLink href="/#categories" label="Departments" />
             <HeaderLink href="/#new-arrivals" label="New arrivals" />
             <HeaderLink href="/sell" label="Start selling" />
           </nav>
 
-          <nav className="flex flex-wrap items-center gap-2">
+          <nav className="grid w-full min-w-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center lg:w-auto">
             <div className="hidden xl:block">
               <CartNav />
             </div>
