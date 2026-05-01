@@ -18,12 +18,39 @@ function HeaderLink({
       href={href}
       className={
         tone === "primary"
-          ? "inline-flex min-h-10 items-center justify-center rounded-full bg-brand px-4 text-sm font-semibold text-white"
-          : "inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-panel px-4 text-sm font-medium text-foreground transition hover:border-foreground/25"
+          ? "inline-flex min-h-10 items-center justify-center rounded-full bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-foreground"
+          : "inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-white/75 px-4 text-sm font-medium text-foreground transition hover:border-foreground/25 hover:bg-white"
       }
     >
       {label}
     </Link>
+  );
+}
+
+function HeaderSearch() {
+  return (
+    <form
+      action="/products"
+      method="GET"
+      className="flex min-w-0 flex-1 items-center rounded-full border border-border bg-white p-1 shadow-sm"
+    >
+      <label htmlFor="site-product-search" className="sr-only">
+        Search products
+      </label>
+      <input
+        id="site-product-search"
+        name="q"
+        type="search"
+        placeholder="Search products, categories, shops"
+        className="h-10 min-w-0 flex-1 rounded-full bg-transparent px-4 text-sm text-foreground placeholder:text-ink-muted focus:outline-none"
+      />
+      <button
+        type="submit"
+        className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-foreground px-4 text-sm font-semibold text-white transition hover:bg-brand"
+      >
+        Search
+      </button>
+    </form>
   );
 }
 
@@ -42,47 +69,72 @@ export async function SiteHeader() {
   const isAdmin = session.profile?.role === "admin";
 
   return (
-    <header className="border-border/80 sticky top-0 z-20 border-b bg-white/70 backdrop-blur-xl">
-      <Container className="py-3 md:py-4">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <Link href="/" className="flex min-w-0 items-center gap-3">
-            <span className="bg-brand inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white">
-              NM
-            </span>
-            <div className="min-w-0">
-              <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-                {siteConfig.name}
-              </p>
-              <p className="text-ink-muted text-sm">{siteConfig.tagline}</p>
-            </div>
+    <header className="sticky top-0 z-20 border-b border-border/80 bg-white/88 backdrop-blur-xl">
+      <div className="bg-foreground text-white">
+        <Container className="flex min-h-9 flex-wrap items-center justify-center gap-x-4 gap-y-1 py-2 text-center text-xs font-medium sm:justify-between">
+          <p>Independent sellers. Secure checkout. Tracked orders.</p>
+          <Link href="/sell" className="hidden underline-offset-4 hover:underline sm:inline">
+            Start selling on Northstar
           </Link>
+        </Container>
+      </div>
 
-          <div className="flex flex-col gap-3 xl:items-end">
-            <nav className="flex flex-wrap items-center gap-2">
-              <HeaderLink href="/products" label="Browse products" tone="primary" />
-              <HeaderLink href="/#categories" label="Categories" />
-              <HeaderLink href="/#featured" label="Featured" />
-            </nav>
-
-            <nav className="flex flex-wrap items-center gap-2">
-              {isSignedIn ? (
-                <>
-                  <CartNav />
-                  <HeaderLink href="/orders" label="Orders" />
-                  <HeaderLink href="/account" label="Account" />
-                  {showSellerEntry ? (
-                    <HeaderLink href={sellerEntryHref} label={sellerEntryLabel} />
-                  ) : null}
-                  {isAdmin ? <HeaderLink href="/admin" label="Admin Dashboard" /> : null}
-                </>
-              ) : (
-                <>
-                  <HeaderLink href="/sign-in" label="Sign in" />
-                  <HeaderLink href="/sign-up" label="Sign up" tone="primary" />
-                </>
-              )}
-            </nav>
+      <Container className="py-3 md:py-4">
+        <div className="grid gap-3 xl:grid-cols-[minmax(16rem,0.72fr)_minmax(20rem,1.2fr)_auto] xl:items-center">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <Link href="/" className="flex min-w-0 items-center gap-3">
+              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand text-sm font-semibold text-white shadow-sm">
+                NM
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold uppercase text-brand">
+                  {siteConfig.name}
+                </p>
+                <p className="truncate text-sm text-ink-muted">{siteConfig.tagline}</p>
+              </div>
+            </Link>
+            <div className="shrink-0 xl:hidden">
+              <CartNav />
+            </div>
           </div>
+
+          <HeaderSearch />
+
+          <nav className="hidden flex-wrap items-center justify-end gap-2 xl:flex">
+            <HeaderLink href="/products" label="Browse products" tone="primary" />
+            <HeaderLink href="/#categories" label="Departments" />
+            <HeaderLink href="/#featured" label="Featured picks" />
+          </nav>
+        </div>
+
+        <div className="mt-3 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+          <nav className="flex flex-wrap items-center gap-2 xl:hidden">
+            <HeaderLink href="/products" label="Browse products" tone="primary" />
+            <HeaderLink href="/#categories" label="Departments" />
+            <HeaderLink href="/#new-arrivals" label="New arrivals" />
+            <HeaderLink href="/sell" label="Start selling" />
+          </nav>
+
+          <nav className="flex flex-wrap items-center gap-2">
+            <div className="hidden xl:block">
+              <CartNav />
+            </div>
+            {isSignedIn ? (
+              <>
+                <HeaderLink href="/orders" label="Orders" />
+                <HeaderLink href="/account" label="Account" />
+                {showSellerEntry ? (
+                  <HeaderLink href={sellerEntryHref} label={sellerEntryLabel} />
+                ) : null}
+                {isAdmin ? <HeaderLink href="/admin" label="Admin Dashboard" /> : null}
+              </>
+            ) : (
+              <>
+                <HeaderLink href="/sign-in" label="Sign in" />
+                <HeaderLink href="/sign-up" label="Sign up" tone="primary" />
+              </>
+            )}
+          </nav>
         </div>
       </Container>
     </header>
