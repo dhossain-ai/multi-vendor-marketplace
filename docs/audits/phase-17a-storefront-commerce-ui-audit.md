@@ -92,14 +92,14 @@ Phase 17A must not weaken these rules to make the storefront look fuller. The ho
 
 ## 11. Fixes applied
 
-To be completed after implementation:
-
-- Header commerce navigation and search polish
-- Homepage storefront redesign
-- Product card and listing page polish
-- Product detail presentation polish
-- Marketplace footer expansion
-- Responsive/mobile pass
+- Added a marketplace announcement strip, global product search, stronger shop links, cart access, and role-aware account/seller/admin navigation to the header.
+- Redesigned the homepage with product-led hero visuals, homepage search, department cards, featured products, new arrivals, trust messaging, and a seller CTA.
+- Improved product visuals with a polished fallback treatment instead of broken or generic imagery.
+- Upgraded product cards with stronger image hierarchy, price, category, seller, trimmed description, availability badge, and clearer "View details" CTA.
+- Reworked `/products` with a stronger browse heading, search/sort toolbar, category chips, product count summary, pagination, and no-results recovery actions.
+- Lightly polished product detail with better gallery sizing, title/price hierarchy, seller/category labels, availability badge, add-to-cart clarity, product detail section, and related products.
+- Expanded the footer into a marketplace footer with brand summary, shop/account/seller links, trust copy, and a compact marketplace note.
+- Checked mobile, tablet, and desktop layouts with local Chrome screenshots and tightened mobile header wrapping.
 
 ## 12. Remaining follow-ups
 

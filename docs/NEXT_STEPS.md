@@ -11,9 +11,9 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Phase 16 (Customer Flow Final QA and Security Cleanup) is complete.
+Phase 17A (Storefront Commerce UI Polish) is complete.
 
-Next: begin Phase 17 — Frontend UX and Presentation Polish.
+Next: begin Phase 17B - Product Listing, Product Card, and Product Detail Deep Polish.
 
 ---
 
@@ -62,14 +62,25 @@ Next: begin Phase 17 — Frontend UX and Presentation Polish.
 - Tightened payment retry/cancel edge handling.
 - Cleaned customer-facing implementation/test-mode wording.
 
+### Phase 17A — Storefront Commerce UI Polish ✅
+- Added storefront commerce UI audit at `docs/audits/phase-17a-storefront-commerce-ui-audit.md`.
+- Added implementation note at `docs/implementation/phase-17a-storefront-commerce-ui-polish.md`.
+- Polished the global ecommerce header with product search and role-aware navigation.
+- Redesigned the homepage into a fuller marketplace storefront.
+- Improved product cards, product listing controls, product detail presentation, and marketplace footer.
+- Preserved public catalog visibility rules: approved seller, active product, active/valid category, publish requirements, and no suspended/archived/draft products.
+- Confirmed `lint`, `typecheck`, and `build` pass.
+
 ---
 
 ## After That
 
 ### Refinement
 
+- Phase 17B product listing/card/detail deep polish
+- Phase 17C cart, checkout, account, and order UI polish
+- Phase 17D seller/admin workspace UI polish
 - richer seeded marketplace scenarios
-- frontend UX and presentation polish
 - reliability hardening for checkout idempotency/RPC
 - broader reliability hardening
 
@@ -107,7 +118,8 @@ Recommended order:
 7. checkout address snapshots
 8. catalog/search/storefront reliability
 9. customer flow final QA and security cleanup
-10. frontend UX and presentation polish
+10. storefront commerce UI polish
+11. product listing/card/detail deep polish
 
 ---
 
