@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 16 — Customer Flow Final QA and Security Cleanup completed.
+Phase 17A - Storefront Commerce UI Polish completed.
 
 ---
 
@@ -117,12 +117,19 @@ The repository now behaves like a much more operational marketplace product acro
   - checkout post-order cart cleanup ownership rechecked server-side
   - payment retry/cancel edges tightened
   - customer-facing implementation/test-mode wording cleaned up
+- storefront commerce UI polish completed:
+  - global header now includes marketplace promise copy, product search, shop navigation, cart, and role-aware account/seller/admin links
+  - homepage now presents a fuller commerce storefront with hero visuals, search, departments, featured products, new arrivals, trust messaging, and seller CTA
+  - product cards now show stronger image treatment, price, category, seller, trimmed description, availability badge, and details CTA
+  - `/products` listing now has stronger browse copy, search/sort toolbar, category chips, product count summary, pagination, and no-results recovery actions
+  - product detail and footer received marketplace presentation polish
+  - public product visibility rules remain unchanged
 
 ---
 
 ## In Progress
 
-- preparing Phase 17
+- preparing Phase 17B
 
 ---
 
@@ -164,13 +171,13 @@ The repository now behaves like a much more operational marketplace product acro
 
 ## Current Priority
 
-Move into Phase 17 — Frontend UX and Presentation Polish.
+Move into Phase 17B - Product Listing, Product Card, and Product Detail Deep Polish.
 
 ---
 
 ## Immediate Focus
 
-Polish the customer-facing presentation without changing the payment/order/security model.
+Deepen product discovery presentation without changing catalog visibility, checkout, payment, seller approval, or admin behavior.
 
 ---
 
@@ -187,7 +194,7 @@ Polish the customer-facing presentation without changing the payment/order/secur
 
 ## Readiness Assessment
 
-The project is ready to move into Phase 17 once:
+The project is ready to move into Phase 17B once:
 
-- the presentation-polish scope is defined
+- the product listing/detail deep polish scope is defined
 - docs continue to be updated alongside implementation

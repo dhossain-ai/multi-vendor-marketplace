@@ -1,5 +1,45 @@
 # Dev Summary
 
+## 2026-05-01 - Phase 17A Storefront Commerce UI Polish
+
+### Summary
+
+Polished the public storefront into a fuller ecommerce marketplace experience while preserving the existing backend/product rules. The pass focused on the global header, homepage, product discovery, product cards, product detail presentation, footer, responsive behavior, and documentation.
+
+### Added
+
+- storefront commerce UI audit at `docs/audits/phase-17a-storefront-commerce-ui-audit.md`
+- implementation note at `docs/implementation/phase-17a-storefront-commerce-ui-polish.md`
+- global header product search form that submits to `/products?q=...`
+- homepage search, department cards, featured products shelf, new arrivals shelf, trust section, and seller CTA
+- richer marketplace footer sections for shop, account, seller, and trust links
+
+### Changed
+
+- global header now has stronger marketplace navigation while preserving role-aware seller/admin visibility
+- homepage now feels product-led and commerce-first
+- product cards now have stronger image/fallback treatment, trimmed descriptions, availability badges, and clearer details CTAs
+- `/products` now has a stronger browse header, search/sort toolbar, category chips, product count summary, pagination, and recovery actions
+- product detail now has stronger gallery, title/price, seller/category, availability, add-to-cart, description, and related-products presentation
+
+### Checks
+
+- baseline `npm run lint`: passed
+- baseline `npm run typecheck`: passed
+- baseline `npm run build`: passed
+- final `npm run lint`: passed
+- final `npm run typecheck`: passed
+- final `npm run build`: passed
+
+### Notes
+
+- Product visibility rules remain unchanged: approved seller, active product, active/valid category, existing publish requirements, and no suspended/archived/draft products.
+- No wishlist, reviews, refunds, payouts, notifications, schema changes, checkout changes, seller approval changes, or admin operations were added.
+
+### Next Recommended Slice
+
+- Phase 17B: Product Listing, Product Card, and Product Detail Deep Polish.
+
 ## 2026-04-30 - Phase 16 Customer Flow Final QA and Security Cleanup
 
 ### Summary

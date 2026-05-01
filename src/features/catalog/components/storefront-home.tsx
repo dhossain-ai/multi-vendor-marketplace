@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { CatalogEmptyState } from "@/features/catalog/components/catalog-empty-state";
 import { ProductGrid } from "@/features/catalog/components/cards/product-grid";
+import { ProductVisual } from "@/features/catalog/components/product-visual";
 import type { ProductSummary } from "@/features/catalog/types";
 
 type StorefrontHomeProps = {
@@ -33,7 +34,7 @@ const getCategoryHighlights = (products: ProductSummary[]): CategoryHighlight[] 
 
   return Array.from(categoryMap.values())
     .sort((left, right) => right.count - left.count || left.name.localeCompare(right.name))
-    .slice(0, 4);
+    .slice(0, 6);
 };
 
 const getSellerCount = (products: ProductSummary[]) =>
@@ -43,128 +44,251 @@ const getSellerCount = (products: ProductSummary[]) =>
       .filter((sellerName): sellerName is string => Boolean(sellerName)),
   ).size;
 
+const getNewArrivals = (products: ProductSummary[]) =>
+  products
+    .slice()
+    .sort((left, right) => {
+      const leftTime = left.publishedAt ? Date.parse(left.publishedAt) : 0;
+      const rightTime = right.publishedAt ? Date.parse(right.publishedAt) : 0;
+
+      return rightTime - leftTime;
+    })
+    .slice(0, 3);
+
+function HomeSearch({ categories }: { categories: CategoryHighlight[] }) {
+  return (
+    <section className="border-y border-border/70 bg-white/72 py-8">
+      <Container className="grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-center">
+        <div>
+          <p className="text-sm font-semibold uppercase text-brand">
+            Find your next upgrade
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+            Search products or jump into a department.
+          </h2>
+        </div>
+
+        <div className="space-y-3">
+          <form action="/products" method="GET" className="flex flex-col gap-2 sm:flex-row">
+            <label htmlFor="home-product-search" className="sr-only">
+              Search products
+            </label>
+            <input
+              id="home-product-search"
+              name="q"
+              type="search"
+              placeholder="Search desk gear, audio, accessories"
+              className="h-12 min-w-0 flex-1 rounded-full border border-border bg-white px-5 text-sm text-foreground placeholder:text-ink-muted focus:border-brand focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="inline-flex h-12 items-center justify-center rounded-full bg-foreground px-6 text-sm font-semibold text-white transition hover:bg-brand"
+            >
+              Search
+            </button>
+          </form>
+
+          {categories.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {categories.slice(0, 5).map((category) => (
+                <Link
+                  key={category.slug}
+                  href={`/products?category=${category.slug}`}
+                  className="inline-flex min-h-9 items-center rounded-full border border-border bg-panel px-3 text-xs font-semibold text-foreground transition hover:border-brand hover:text-brand"
+                >
+                  {category.name}
+                </Link>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </Container>
+    </section>
+  );
+}
+
 export function StorefrontHome({ products }: StorefrontHomeProps) {
   const featuredProducts = products.slice(0, 6);
+  const heroProducts = products.slice(0, 3);
   const categoryHighlights = getCategoryHighlights(products);
   const sellerCount = getSellerCount(products);
+  const newArrivals = getNewArrivals(products);
 
   return (
     <>
-      <section className="py-14 md:py-20">
-        <Container className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+      <section className="bg-foreground py-3 text-white">
+        <Container className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-center text-sm font-medium md:justify-between md:text-left">
+          <span>Independent sellers. Secure checkout. Tracked orders.</span>
+          <span className="text-white/72">
+            Shop workspace, audio, and creator essentials in one marketplace.
+          </span>
+        </Container>
+      </section>
+
+      <section className="py-12 md:py-16">
+        <Container className="grid gap-8 lg:grid-cols-[minmax(0,1.02fr)_minmax(20rem,0.98fr)] lg:items-center">
           <div className="space-y-6">
-            <span className="inline-flex rounded-full border border-brand/20 bg-brand-soft px-4 py-2 text-sm font-medium text-brand">
-              Independent sellers. Everyday setup upgrades.
+            <span className="inline-flex rounded-full border border-brand/20 bg-white/78 px-4 py-2 text-sm font-semibold text-brand">
+              Trusted sellers for better everyday setups
             </span>
             <div className="space-y-4">
               <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-foreground md:text-6xl">
-                Discover workspace, audio, and creator gear from trusted shops.
+                Shop useful gear from independent marketplace sellers.
               </h1>
               <p className="max-w-2xl text-lg leading-8 text-ink-muted">
-                Shop curated essentials for your desk, studio, and daily workflow.
-                Browse real products, add them to your cart, and check out
-                securely when you&apos;re ready.
+                Browse curated products for desks, studios, and daily work. Find
+                what fits, add it to cart, and keep every order easy to track.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href="/products"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-brand px-5 text-sm font-semibold text-white"
+                className="inline-flex min-h-12 items-center justify-center rounded-full bg-brand px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-foreground"
               >
                 Shop all products
               </Link>
               <Link
-                href="/sign-up"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-panel px-5 text-sm font-medium text-foreground"
+                href="/sell"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-white/75 px-6 text-sm font-semibold text-foreground transition hover:border-foreground/25 hover:bg-white"
               >
-                Create your account
+                Start selling
               </Link>
+            </div>
+
+            <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-border bg-white/72 p-4">
+                <p className="text-2xl font-semibold text-foreground">{products.length}</p>
+                <p className="mt-1 text-sm text-ink-muted">Products to browse</p>
+              </div>
+              <div className="rounded-2xl border border-border bg-white/72 p-4">
+                <p className="text-2xl font-semibold text-foreground">{sellerCount}</p>
+                <p className="mt-1 text-sm text-ink-muted">Seller storefronts</p>
+              </div>
+              <div className="rounded-2xl border border-border bg-white/72 p-4">
+                <p className="text-2xl font-semibold text-foreground">
+                  {categoryHighlights.length}
+                </p>
+                <p className="mt-1 text-sm text-ink-muted">Departments</p>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-border bg-panel-muted p-6 shadow-[var(--shadow-panel)]">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
-              This week at a glance
-            </p>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl bg-white/85 p-5">
-                <p className="text-sm text-ink-muted">Products ready to shop</p>
-                <p className="mt-2 text-3xl font-semibold text-foreground">
-                  {products.length}
-                </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {heroProducts.length > 0 ? (
+              heroProducts.map((product, index) => (
+                <Link
+                  key={product.id}
+                  href={`/products/${product.slug}`}
+                  className={index === 0 ? "sm:col-span-2" : ""}
+                >
+                  <ProductVisual
+                    title={product.title}
+                    imageUrl={product.thumbnailUrl}
+                    className={index === 0 ? "h-72" : "h-44"}
+                  />
+                  <div className="mt-3 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {product.title}
+                      </p>
+                      <p className="truncate text-sm text-ink-muted">
+                        {product.category?.name ?? "Marketplace pick"}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-white/82 px-3 py-1 text-xs font-semibold text-brand">
+                      View
+                    </span>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="sm:col-span-2">
+                <ProductVisual title="Northstar Market" className="h-72" />
               </div>
-              <div className="rounded-3xl bg-white/85 p-5">
-                <p className="text-sm text-ink-muted">Active seller storefronts</p>
-                <p className="mt-2 text-3xl font-semibold text-foreground">
-                  {sellerCount}
-                </p>
-              </div>
-            </div>
+            )}
+          </div>
+        </Container>
+      </section>
 
-            <div className="mt-5 space-y-3 rounded-3xl bg-white/75 p-5">
-              <p className="text-sm font-medium text-foreground">
-                Shop with confidence
+      <HomeSearch categories={categoryHighlights} />
+
+      <section id="categories" className="py-14 md:py-16">
+        <Container className="space-y-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="space-y-3">
+              <p className="text-sm font-semibold uppercase text-brand">
+                Browse departments
               </p>
-              <ul className="space-y-2 text-sm leading-6 text-ink-muted">
-                <li>Secure checkout powered by Stripe.</li>
-                <li>Order history stays available in your account after purchase.</li>
-                <li>Seller and admin tools stay separate from the customer journey.</li>
-              </ul>
+              <h2 className="text-3xl font-semibold tracking-tight text-foreground">
+                Popular places to start
+              </h2>
+              <p className="max-w-3xl text-sm leading-7 text-ink-muted">
+                Move quickly from broad browsing to products that match the way
+                you work, listen, and create.
+              </p>
             </div>
+            <Link
+              href="/products"
+              className="inline-flex min-h-11 w-fit items-center justify-center rounded-full border border-border bg-white/78 px-5 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand"
+            >
+              Browse all departments
+            </Link>
           </div>
+
+          {categoryHighlights.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {categoryHighlights.map((category, index) => (
+                <Link
+                  key={category.slug}
+                  href={`/products?category=${category.slug}`}
+                  className="group overflow-hidden rounded-2xl border border-border bg-white/78 shadow-[var(--shadow-panel)] transition hover:-translate-y-1 hover:border-foreground/20"
+                >
+                  <div className="h-24 bg-gradient-to-br from-sky-100 via-white to-emerald-100 p-5">
+                    <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/78 text-lg font-semibold text-foreground shadow-sm">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <div className="space-y-3 p-5">
+                    <p className="text-sm font-semibold uppercase text-brand">
+                      {category.name}
+                    </p>
+                    <p className="text-2xl font-semibold tracking-tight text-foreground">
+                      {category.count} product{category.count === 1 ? "" : "s"}
+                    </p>
+                    <p className="text-sm leading-6 text-ink-muted">
+                      Explore active listings from approved sellers in this department.
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <CatalogEmptyState />
+          )}
         </Container>
       </section>
 
-      <section id="categories" className="border-border/70 border-y bg-white/65 py-14">
+      <section id="featured" className="border-y border-border/70 bg-white/65 py-14 md:py-16">
         <Container className="space-y-8">
-          <div className="space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
-              Browse by category
-            </p>
-            <h2 className="text-3xl font-semibold tracking-tight text-foreground">
-              Popular departments
-            </h2>
-            <p className="max-w-3xl text-sm leading-7 text-ink-muted">
-              Start with the categories customers reach for most often across the
-              marketplace.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {categoryHighlights.map((category) => (
-              <Link
-                key={category.slug}
-                href={`/products?category=${category.slug}`}
-                className="rounded-[1.75rem] border border-border bg-panel p-6 shadow-[var(--shadow-panel)]"
-              >
-                <p className="text-sm font-semibold uppercase tracking-[0.12em] text-brand">
-                  {category.name}
-                </p>
-                <p className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                  {category.count} product{category.count === 1 ? "" : "s"}
-                </p>
-                <p className="mt-2 text-sm text-ink-muted">
-                  Fresh picks from independent sellers in {category.name.toLowerCase()}.
-                </p>
-              </Link>
-            ))}
-          </div>
-        </Container>
-      </section>
-
-      <section id="featured" className="py-16">
-        <Container className="space-y-8">
-          <div className="space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
-              Featured picks
-            </p>
-            <h2 className="text-3xl font-semibold tracking-tight text-foreground">
-              Ready to add to your setup
-            </h2>
-            <p className="max-w-3xl text-sm leading-7 text-ink-muted">
-              A focused selection of bestsellers, new arrivals, and daily-use essentials.
-            </p>
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="space-y-3">
+              <p className="text-sm font-semibold uppercase text-brand">
+                Featured picks
+              </p>
+              <h2 className="text-3xl font-semibold tracking-tight text-foreground">
+                Ready for your cart
+              </h2>
+              <p className="max-w-3xl text-sm leading-7 text-ink-muted">
+                A focused shelf of active marketplace picks from trusted shops.
+              </p>
+            </div>
+            <Link
+              href="/products"
+              className="inline-flex min-h-11 w-fit items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-white transition hover:bg-brand"
+            >
+              View all products
+            </Link>
           </div>
 
           {featuredProducts.length > 0 ? (
@@ -175,40 +299,102 @@ export function StorefrontHome({ products }: StorefrontHomeProps) {
         </Container>
       </section>
 
-      <section className="border-border/70 border-t bg-white/60 py-16">
-        <Container className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-[2rem] border border-border bg-panel p-8 shadow-[var(--shadow-panel)]">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
-              Why shoppers stay
+      <section id="new-arrivals" className="py-14 md:py-16">
+        <Container className="space-y-8">
+          <div className="space-y-3">
+            <p className="text-sm font-semibold uppercase text-brand">
+              New arrivals
             </p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
-              A marketplace built for clear buying journeys
+            <h2 className="text-3xl font-semibold tracking-tight text-foreground">
+              Recently added to the marketplace
             </h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-ink-muted">
-              Customers get a clean storefront, sellers get focused store tools,
-              and admins get platform controls without cluttering the shopping experience.
+          </div>
+
+          {newArrivals.length > 0 ? (
+            <div className="grid gap-4 lg:grid-cols-3">
+              {newArrivals.map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/products/${product.slug}`}
+                  className="grid gap-4 rounded-2xl border border-border bg-white/78 p-4 shadow-[var(--shadow-panel)] transition hover:-translate-y-1 hover:border-foreground/20 sm:grid-cols-[9rem_minmax(0,1fr)] lg:grid-cols-1"
+                >
+                  <ProductVisual
+                    title={product.title}
+                    imageUrl={product.thumbnailUrl}
+                    className="h-36"
+                  />
+                  <div className="min-w-0 space-y-2">
+                    <p className="text-xs font-semibold uppercase text-brand">
+                      {product.category?.name ?? "New arrival"}
+                    </p>
+                    <h3 className="line-clamp-2 text-lg font-semibold text-foreground">
+                      {product.title}
+                    </h3>
+                    <p className="line-clamp-2 text-sm leading-6 text-ink-muted">
+                      {product.shortDescription}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <CatalogEmptyState />
+          )}
+        </Container>
+      </section>
+
+      <section className="border-y border-border/70 bg-white/65 py-14 md:py-16">
+        <Container className="grid gap-5 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-start">
+          <div className="space-y-3">
+            <p className="text-sm font-semibold uppercase text-brand">
+              Why shop here
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight text-foreground">
+              Marketplace basics that make checkout feel clear.
+            </h2>
+            <p className="text-sm leading-7 text-ink-muted">
+              Northstar keeps shopping, seller tools, and platform operations separate
+              so each journey stays focused.
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-[1.75rem] border border-border bg-panel p-6 shadow-[var(--shadow-panel)]">
-              <p className="text-lg font-semibold text-foreground">Customer-first</p>
-              <p className="mt-2 text-sm leading-7 text-ink-muted">
-                Browse products, check out quickly, and keep your order history in one place.
+          <div className="grid gap-4 md:grid-cols-2">
+            {[
+              ["Secure checkout", "Pay with a clear, guided checkout experience."],
+              ["Trusted sellers", "Public products come from approved sellers only."],
+              ["Tracked orders", "Customers can return to account order history after purchase."],
+              ["Customer-first account", "Profiles, saved addresses, cart, and orders are easy to reach."],
+            ].map(([title, body]) => (
+              <div key={title} className="rounded-2xl border border-border bg-white/78 p-5">
+                <p className="text-lg font-semibold text-foreground">{title}</p>
+                <p className="mt-2 text-sm leading-6 text-ink-muted">{body}</p>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <section className="py-14 md:py-16">
+        <Container>
+          <div className="grid gap-6 rounded-2xl border border-border bg-foreground p-6 text-white shadow-[var(--shadow-panel)] md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:p-8">
+            <div className="space-y-3">
+              <p className="text-sm font-semibold uppercase text-white/72">
+                Sell on Northstar
+              </p>
+              <h2 className="text-3xl font-semibold tracking-tight">
+                Bring your products to a focused marketplace.
+              </h2>
+              <p className="max-w-2xl text-sm leading-7 text-white/72">
+                Apply to sell, set up your store profile, and manage listings once
+                your seller account is approved.
               </p>
             </div>
-            <div className="rounded-[1.75rem] border border-border bg-panel p-6 shadow-[var(--shadow-panel)]">
-              <p className="text-lg font-semibold text-foreground">Trusted seller tools</p>
-              <p className="mt-2 text-sm leading-7 text-ink-muted">
-                Approved sellers manage listings and sales without stepping into admin controls.
-              </p>
-            </div>
-            <div className="rounded-[1.75rem] border border-border bg-panel p-6 shadow-[var(--shadow-panel)]">
-              <p className="text-lg font-semibold text-foreground">Operational clarity</p>
-              <p className="mt-2 text-sm leading-7 text-ink-muted">
-                Admins can moderate sellers, products, orders, categories, and coupons separately.
-              </p>
-            </div>
+            <Link
+              href="/sell"
+              className="inline-flex min-h-12 w-fit items-center justify-center rounded-full bg-white px-6 text-sm font-semibold text-foreground transition hover:bg-brand-soft"
+            >
+              Start selling
+            </Link>
           </div>
         </Container>
       </section>
