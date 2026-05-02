@@ -86,14 +86,13 @@ Checkout/payment repositories, seller/admin logic, migrations, and schema were i
 
 ## 11. Fixes applied
 
-To be completed after implementation:
-
-- Cart item, summary, coupon, unavailable, and empty-state polish
-- Checkout step, shipping address, order summary, blocked-state, and trust-message polish
-- Success/cancel page confidence and recovery polish
-- Account, profile, address list/card/form polish
-- Order history/detail status, item snapshot, shipping, tracking, totals, and CTA polish
-- Responsive and accessibility pass
+- Polished cart item rows, visual treatment, availability badges, quantity controls, coupon area, summary hierarchy, unavailable messaging, and empty cart recovery.
+- Added stronger checkout step cards, item review presentation, shipping address cards, savings/total hierarchy, blocked checkout states, and secure payment messaging.
+- Improved checkout success and cancel pages with clearer payment-confirmation expectations, recovery actions, and customer confidence copy.
+- Reworked the account hub into a more customer-dashboard-like experience with clearer profile, address, orders, shopping, seller, and admin entry points.
+- Improved profile and address book presentation, including read-only account fields, address form focus states, default address labeling, address actions, and empty-state recovery.
+- Improved order history cards and order detail with explicit view CTAs, status hierarchy, snapshot-backed product visuals, shipping snapshot display, tracking/shipment notes, totals, and retry payment clarity.
+- Tightened mobile search/header behavior for customer routes and checked public result pages at mobile, tablet, and desktop widths.
 
 ## 12. Remaining follow-ups
 

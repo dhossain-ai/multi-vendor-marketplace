@@ -1,5 +1,47 @@
 # Dev Summary
 
+## 2026-05-02 - Phase 17C Customer Commerce UI Polish
+
+### Summary
+
+Polished the customer purchase and account-management experience across cart, checkout, payment result pages, account, profile, addresses, order history, and order detail while preserving server-authoritative commerce behavior.
+
+### Added
+
+- customer commerce UI audit at `docs/audits/phase-17c-customer-commerce-ui-audit.md`
+- implementation note at `docs/implementation/phase-17c-customer-commerce-ui-polish.md`
+- stronger customer recovery states for empty cart, blocked checkout, payment cancel, no addresses, and no orders
+
+### Changed
+
+- cart now has stronger item cards, product visuals, availability badges, quantity controls, coupon messaging, totals hierarchy, and checkout CTA
+- checkout now has step cards, clearer item review, shipping address cards, savings/total hierarchy, blocked-state copy, and secure payment messaging
+- checkout success/cancel pages now communicate order received, payment confirmation, retry paths, and shopping recovery more clearly
+- account/profile/address pages now feel more like customer account management surfaces with clearer read-only fields, default address labels, forms, and actions
+- order history/detail now have clearer status, payment, tracking, snapshot-backed item, shipping, totals, and retry payment presentation
+- shared mobile header search was tightened to avoid clipped search controls on customer routes
+
+### Checks
+
+- baseline `npm run lint`: passed
+- baseline `npm run typecheck`: passed
+- baseline `npm run build`: passed
+- final `npm run lint`: passed
+- final `npm run typecheck`: passed
+- final `npm run build`: passed
+
+### Notes
+
+- Checkout remains server-authoritative.
+- Selected shipping address ownership remains server-verified.
+- Stripe/payment behavior remains unchanged and webhook/provider confirmation remains final payment truth.
+- Customer order history/detail continue to use historical snapshots and customer-owned reads.
+- No refunds, payouts, notifications, wishlist, reviews, schema changes, seller/admin logic changes, or checkout/payment logic changes were added.
+
+### Next Recommended Slice
+
+- Phase 17D: Seller/Admin Workspace UI Polish.
+
 ## 2026-05-02 - Phase 17B Product Discovery UI Polish
 
 ### Summary
