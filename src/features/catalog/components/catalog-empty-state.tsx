@@ -2,23 +2,31 @@ import Link from "next/link";
 
 export function CatalogEmptyState() {
   return (
-    <div className="border-border bg-panel rounded-[2rem] border border-dashed p-10 text-center shadow-[var(--shadow-panel)]">
-      <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
+    <div className="rounded-2xl border border-dashed border-border bg-white/82 p-8 text-center shadow-[var(--shadow-panel)] md:p-10">
+      <p className="text-sm font-semibold uppercase text-brand">
         No products available
       </p>
-      <h2 className="text-foreground mt-3 text-2xl font-semibold tracking-tight">
+      <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
         Fresh products will appear here as sellers publish inventory.
       </h2>
-      <p className="text-ink-muted mx-auto mt-4 max-w-2xl text-sm leading-7">
-        We&apos;re keeping the storefront ready for active listings only, so hidden
-        or unavailable products never appear in the shopping experience.
+      <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-ink-muted">
+        The storefront only shows products that are ready for customers to browse.
+        Try browsing all products or return to the homepage.
       </p>
-      <Link
-        href="/products"
-        className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full bg-brand px-5 text-sm font-semibold text-white"
-      >
-        Browse products
-      </Link>
+      <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+        <Link
+          href="/products"
+          className="inline-flex min-h-11 items-center justify-center rounded-full bg-brand px-5 text-sm font-semibold text-white transition hover:bg-foreground focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/25"
+        >
+          Browse products
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white px-5 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
+        >
+          Return home
+        </Link>
+      </div>
     </div>
   );
 }

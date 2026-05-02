@@ -26,7 +26,7 @@ export function ProductDetailView({
   return (
     <div className="py-10 md:py-14">
       <Container className="space-y-10">
-        <nav className="flex flex-wrap items-center gap-2 text-sm text-ink-muted">
+        <nav className="flex min-w-0 flex-wrap items-center gap-2 overflow-hidden text-sm text-ink-muted">
           <Link href="/" className="hover:text-foreground transition-colors">
             Shop
           </Link>
@@ -46,7 +46,9 @@ export function ProductDetailView({
               <span>/</span>
             </>
           ) : null}
-          <span className="line-clamp-1 text-foreground">{product.title}</span>
+          <span className="hidden min-w-0 truncate text-foreground sm:inline">
+            {product.title}
+          </span>
         </nav>
 
         <section className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(23rem,0.9fr)]">
