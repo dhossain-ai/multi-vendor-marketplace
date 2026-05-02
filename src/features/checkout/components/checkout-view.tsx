@@ -36,11 +36,11 @@ export function CheckoutView({
               Checkout
             </p>
             <h1 className="text-foreground text-4xl font-semibold tracking-tight">
-              Review and place your order
+              Confirm your order
             </h1>
             <p className="text-ink-muted max-w-3xl text-sm leading-7">
-              Check your items, confirm the total, and continue to secure payment
-              when everything looks right.
+              Review your cart, choose a saved shipping address, and continue to secure
+              payment when everything looks right.
             </p>
           </div>
           {messageTone && error ? (
@@ -76,17 +76,38 @@ export function CheckoutView({
           </section>
         ) : (
           <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_24rem]">
-            <section className="space-y-4">
-              {checkout.items.map((item) => (
+            <section className="space-y-6">
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  ["1", "Review items", `${checkout.totals.itemCount} item${checkout.totals.itemCount === 1 ? "" : "s"}`],
+                  ["2", "Shipping address", addresses.length > 0 ? "Saved address selected" : "Address required"],
+                  ["3", "Secure payment", "Redirects after review"],
+                ].map(([step, label, helper]) => (
+                  <div
+                    key={step}
+                    className="rounded-[1.5rem] border border-border bg-panel px-4 py-3 text-sm shadow-[var(--shadow-panel)]"
+                  >
+                    <span className="inline-flex size-7 items-center justify-center rounded-full bg-brand text-xs font-semibold text-white">
+                      {step}
+                    </span>
+                    <p className="mt-3 font-medium text-foreground">{label}</p>
+                    <p className="mt-1 text-ink-muted">{helper}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                {checkout.items.map((item) => (
                 <article
                   key={item.cartItemId}
-                  className="border-border bg-panel rounded-[1.75rem] border p-5 shadow-[var(--shadow-panel)]"
+                  className="border-border bg-panel rounded-[1.75rem] border p-4 shadow-[var(--shadow-panel)] sm:p-5"
                 >
                   <div className="grid gap-5 md:grid-cols-[9rem_1fr]">
                     <ProductVisual
                       title={item.title}
                       imageUrl={item.thumbnailUrl}
-                      className="h-36"
+                      categoryName={item.category?.name}
+                      className="aspect-[4/3] h-auto min-h-36"
                     />
                     <div className="space-y-3">
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -115,7 +136,7 @@ export function CheckoutView({
                           </p>
                         </div>
 
-                        <div className="text-right">
+                        <div className="rounded-[1.25rem] bg-panel-muted px-4 py-3 text-left md:min-w-40 md:text-right">
                           <p className="text-ink-muted text-sm">
                             {item.discountAmount > 0 ? "Line total" : "Line subtotal"}
                           </p>
@@ -131,7 +152,7 @@ export function CheckoutView({
                             {formatPrice(item.unitPriceAmount, item.currencyCode)} each
                           </p>
                           {item.discountAmount > 0 ? (
-                            <p className="mt-1 text-xs text-emerald-700">
+                            <p className="mt-1 text-xs leading-5 text-emerald-700">
                               Includes {formatPrice(item.discountAmount, item.currencyCode)} in savings
                             </p>
                           ) : null}
@@ -153,7 +174,8 @@ export function CheckoutView({
                     </div>
                   </div>
                 </article>
-              ))}
+                ))}
+              </div>
             </section>
 
             <aside className="border-border bg-panel rounded-[2rem] border p-5 shadow-[var(--shadow-panel)] sm:p-6 xl:sticky xl:top-28 xl:self-start">
@@ -185,11 +207,13 @@ export function CheckoutView({
                   </div>
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-ink-muted">Discounts</span>
-                    <span className="text-foreground font-medium">
-                      -{formatPrice(
-                        checkout.totals.discountAmount,
-                        checkout.totals.currencyCode,
-                      )}
+                    <span className="font-medium text-emerald-700">
+                      {checkout.totals.discountAmount > 0
+                        ? `-${formatPrice(
+                            checkout.totals.discountAmount,
+                            checkout.totals.currencyCode,
+                          )}`
+                        : formatPrice(0, checkout.totals.currencyCode)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-3">
@@ -201,14 +225,19 @@ export function CheckoutView({
                       )}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between gap-3 text-base">
-                    <span className="text-foreground font-medium">Total</span>
-                    <span className="text-foreground text-xl font-semibold">
-                      {formatPrice(
-                        checkout.totals.totalAmount,
-                        checkout.totals.currencyCode,
-                      )}
-                    </span>
+                  <div className="rounded-[1.25rem] bg-brand-soft px-4 py-3">
+                    <div className="flex items-center justify-between gap-3 text-base">
+                      <span className="text-foreground font-medium">Total</span>
+                      <span className="text-foreground text-xl font-semibold">
+                        {formatPrice(
+                          checkout.totals.totalAmount,
+                          checkout.totals.currencyCode,
+                        )}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs leading-5 text-ink-muted">
+                      This total is recalculated on the server before payment begins.
+                    </p>
                   </div>
                 </div>
 
@@ -226,7 +255,7 @@ export function CheckoutView({
                         Shipping address
                       </p>
                       <p className="text-ink-muted mt-1">
-                        Choose a saved address before payment.
+                        Choose where this order should ship.
                       </p>
                     </div>
                     <Link
@@ -242,7 +271,7 @@ export function CheckoutView({
                       {addresses.map((address) => (
                         <label
                           key={address.id}
-                          className="border-border flex gap-3 rounded-2xl border bg-panel px-3 py-3 transition has-[:checked]:border-brand has-[:checked]:bg-brand-soft/40"
+                          className="border-border flex cursor-pointer gap-3 rounded-2xl border bg-panel px-3 py-3 transition has-[:checked]:border-brand has-[:checked]:bg-brand-soft/40 hover:border-foreground/25"
                         >
                           <input
                             form="checkout-submit-form"
@@ -250,12 +279,18 @@ export function CheckoutView({
                             name="shippingAddressId"
                             value={address.id}
                             defaultChecked={address.id === selectedAddress?.id}
-                            className="mt-1 size-4"
+                            className="mt-1 size-4 accent-brand"
                           />
                           <span>
-                            <span className="text-foreground block font-medium">
-                              {address.label ?? address.recipientName}
-                              {address.isDefault ? " (default)" : ""}
+                            <span className="flex flex-wrap items-center gap-2">
+                              <span className="text-foreground block font-medium">
+                                {address.label ?? address.recipientName}
+                              </span>
+                              {address.isDefault ? (
+                                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                                  Default
+                                </span>
+                              ) : null}
                             </span>
                             <span className="text-ink-muted block">
                               {address.recipientName}
@@ -289,10 +324,13 @@ export function CheckoutView({
                   )}
                 </section>
 
-                <p className="text-ink-muted text-sm leading-7">
-                  We save your order details first, then send you to Stripe for secure
-                  payment. Your order is confirmed after the payment provider verifies the transaction.
-                </p>
+                <div className="rounded-[1.5rem] border border-border bg-panel-muted px-4 py-3 text-sm leading-6 text-ink-muted">
+                  <p className="font-medium text-foreground">Secure payment</p>
+                  <p className="mt-1">
+                    We save your order details first, then send you to Stripe.
+                    Your order is confirmed after payment is verified.
+                  </p>
+                </div>
 
                 {checkout.errors.length > 0 ? (
                   <div className="rounded-[1.5rem] bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-700">
@@ -311,7 +349,7 @@ export function CheckoutView({
                       <CartSubmitButton
                         idleLabel="Proceed to payment"
                         pendingLabel="Redirecting to Stripe..."
-                        className="bg-brand inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                        className="bg-brand inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold text-white transition hover:bg-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-60"
                       />
                     </form>
                   ) : (
@@ -324,7 +362,7 @@ export function CheckoutView({
 
                   <Link
                     href="/cart"
-                    className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium"
+                    className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                   >
                     Return to cart
                   </Link>
