@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { signOutAction } from "@/lib/auth/actions";
 import { getSellerStatusLabel } from "@/features/seller/lib/seller-status";
 import type { AppProfile, SellerProfile } from "@/types/auth";
@@ -25,6 +26,7 @@ export function AccountSummary({
     : sellerProfile
       ? "Manage seller application"
       : "Become a seller";
+  const displayName = profile.fullName ?? "Welcome back";
 
   return (
     <div className="space-y-8">
@@ -34,38 +36,47 @@ export function AccountSummary({
         </div>
       ) : null}
 
-      <section className="border-border bg-panel rounded-[2rem] border p-8 shadow-[var(--shadow-panel)]">
-        <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
-          Your account
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
-          {profile.fullName ?? "Welcome back"}
-        </h1>
-        <p className="text-ink-muted mt-3 max-w-2xl text-sm leading-7">
-          Keep your profile current, manage shipping addresses, and review your
-          marketplace orders.
-        </p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-3xl bg-white/80 p-5">
+      <section className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)] sm:p-8">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
+          <div>
+            <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
+              Your account
+            </p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+              {displayName}
+            </h1>
+            <p className="text-ink-muted mt-3 max-w-2xl text-sm leading-7">
+              Manage your profile, shipping addresses, orders, and saved customer
+              details from one place.
+            </p>
+          </div>
+          <div className="rounded-[1.5rem] bg-brand-soft px-4 py-3 text-sm leading-6 text-ink-muted">
+            <p className="font-medium text-foreground">Customer dashboard</p>
+            <p className="mt-1">Everything here is scoped to your signed-in account.</p>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-[1.5rem] bg-white/80 p-5">
             <p className="text-ink-muted text-sm">Email</p>
-            <p className="mt-2 text-base font-medium text-foreground">
+            <p className="mt-2 break-words text-base font-medium text-foreground">
               {profile.email}
             </p>
           </div>
-          <div className="rounded-3xl bg-white/80 p-5">
+          <div className="rounded-[1.5rem] bg-white/80 p-5">
             <p className="text-ink-muted text-sm">Account type</p>
             <p className="mt-2 text-base font-medium text-foreground capitalize">
               {profile.role}
             </p>
           </div>
-          <div className="rounded-3xl bg-white/80 p-5">
+          <div className="rounded-[1.5rem] bg-white/80 p-5">
             <p className="text-ink-muted text-sm">Account status</p>
             <StatusBadge
               label={profile.isActive ? "active" : "inactive"}
               className="mt-2"
             />
           </div>
-          <div className="rounded-3xl bg-white/80 p-5">
+          <div className="rounded-[1.5rem] bg-white/80 p-5">
             <p className="text-ink-muted text-sm">Member since</p>
             <p className="mt-2 text-base font-medium text-foreground capitalize">
               {joinedDate}
@@ -84,7 +95,7 @@ export function AccountSummary({
           </p>
           <Link
             href="/account/profile"
-            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
+            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             Edit profile
           </Link>
@@ -99,7 +110,7 @@ export function AccountSummary({
           </p>
           <Link
             href="/account/addresses"
-            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
+            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             Manage addresses
           </Link>
@@ -114,7 +125,7 @@ export function AccountSummary({
           </p>
           <Link
             href="/orders"
-            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
+            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             View your orders
           </Link>
@@ -129,8 +140,8 @@ export function AccountSummary({
             and add more items to your cart.
           </p>
           <Link
-            href="/"
-            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
+            href="/products"
+            className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             Continue shopping
           </Link>
@@ -166,7 +177,7 @@ export function AccountSummary({
                 </p>
                 <Link
                   href={sellerLink}
-                  className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
+                  className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 >
                   {sellerLinkLabel}
                 </Link>
@@ -187,7 +198,7 @@ export function AccountSummary({
                 </p>
                 <Link
                   href="/admin"
-                  className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
+                  className="border-border bg-panel-muted text-foreground mt-5 inline-flex min-h-11 items-center justify-center rounded-full border px-4 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 >
                   Open admin dashboard
                 </Link>
@@ -200,7 +211,7 @@ export function AccountSummary({
       <form action={signOutAction}>
         <button
           type="submit"
-          className="border-border bg-panel rounded-full border px-5 py-3 text-sm font-medium text-foreground"
+          className="border-border bg-panel rounded-full border px-5 py-3 text-sm font-medium text-foreground transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           Sign out
         </button>
@@ -208,4 +219,3 @@ export function AccountSummary({
     </div>
   );
 }
-import { StatusBadge } from "@/components/ui/status-badge";
