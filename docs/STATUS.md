@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 17A - Storefront Commerce UI Polish completed.
+Phase 17B - Product Discovery UI Polish completed.
 
 ---
 
@@ -124,12 +124,18 @@ The repository now behaves like a much more operational marketplace product acro
   - `/products` listing now has stronger browse copy, search/sort toolbar, category chips, product count summary, pagination, and no-results recovery actions
   - product detail and footer received marketplace presentation polish
   - public product visibility rules remain unchanged
+- product discovery UI polish completed:
+  - `/products` now has a deeper ecommerce browsing layout with stronger search/sort hierarchy, department navigation, active filters, result range copy, pagination, and no-results recovery
+  - product cards now have stronger image proportions, price/category hierarchy, seller label, availability badge, trimmed description, CTA, and focus states
+  - product image fallbacks now render as polished category-aware product visuals
+  - product detail now has a larger gallery, stronger purchase panel, seller trust block, product details, and related products presentation
+  - product visibility rules and add-to-cart server behavior remain unchanged
 
 ---
 
 ## In Progress
 
-- preparing Phase 17B
+- preparing Phase 17C
 
 ---
 
@@ -171,13 +177,13 @@ The repository now behaves like a much more operational marketplace product acro
 
 ## Current Priority
 
-Move into Phase 17B - Product Listing, Product Card, and Product Detail Deep Polish.
+Move into Phase 17C - Cart, Checkout, Account, and Order UI Polish.
 
 ---
 
 ## Immediate Focus
 
-Deepen product discovery presentation without changing catalog visibility, checkout, payment, seller approval, or admin behavior.
+Polish cart, checkout, account, and order presentation without changing checkout, payment, seller approval, or admin behavior.
 
 ---
 
@@ -194,7 +200,7 @@ Deepen product discovery presentation without changing catalog visibility, check
 
 ## Readiness Assessment
 
-The project is ready to move into Phase 17B once:
+The project is ready to move into Phase 17C once:
 
-- the product listing/detail deep polish scope is defined
+- the cart, checkout, account, and order polish scope is defined
 - docs continue to be updated alongside implementation

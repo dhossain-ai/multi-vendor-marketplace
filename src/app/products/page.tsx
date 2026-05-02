@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
-import { CatalogEmptyState } from "@/features/catalog/components/catalog-empty-state";
 import { ProductGrid } from "@/features/catalog/components/cards/product-grid";
 import {
   listPublicProducts,
@@ -33,6 +32,7 @@ const SORT_OPTIONS = [
 
 const MAX_QUERY_LENGTH = 80;
 const MAX_PAGE = 50;
+const PAGE_SIZE = 12;
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{0,79}$/;
 
 const readSingleParam = (value: string | string[] | undefined) =>
@@ -126,6 +126,62 @@ const formatCategoryLabel = (slug: string) =>
     .map((word) => `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`)
     .join(" ");
 
+function NoResultsPanel({
+  q,
+  categoryFilters,
+}: {
+  q?: string;
+  categoryFilters: CategoryFilter[];
+}) {
+  return (
+    <section className="rounded-2xl border border-dashed border-border bg-white/82 p-6 text-center shadow-[var(--shadow-panel)] md:p-10">
+      <p className="text-sm font-semibold uppercase text-brand">
+        No matching products found
+      </p>
+      <h2 className="mx-auto mt-3 max-w-2xl text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+        Try a different search or clear your filters.
+      </h2>
+      <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-ink-muted">
+        {q
+          ? `No active products matched "${q}". Check the spelling, try a broader term, or browse all products.`
+          : "No active products match the selected department and sort combination right now."}
+      </p>
+
+      <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+        <Link
+          href="/products"
+          className="inline-flex min-h-11 items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-white transition hover:bg-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/25"
+        >
+          Browse all products
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white px-5 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
+        >
+          Return to homepage
+        </Link>
+      </div>
+
+      {categoryFilters.length > 0 ? (
+        <div className="mt-7 border-t border-border pt-5">
+          <p className="text-sm font-medium text-foreground">Browse departments</p>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {categoryFilters.slice(0, 5).map((item) => (
+              <Link
+                key={item.slug}
+                href={`/products?category=${item.slug}`}
+                className="inline-flex min-h-10 items-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export default async function ProductsPage({
   searchParams,
 }: ProductsPageProps) {
@@ -143,7 +199,7 @@ export default async function ProductsPage({
       category,
       sort,
       page,
-      pageSize: 12,
+      pageSize: PAGE_SIZE,
     }),
     listPublicProducts(36),
   ]);
@@ -153,106 +209,168 @@ export default async function ProductsPage({
   const activeCategoryLabel =
     categoryFilters.find((item) => item.slug === category)?.name ??
     (category ? formatCategoryLabel(category) : null);
+  const activeSortLabel =
+    SORT_OPTIONS.find((option) => option.value === selectedSort)?.label ?? "Newest";
   const startIndex =
     result.totalCount > 0 ? (result.page - 1) * result.pageSize + 1 : 0;
   const endIndex = Math.min(result.page * result.pageSize, result.totalCount);
+  const hasActiveFilters = Boolean(q || category || sort);
 
   return (
     <div className="py-10 md:py-14">
       <Container className="space-y-8">
-        <section className="rounded-2xl border border-border bg-white/78 p-5 shadow-[var(--shadow-panel)] md:p-7">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="space-y-3">
+        <section className="overflow-hidden rounded-2xl border border-border bg-white/84 shadow-[var(--shadow-panel)]">
+          <div className="grid gap-6 p-5 md:p-7 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start">
+            <div className="space-y-5">
+              <div className="space-y-3">
+                <p className="text-sm font-semibold uppercase text-brand">
+                  Shop products
+                </p>
+                <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-5xl">
+                  {q
+                    ? `Search results for "${q}"`
+                    : activeCategoryLabel
+                      ? `${activeCategoryLabel} products`
+                      : "Browse the marketplace"}
+                </h1>
+                <p className="max-w-3xl text-sm leading-7 text-ink-muted">
+                  Search products, browse active departments, and sort the public
+                  catalog by newest or price.
+                </p>
+              </div>
+
+              <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(14rem,0.46fr)]">
+                <form
+                  action="/products"
+                  method="GET"
+                  className="rounded-2xl border border-border bg-panel-muted p-3"
+                >
+                  <label
+                    className="mb-2 block text-xs font-semibold uppercase text-brand"
+                    htmlFor="product-search"
+                  >
+                    Search products
+                  </label>
+                  <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                    <input
+                      id="product-search"
+                      type="search"
+                      name="q"
+                      defaultValue={q}
+                      placeholder="Search products, categories, sellers"
+                      className="h-12 min-w-0 rounded-full border border-border bg-white px-5 text-sm text-foreground placeholder:text-ink-muted focus:border-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
+                    />
+                    {category ? (
+                      <input type="hidden" name="category" value={category} />
+                    ) : null}
+                    {sort ? <input type="hidden" name="sort" value={sort} /> : null}
+                    <button
+                      type="submit"
+                      className="inline-flex h-12 items-center justify-center rounded-full bg-foreground px-6 text-sm font-semibold text-white transition hover:bg-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/25"
+                    >
+                      Search
+                    </button>
+                  </div>
+                </form>
+
+                <form
+                  action="/products"
+                  method="GET"
+                  className="rounded-2xl border border-border bg-panel-muted p-3"
+                >
+                  <label
+                    className="mb-2 block text-xs font-semibold uppercase text-brand"
+                    htmlFor="product-sort"
+                  >
+                    Sort results
+                  </label>
+                  <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] xl:grid-cols-1">
+                    {q ? <input type="hidden" name="q" value={q} /> : null}
+                    {category ? (
+                      <input type="hidden" name="category" value={category} />
+                    ) : null}
+                    <select
+                      id="product-sort"
+                      name="sort"
+                      defaultValue={selectedSort}
+                      className="h-12 cursor-pointer rounded-full border border-border bg-white px-5 pr-10 text-sm text-foreground focus:border-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
+                    >
+                      {SORT_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="submit"
+                      className="inline-flex h-12 items-center justify-center rounded-full border border-border bg-white px-5 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <aside className="rounded-2xl border border-border bg-panel-muted p-5">
               <p className="text-sm font-semibold uppercase text-brand">
-                Shop products
+                Current results
               </p>
-              <h1 className="text-3xl font-semibold tracking-tight text-foreground md:text-5xl">
-                {q
-                  ? `Search results for "${q}"`
-                  : activeCategoryLabel
-                    ? `${activeCategoryLabel} products`
-                    : "Browse the marketplace"}
-              </h1>
-              <p className="max-w-3xl text-sm leading-7 text-ink-muted">
-                Search active listings, browse departments, and sort products
-                without leaving the storefront.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-border bg-panel-muted px-4 py-3 text-sm text-ink-muted">
-              <span className="font-semibold text-foreground">
+              <p className="mt-3 text-4xl font-semibold tracking-tight text-foreground">
                 {result.totalCount}
-              </span>{" "}
-              {result.totalCount === 1 ? "product" : "products"}
+              </p>
+              <p className="mt-1 text-sm text-ink-muted">
+                {result.totalCount === 1 ? "product" : "products"} found
+              </p>
               {result.totalCount > 0 ? (
-                <span>
-                  {" "}
-                  - showing {startIndex}-{endIndex}
-                </span>
+                <p className="mt-4 rounded-full bg-white px-4 py-2 text-sm font-medium text-foreground">
+                  Showing {startIndex}-{endIndex} of {result.totalCount}
+                </p>
               ) : null}
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
-            <form action="/products" method="GET" className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-              <label className="sr-only" htmlFor="product-search">
-                Search products
-              </label>
-              <input
-                id="product-search"
-                type="search"
-                name="q"
-                defaultValue={q}
-                placeholder="Search products, categories, sellers"
-                className="h-12 min-w-0 rounded-full border border-border bg-white px-5 text-sm text-foreground placeholder:text-ink-muted focus:border-brand focus:outline-none"
-              />
-              {category ? <input type="hidden" name="category" value={category} /> : null}
-              {sort ? <input type="hidden" name="sort" value={sort} /> : null}
-              <button
-                type="submit"
-                className="inline-flex h-12 items-center justify-center rounded-full bg-foreground px-6 text-sm font-semibold text-white transition hover:bg-brand"
-              >
-                Search
-              </button>
-            </form>
-
-            <form action="/products" method="GET" className="grid gap-2 sm:grid-cols-[minmax(11rem,1fr)_auto]">
-              {q ? <input type="hidden" name="q" value={q} /> : null}
-              {category ? <input type="hidden" name="category" value={category} /> : null}
-              <label className="sr-only" htmlFor="product-sort">
-                Sort products
-              </label>
-              <select
-                id="product-sort"
-                name="sort"
-                defaultValue={selectedSort}
-                className="h-12 cursor-pointer rounded-full border border-border bg-white px-5 pr-10 text-sm text-foreground focus:border-brand focus:outline-none"
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="submit"
-                className="inline-flex h-12 items-center justify-center rounded-full border border-border bg-white px-5 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand"
-              >
-                Apply
-              </button>
-            </form>
+              <dl className="mt-5 grid gap-3 text-sm">
+                <div>
+                  <dt className="text-ink-muted">Department</dt>
+                  <dd className="font-semibold text-foreground">
+                    {activeCategoryLabel ?? "All departments"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-ink-muted">Sort</dt>
+                  <dd className="font-semibold text-foreground">{activeSortLabel}</dd>
+                </div>
+              </dl>
+            </aside>
           </div>
         </section>
 
         {categoryFilters.length > 0 ? (
-          <section className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
+          <section className="rounded-2xl border border-border bg-white/72 p-4 shadow-sm">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-base font-semibold text-foreground">
+                  Browse departments
+                </h2>
+                <p className="text-sm text-ink-muted">
+                  Department counts reflect products visible in the public catalog.
+                </p>
+              </div>
+              {category ? (
+                <Link
+                  href={buildProductsHref({ q, sort })}
+                  className="inline-flex min-h-10 w-fit items-center justify-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
+                >
+                  Clear department
+                </Link>
+              ) : null}
+            </div>
+
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible">
               <Link
                 href={buildProductsHref({ q, sort })}
                 className={
                   category
-                    ? "inline-flex min-h-10 items-center rounded-full border border-border bg-white/78 px-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand"
-                    : "inline-flex min-h-10 items-center rounded-full bg-brand px-4 text-sm font-semibold text-white"
+                    ? "inline-flex min-h-10 shrink-0 items-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
+                    : "inline-flex min-h-10 shrink-0 items-center rounded-full bg-brand px-4 text-sm font-semibold text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/25"
                 }
               >
                 All departments
@@ -263,110 +381,126 @@ export default async function ProductsPage({
                   href={buildProductsHref({ q, category: item.slug, sort })}
                   className={
                     item.slug === category
-                      ? "inline-flex min-h-10 items-center rounded-full bg-brand px-4 text-sm font-semibold text-white"
-                      : "inline-flex min-h-10 items-center rounded-full border border-border bg-white/78 px-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand"
+                      ? "inline-flex min-h-10 shrink-0 items-center rounded-full bg-brand px-4 text-sm font-semibold text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/25"
+                      : "inline-flex min-h-10 shrink-0 items-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
                   }
                 >
                   {item.name}
-                  <span className="ml-2 text-xs opacity-75">{item.count}</span>
+                  <span className="ml-2 rounded-full bg-black/5 px-2 py-0.5 text-xs">
+                    {item.count}
+                  </span>
                 </Link>
               ))}
             </div>
           </section>
         ) : null}
 
-        {(q || category || sort) ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-ink-muted">Active filters:</span>
-            {q ? (
-              <span className="inline-flex items-center rounded-full bg-white/78 px-3 py-1 text-xs font-semibold text-foreground">
-                Search: {q}
+        {hasActiveFilters ? (
+          <section className="flex flex-col gap-3 rounded-2xl border border-border bg-white/72 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-ink-muted">
+                Active filters
               </span>
-            ) : null}
-            {activeCategoryLabel ? (
-              <span className="inline-flex items-center rounded-full bg-white/78 px-3 py-1 text-xs font-semibold text-foreground">
-                Department: {activeCategoryLabel}
-              </span>
-            ) : null}
-            {sort && sort !== (q ? "relevance" : "newest") ? (
-              <span className="inline-flex items-center rounded-full bg-white/78 px-3 py-1 text-xs font-semibold text-foreground">
-                Sort: {SORT_OPTIONS.find((option) => option.value === sort)?.label}
-              </span>
-            ) : null}
-            <Link href="/products" className="text-sm font-semibold text-brand hover:underline">
-              Clear all
+              {q ? (
+                <span className="inline-flex min-h-8 items-center rounded-full bg-white px-3 text-xs font-semibold text-foreground">
+                  Search: {q}
+                </span>
+              ) : null}
+              {activeCategoryLabel ? (
+                <span className="inline-flex min-h-8 items-center rounded-full bg-white px-3 text-xs font-semibold text-foreground">
+                  Department: {activeCategoryLabel}
+                </span>
+              ) : null}
+              {sort ? (
+                <span className="inline-flex min-h-8 items-center rounded-full bg-white px-3 text-xs font-semibold text-foreground">
+                  Sort: {activeSortLabel}
+                </span>
+              ) : null}
+            </div>
+            <Link
+              href="/products"
+              className="inline-flex min-h-10 w-fit items-center justify-center rounded-full bg-foreground px-4 text-sm font-semibold text-white transition hover:bg-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/25"
+            >
+              Clear all filters
             </Link>
-          </div>
+          </section>
         ) : null}
 
         {result.products.length > 0 ? (
           <>
-            <ProductGrid products={result.products} />
+            <section className="space-y-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                    Product results
+                  </h2>
+                  <p className="text-sm text-ink-muted">
+                    {result.totalCount === 1
+                      ? "One active product matches your browse settings."
+                      : `${result.totalCount} active products match your browse settings.`}
+                  </p>
+                </div>
+                <Link
+                  href="/products"
+                  className="inline-flex min-h-10 w-fit items-center justify-center rounded-full border border-border bg-white/78 px-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20"
+                >
+                  Reset browse
+                </Link>
+              </div>
+              <ProductGrid products={result.products} />
+            </section>
 
             {totalPages > 1 ? (
-              <div className="mt-12 flex flex-col items-center justify-center gap-3 border-t border-border pt-8 sm:flex-row">
-                {page > 1 ? (
-                  <Link
-                    href={buildProductsHref({
-                      q,
-                      category,
-                      sort,
-                      page: page - 1,
-                    })}
-                    className="inline-flex h-11 min-w-32 items-center justify-center rounded-full border border-border bg-white/78 px-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand"
-                  >
-                    Previous
-                  </Link>
-                ) : (
-                  <span className="inline-flex h-11 min-w-32 items-center justify-center rounded-full border border-border bg-white/60 px-4 text-sm font-semibold text-ink-muted opacity-60">
-                    Previous
-                  </span>
-                )}
+              <nav
+                aria-label="Product pagination"
+                className="mt-12 rounded-2xl border border-border bg-white/76 p-4 shadow-sm"
+              >
+                <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+                  {page > 1 ? (
+                    <Link
+                      href={buildProductsHref({
+                        q,
+                        category,
+                        sort,
+                        page: page - 1,
+                      })}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20 sm:w-auto sm:min-w-32"
+                    >
+                      Previous
+                    </Link>
+                  ) : (
+                    <span className="inline-flex h-11 w-full items-center justify-center rounded-full border border-border bg-white/60 px-4 text-sm font-semibold text-ink-muted opacity-60 sm:w-auto sm:min-w-32">
+                      Previous
+                    </span>
+                  )}
 
-                <span className="min-w-28 text-center text-sm font-semibold text-foreground">
-                  Page {page} of {totalPages}
-                </span>
-
-                {page < totalPages ? (
-                  <Link
-                    href={buildProductsHref({
-                      q,
-                      category,
-                      sort,
-                      page: page + 1,
-                    })}
-                    className="inline-flex h-11 min-w-32 items-center justify-center rounded-full border border-border bg-white/78 px-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand"
-                  >
-                    Next
-                  </Link>
-                ) : (
-                  <span className="inline-flex h-11 min-w-32 items-center justify-center rounded-full border border-border bg-white/60 px-4 text-sm font-semibold text-ink-muted opacity-60">
-                    Next
+                  <span className="text-center text-sm font-semibold text-foreground">
+                    Page {page} of {totalPages}
                   </span>
-                )}
-              </div>
+
+                  {page < totalPages ? (
+                    <Link
+                      href={buildProductsHref({
+                        q,
+                        category,
+                        sort,
+                        page: page + 1,
+                      })}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-full border border-border bg-white px-4 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/20 sm:w-auto sm:min-w-32"
+                    >
+                      Next
+                    </Link>
+                  ) : (
+                    <span className="inline-flex h-11 w-full items-center justify-center rounded-full border border-border bg-white/60 px-4 text-sm font-semibold text-ink-muted opacity-60 sm:w-auto sm:min-w-32">
+                      Next
+                    </span>
+                  )}
+                </div>
+              </nav>
             ) : null}
           </>
         ) : (
-          <div className="space-y-4">
-            <CatalogEmptyState />
-            <div className="flex flex-wrap justify-center gap-3">
-              <Link
-                href="/products"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-foreground px-5 text-sm font-semibold text-white transition hover:bg-brand"
-              >
-                Browse all products
-              </Link>
-              {categoryFilters[0] ? (
-                <Link
-                  href={`/products?category=${categoryFilters[0].slug}`}
-                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-white/78 px-5 text-sm font-semibold text-foreground transition hover:border-brand hover:text-brand"
-                >
-                  Try {categoryFilters[0].name}
-                </Link>
-              ) : null}
-            </div>
-          </div>
+          <NoResultsPanel q={q} categoryFilters={categoryFilters} />
         )}
       </Container>
     </div>

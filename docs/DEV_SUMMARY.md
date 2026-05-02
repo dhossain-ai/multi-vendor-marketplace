@@ -1,5 +1,43 @@
 # Dev Summary
 
+## 2026-05-02 - Phase 17B Product Discovery UI Polish
+
+### Summary
+
+Deepened the product browsing and detail experience so `/products`, product cards, media fallbacks, no-results recovery, and `/products/[slug]` feel more like a serious ecommerce marketplace while preserving the existing public catalog and cart boundaries.
+
+### Added
+
+- product discovery UI audit at `docs/audits/phase-17b-product-discovery-ui-audit.md`
+- implementation note at `docs/implementation/phase-17b-product-discovery-ui-polish.md`
+- stronger no-results recovery paths for browsing all products, clearing filters, exploring departments, and returning home
+
+### Changed
+
+- `/products` now has stronger browse hierarchy, search/sort controls, department navigation, active filter display, reset actions, result range copy, and pagination presentation
+- product cards now have stronger image proportions, category/price hierarchy, seller labels, availability badges, trimmed descriptions, CTAs, hover states, and focus states
+- product visual fallbacks now render polished category-aware tiles when products have no image
+- product detail now has a larger gallery, clearer title/price/purchase hierarchy, seller trust block, description/details sections, and related product presentation
+
+### Checks
+
+- baseline `npm run lint`: passed
+- baseline `npm run typecheck`: passed
+- baseline `npm run build`: passed
+- final `npm run lint`: passed
+- final `npm run typecheck`: passed
+- final `npm run build`: passed
+
+### Notes
+
+- Product visibility rules remain unchanged: approved seller, active product, active/valid category, existing publish requirements, and no suspended/archived/draft products.
+- Add-to-cart behavior remains server-protected and unchanged.
+- No wishlist, reviews, refunds, payouts, notifications, schema changes, checkout changes, seller approval changes, or admin operations were added.
+
+### Next Recommended Slice
+
+- Phase 17C: Cart, Checkout, Account, and Order UI Polish.
+
 ## 2026-05-01 - Phase 17A Storefront Commerce UI Polish
 
 ### Summary

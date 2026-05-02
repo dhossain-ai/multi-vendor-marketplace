@@ -11,9 +11,9 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Phase 17A (Storefront Commerce UI Polish) is complete.
+Phase 17B (Product Discovery UI Polish) is complete.
 
-Next: begin Phase 17B - Product Listing, Product Card, and Product Detail Deep Polish.
+Next: begin Phase 17C - Cart, Checkout, Account, and Order UI Polish.
 
 ---
 
@@ -71,13 +71,20 @@ Next: begin Phase 17B - Product Listing, Product Card, and Product Detail Deep P
 - Preserved public catalog visibility rules: approved seller, active product, active/valid category, publish requirements, and no suspended/archived/draft products.
 - Confirmed `lint`, `typecheck`, and `build` pass.
 
+### Phase 17B — Product Discovery UI Polish ✅
+- Added product discovery UI audit at `docs/audits/phase-17b-product-discovery-ui-audit.md`.
+- Added implementation note at `docs/implementation/phase-17b-product-discovery-ui-polish.md`.
+- Polished `/products` with stronger search/sort hierarchy, department chips, active filters, reset actions, result range copy, pagination, and no-results recovery.
+- Improved product cards, product visual fallbacks, product detail presentation, and shared catalog empty states.
+- Preserved public catalog visibility rules and add-to-cart server behavior.
+- Confirmed `lint`, `typecheck`, and `build` pass.
+
 ---
 
 ## After That
 
 ### Refinement
 
-- Phase 17B product listing/card/detail deep polish
 - Phase 17C cart, checkout, account, and order UI polish
 - Phase 17D seller/admin workspace UI polish
 - richer seeded marketplace scenarios
@@ -120,6 +127,7 @@ Recommended order:
 9. customer flow final QA and security cleanup
 10. storefront commerce UI polish
 11. product listing/card/detail deep polish
+12. cart, checkout, account, and order UI polish
 
 ---
 
