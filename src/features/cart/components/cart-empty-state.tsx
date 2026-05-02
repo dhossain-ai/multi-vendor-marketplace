@@ -3,8 +3,8 @@ import { Container } from "@/components/ui/container";
 
 export function CartEmptyState() {
   return (
-    <div className="py-16">
-      <Container className="border-border bg-panel rounded-[2rem] border p-10 text-center shadow-[var(--shadow-panel)]">
+    <div className="py-12 md:py-16">
+      <Container className="border-border bg-panel rounded-[2rem] border p-6 text-center shadow-[var(--shadow-panel)] sm:p-10">
         <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
           Your cart is empty
         </p>
@@ -15,12 +15,20 @@ export function CartEmptyState() {
           Browse the storefront, add products from approved sellers, and come back here
           when you&apos;re ready to check out.
         </p>
-        <Link
-          href="/"
-          className="bg-brand mt-8 inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
-        >
-          Browse products
-        </Link>
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link
+            href="/products"
+            className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white transition hover:bg-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            Shop products
+          </Link>
+          <Link
+            href="/"
+            className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            Return home
+          </Link>
+        </div>
       </Container>
     </div>
   );

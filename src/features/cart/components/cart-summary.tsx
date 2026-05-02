@@ -14,7 +14,7 @@ type CartSummaryProps = {
 
 export function CartSummary({ cart }: CartSummaryProps) {
   return (
-    <aside className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
+    <aside className="border-border bg-panel rounded-[2rem] border p-5 shadow-[var(--shadow-panel)] sm:p-6">
       <div className="space-y-5">
         <div className="space-y-2">
           <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
@@ -38,23 +38,32 @@ export function CartSummary({ cart }: CartSummaryProps) {
           </div>
           <div className="flex items-center justify-between gap-3">
             <span className="text-ink-muted">Discount</span>
-            <span className="text-foreground font-medium">
-              -{formatPrice(cart.discountAmount, cart.currencyCode)}
+            <span className="font-medium text-emerald-700">
+              {cart.discountAmount > 0
+                ? `-${formatPrice(cart.discountAmount, cart.currencyCode)}`
+                : formatPrice(0, cart.currencyCode)}
             </span>
           </div>
-          <div className="flex items-center justify-between gap-3 text-base">
-            <span className="text-foreground font-medium">Estimated total</span>
-            <span className="text-foreground text-xl font-semibold">
+          <div className="rounded-[1.25rem] bg-brand-soft px-4 py-3">
+            <div className="flex items-center justify-between gap-3 text-base">
+              <span className="text-foreground font-medium">Estimated total</span>
+              <span className="text-foreground text-xl font-semibold">
               {formatPrice(cart.totalAmount, cart.currencyCode)}
-            </span>
+              </span>
+            </div>
+            <p className="mt-1 text-xs leading-5 text-ink-muted">
+              Final availability, coupon eligibility, and totals are checked again at checkout.
+            </p>
           </div>
         </div>
 
         <div className="space-y-3">
-          <p className="text-ink-muted text-sm leading-7">
-            Taxes, discounts, and item availability are confirmed again at checkout
-            before payment begins.
-          </p>
+          <div className="rounded-[1.5rem] border border-border bg-panel-muted px-4 py-3 text-sm leading-6 text-ink-muted">
+            <p className="font-medium text-foreground">Secure checkout</p>
+            <p className="mt-1">
+              Your order is reviewed on the server before payment begins.
+            </p>
+          </div>
 
           {cart.appliedCoupon ? (
             <div
@@ -74,7 +83,7 @@ export function CartSummary({ cart }: CartSummaryProps) {
                 <CartSubmitButton
                   idleLabel="Remove coupon"
                   pendingLabel="Removing..."
-                  className={`inline-flex min-h-10 w-full items-center justify-center rounded-full border px-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60 ${
+                  className={`inline-flex min-h-10 w-full items-center justify-center rounded-full border px-4 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-60 ${
                     cart.appliedCoupon.isValid
                       ? "border-emerald-200 text-emerald-800"
                       : "border-amber-200 text-amber-800"
@@ -99,13 +108,13 @@ export function CartSummary({ cart }: CartSummaryProps) {
                   name="code"
                   type="text"
                   placeholder="Enter a code"
-                  className="w-full rounded-xl border border-border bg-panel px-4 py-2.5 text-sm text-foreground outline-none transition focus:border-brand"
+                  className="w-full rounded-xl border border-border bg-panel px-4 py-2.5 text-sm text-foreground outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
                 />
               </div>
               <CartSubmitButton
                 idleLabel="Apply coupon"
                 pendingLabel="Applying..."
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-border px-5 text-sm font-medium text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-border px-5 text-sm font-medium text-foreground transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-60"
               />
             </form>
           )}
@@ -126,14 +135,14 @@ export function CartSummary({ cart }: CartSummaryProps) {
           ) : (
             <Link
               href="/checkout"
-              className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
+              className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white transition hover:bg-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
             >
               Continue to checkout
             </Link>
           )}
           <Link
-            href="/"
-            className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium"
+            href="/products"
+            className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             Continue shopping
           </Link>
@@ -141,7 +150,7 @@ export function CartSummary({ cart }: CartSummaryProps) {
             <CartSubmitButton
               idleLabel="Clear cart"
               pendingLabel="Clearing..."
-              className="text-ink-muted inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-medium underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+              className="text-ink-muted inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-medium underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-60"
             />
           </form>
         </div>

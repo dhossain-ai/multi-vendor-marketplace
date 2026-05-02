@@ -38,7 +38,8 @@ export function CartView({ cart, notice, error }: CartViewProps) {
     <div className="py-12 md:py-16">
       <Container className="space-y-8">
         <div className="space-y-4">
-          <div className="space-y-3">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
+            <div className="space-y-3">
             <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
               Your cart
             </p>
@@ -49,6 +50,15 @@ export function CartView({ cart, notice, error }: CartViewProps) {
               Double-check quantities, availability, and pricing before you move to checkout.
               Final totals are confirmed securely on the server during checkout.
             </p>
+            </div>
+            <div className="rounded-[1.5rem] border border-border bg-panel px-4 py-3 text-sm leading-6 text-ink-muted shadow-[var(--shadow-panel)]">
+              <p className="font-medium text-foreground">Cart readiness</p>
+              <p className="mt-1">
+                {cart.hasUnavailableItems
+                  ? "Some items need attention before checkout."
+                  : "Your cart is ready for secure checkout review."}
+              </p>
+            </div>
           </div>
           {notice ? <AuthMessage tone="success" message={notice} /> : null}
           {error ? <AuthMessage tone="error" message={error} /> : null}
@@ -56,6 +66,12 @@ export function CartView({ cart, notice, error }: CartViewProps) {
 
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_22rem]">
           <section className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-border bg-panel-muted px-4 py-3 text-sm text-ink-muted">
+              <span>
+                {cart.itemCount} item{cart.itemCount === 1 ? "" : "s"} in your cart
+              </span>
+              <span>Update quantities anytime before checkout.</span>
+            </div>
             {cart.items.map((item) => (
               <CartItemRow key={item.id} item={item} />
             ))}
