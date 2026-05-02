@@ -18,8 +18,8 @@ function HeaderLink({
       href={href}
       className={
         tone === "primary"
-          ? "inline-flex min-h-10 items-center justify-center rounded-full bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-foreground"
-          : "inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-white/75 px-4 text-sm font-medium text-foreground transition hover:border-foreground/25 hover:bg-white"
+          ? "inline-flex min-h-10 items-center justify-center rounded-full bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          : "inline-flex min-h-10 items-center justify-center rounded-full border border-border bg-white/75 px-4 text-sm font-medium text-foreground transition hover:border-foreground/25 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
       }
     >
       {label}
@@ -108,15 +108,8 @@ export async function SiteHeader() {
           </nav>
         </div>
 
-        <div className="mt-3 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-          <nav className="grid w-full min-w-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center xl:hidden">
-            <HeaderLink href="/products" label="Browse products" tone="primary" />
-            <HeaderLink href="/#categories" label="Departments" />
-            <HeaderLink href="/#new-arrivals" label="New arrivals" />
-            <HeaderLink href="/sell" label="Start selling" />
-          </nav>
-
-          <nav className="grid w-full min-w-0 grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center lg:w-auto">
+        <div className="mt-3 hidden xl:flex xl:items-center xl:justify-end">
+          <nav className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2">
             <div className="hidden xl:block">
               <CartNav />
             </div>
