@@ -3,8 +3,8 @@ import { Container } from "@/components/ui/container";
 
 export function OrdersEmptyState() {
   return (
-    <div className="py-16">
-      <Container className="border-border bg-panel rounded-[2rem] border p-10 text-center shadow-[var(--shadow-panel)]">
+    <div className="py-12 md:py-16">
+      <Container className="border-border bg-panel rounded-[2rem] border p-6 text-center shadow-[var(--shadow-panel)] sm:p-10">
         <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
           No orders yet
         </p>
@@ -15,18 +15,18 @@ export function OrdersEmptyState() {
           After your first checkout, you&apos;ll be able to track payment progress and
           review past purchases from this page.
         </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row">
           <Link
             href="/cart"
-            className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium"
+            className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             Open cart
           </Link>
           <Link
-            href="/"
-            className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
+            href="/products"
+            className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white transition hover:bg-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
-            Browse products
+            Shop products
           </Link>
         </div>
       </Container>
