@@ -11,9 +11,9 @@ This is the execution list, not the long-term roadmap.
 
 ## Current Objective
 
-Phase 17B (Product Discovery UI Polish) is complete.
+Phase 17C (Customer Commerce UI Polish) is complete.
 
-Next: begin Phase 17C - Cart, Checkout, Account, and Order UI Polish.
+Next: begin Phase 17D - Seller/Admin Workspace UI Polish.
 
 ---
 
@@ -79,13 +79,22 @@ Next: begin Phase 17C - Cart, Checkout, Account, and Order UI Polish.
 - Preserved public catalog visibility rules and add-to-cart server behavior.
 - Confirmed `lint`, `typecheck`, and `build` pass.
 
+### Phase 17C — Customer Commerce UI Polish ✅
+- Added customer commerce UI audit at `docs/audits/phase-17c-customer-commerce-ui-audit.md`.
+- Added implementation note at `docs/implementation/phase-17c-customer-commerce-ui-polish.md`.
+- Polished cart item cards, product visuals, availability badges, coupon/summary hierarchy, checkout CTA, and empty cart recovery.
+- Polished checkout item review, shipping address selection, order summary, blocked states, savings copy, and secure payment messaging.
+- Improved checkout success/cancel confidence and recovery paths.
+- Improved account hub, profile, address book, order history, and order detail presentation.
+- Preserved checkout/payment/order logic, address ownership checks, customer order ownership, and historical snapshots.
+- Confirmed `lint`, `typecheck`, and `build` pass.
+
 ---
 
 ## After That
 
 ### Refinement
 
-- Phase 17C cart, checkout, account, and order UI polish
 - Phase 17D seller/admin workspace UI polish
 - richer seeded marketplace scenarios
 - reliability hardening for checkout idempotency/RPC
@@ -128,6 +137,7 @@ Recommended order:
 10. storefront commerce UI polish
 11. product listing/card/detail deep polish
 12. cart, checkout, account, and order UI polish
+13. seller/admin workspace UI polish
 
 ---
 

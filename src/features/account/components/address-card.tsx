@@ -14,7 +14,7 @@ const formatAddressLine = (parts: Array<string | null>) =>
 
 export function AddressCard({ address }: AddressCardProps) {
   return (
-    <article className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
+    <article className="border-border bg-panel rounded-[2rem] border p-5 shadow-[var(--shadow-panel)] sm:p-6">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -23,7 +23,7 @@ export function AddressCard({ address }: AddressCardProps) {
             </h2>
             {address.isDefault ? (
               <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                Default
+                Default address
               </span>
             ) : null}
           </div>
@@ -43,13 +43,13 @@ export function AddressCard({ address }: AddressCardProps) {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 lg:justify-end">
+        <div className="flex flex-col gap-3 sm:flex-row lg:flex-col lg:justify-end">
           {!address.isDefault ? (
             <form action={setDefaultAddressAction}>
               <input type="hidden" name="addressId" value={address.id} />
               <button
                 type="submit"
-                className="border-border bg-panel-muted text-foreground inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
+                className="border-border bg-panel-muted text-foreground inline-flex min-h-11 w-full items-center justify-center rounded-full border px-4 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:w-auto lg:w-full"
               >
                 Set default
               </button>
@@ -60,7 +60,7 @@ export function AddressCard({ address }: AddressCardProps) {
             <input type="hidden" name="addressId" value={address.id} />
             <button
               type="submit"
-              className="border-border bg-white text-foreground inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium"
+              className="border-border bg-white text-foreground inline-flex min-h-11 w-full items-center justify-center rounded-full border px-4 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:w-auto lg:w-full"
             >
               Delete
             </button>
@@ -68,8 +68,8 @@ export function AddressCard({ address }: AddressCardProps) {
         </div>
       </div>
 
-      <details className="mt-6">
-        <summary className="text-brand cursor-pointer text-sm font-medium">
+      <details className="mt-6 rounded-[1.5rem] border border-border bg-panel-muted px-4 py-3">
+        <summary className="text-brand cursor-pointer text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           Edit address
         </summary>
         <div className="mt-5 border-t border-border pt-5">

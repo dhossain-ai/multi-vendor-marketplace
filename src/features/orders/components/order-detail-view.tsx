@@ -3,6 +3,7 @@ import { Container } from "@/components/ui/container";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { AuthMessage } from "@/features/auth/components/auth-message";
 import { formatPrice } from "@/features/catalog/lib/format-price";
+import { ProductVisual } from "@/features/catalog/components/product-visual";
 import { CartSubmitButton } from "@/features/cart/components/cart-submit-button";
 import { startPaymentAction } from "@/features/checkout/lib/checkout-actions";
 import {
@@ -40,7 +41,10 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
     <div className="py-12 md:py-16">
       <Container className="space-y-8">
         <div className="space-y-4">
-          <Link href="/orders" className="text-ink-muted text-sm hover:text-foreground">
+          <Link
+            href="/orders"
+            className="text-ink-muted text-sm hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
             Back to orders
           </Link>
           <div className="space-y-3">
@@ -51,8 +55,8 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
               Order details
             </h1>
             <p className="text-ink-muted max-w-3xl text-sm leading-7">
-              Review your items, totals, and payment progress. Saved order details stay
-              accurate even if a product changes later.
+              Review your items, totals, payment progress, and shipping details for
+              this order.
             </p>
           </div>
           {error ? <AuthMessage tone="error" message={error} /> : null}
@@ -61,68 +65,129 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
 
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_24rem]">
           <section className="space-y-4">
+            <div className="rounded-[1.75rem] border border-border bg-panel p-5 shadow-[var(--shadow-panel)]">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
+                    Order progress
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                    {getCustomerOperationalStageLabel(order.operationalStage)}
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-ink-muted">
+                    {getOrderOperationalStageDescription(order.operationalStage)}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <StatusBadge
+                    label={getCustomerOperationalStageLabel(order.operationalStage)}
+                    tone={mapOrderTone(getOperationalStageTone(order.operationalStage))}
+                  />
+                  <StatusBadge
+                    label={getCustomerPaymentStatusLabel(order.paymentStatus)}
+                    tone={
+                      order.paymentStatus === "paid"
+                        ? "success"
+                        : order.paymentStatus === "processing"
+                          ? "info"
+                          : order.paymentStatus === "failed"
+                            ? "danger"
+                            : "warning"
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+
             {order.items.map((item) => (
               <article
                 key={item.id}
-                className="border-border bg-panel rounded-[1.75rem] border p-5 shadow-[var(--shadow-panel)]"
+                className="border-border bg-panel rounded-[1.75rem] border p-4 shadow-[var(--shadow-panel)] sm:p-5"
               >
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      {item.metadata.categoryName ? (
-                        <span className="text-brand font-semibold tracking-[0.12em] uppercase">
-                          {item.metadata.categoryName}
-                        </span>
-                      ) : null}
+                <div className="grid gap-5 md:grid-cols-[9rem_1fr]">
+                  <ProductVisual
+                    title={item.productTitle}
+                    imageUrl={item.metadata.thumbnailUrl ?? null}
+                    categoryName={item.metadata.categoryName ?? null}
+                    className="aspect-[4/3] h-auto min-h-36"
+                  />
+                  <div className="space-y-4">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                          {item.metadata.categoryName ? (
+                            <span className="text-brand font-semibold tracking-[0.12em] uppercase">
+                              {item.metadata.categoryName}
+                            </span>
+                          ) : null}
                       {item.metadata.sellerName ? (
                         <span className="text-ink-muted">
                           Sold by {item.metadata.sellerName}
                         </span>
                       ) : null}
+                        </div>
+                        <h2 className="text-foreground text-2xl font-semibold tracking-tight">
+                          {item.productTitle}
+                        </h2>
+                        <StatusBadge
+                          label={getCustomerFulfillmentStatusLabel(item.fulfillmentStatus)}
+                        />
+                      </div>
+
+                      <div className="rounded-[1.25rem] bg-panel-muted px-4 py-3 text-left md:min-w-40 md:text-right">
+                        <p className="text-ink-muted text-sm">Line total</p>
+                        <p className="text-foreground mt-1 text-xl font-semibold">
+                          {formatPrice(item.lineTotalAmount, item.currencyCode)}
+                        </p>
+                        <p className="text-ink-muted mt-1 text-xs">
+                          {formatPrice(item.unitPriceAmount, item.currencyCode)} each
+                        </p>
+                        {item.discountAmount > 0 ? (
+                          <p className="mt-1 text-xs text-emerald-700">
+                            {formatPrice(item.discountAmount, item.currencyCode)} saved
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
-                    <h2 className="text-foreground text-2xl font-semibold tracking-tight">
-                      {item.productTitle}
-                    </h2>
-                    {item.metadata.sellerName ? (
-                      <p className="text-ink-muted text-sm">Sold by {item.metadata.sellerName}</p>
+
+                    <div className="text-ink-muted flex flex-wrap items-center gap-3 border-t border-border pt-4 text-sm">
+                      <span>Quantity: {item.quantity}</span>
+                      <span>Ordered: {new Date(item.createdAt).toLocaleString()}</span>
+                      {item.shippedAt ? (
+                        <span>Shipped: {new Date(item.shippedAt).toLocaleString()}</span>
+                      ) : null}
+                      {item.deliveredAt ? (
+                        <span>Delivered: {new Date(item.deliveredAt).toLocaleString()}</span>
+                      ) : null}
+                    </div>
+
+                    {item.trackingCode || item.shipmentNote ? (
+                      <div className="rounded-[1.25rem] bg-panel-muted px-4 py-3 text-sm leading-6 text-ink-muted">
+                        {item.trackingCode ? (
+                          <p className="break-words">
+                            <span className="font-medium text-foreground">
+                              Tracking:
+                            </span>{" "}
+                            {item.trackingCode}
+                          </p>
+                        ) : null}
+                        {item.shipmentNote ? (
+                          <p className={item.trackingCode ? "mt-2" : undefined}>
+                            <span className="font-medium text-foreground">
+                              Shipment note:
+                            </span>{" "}
+                            {item.shipmentNote}
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
-                    <StatusBadge
-                      label={getCustomerFulfillmentStatusLabel(item.fulfillmentStatus)}
-                    />
-                  </div>
-
-                  <div className="text-right">
-                    <p className="text-ink-muted text-sm">Line total</p>
-                    <p className="text-foreground mt-1 text-xl font-semibold">
-                      {formatPrice(item.lineTotalAmount, item.currencyCode)}
-                    </p>
-                    <p className="text-ink-muted mt-1 text-xs">
-                      {formatPrice(item.unitPriceAmount, item.currencyCode)} each
-                    </p>
                   </div>
                 </div>
-
-                <div className="text-ink-muted mt-4 flex flex-wrap items-center gap-4 text-sm">
-                  <span>Quantity: {item.quantity}</span>
-                  <span>Created: {new Date(item.createdAt).toLocaleString()}</span>
-                  {item.shippedAt ? (
-                    <span>Shipped: {new Date(item.shippedAt).toLocaleString()}</span>
-                  ) : null}
-                  {item.deliveredAt ? (
-                    <span>Delivered: {new Date(item.deliveredAt).toLocaleString()}</span>
-                  ) : null}
-                  {item.trackingCode ? <span>Tracking: {item.trackingCode}</span> : null}
-                </div>
-                {item.shipmentNote ? (
-                  <p className="mt-3 rounded-[1.25rem] bg-panel-muted px-4 py-3 text-sm leading-6 text-ink-muted">
-                    {item.shipmentNote}
-                  </p>
-                ) : null}
               </article>
             ))}
           </section>
 
-          <aside className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
+          <aside className="border-border bg-panel rounded-[2rem] border p-5 shadow-[var(--shadow-panel)] sm:p-6 xl:sticky xl:top-28 xl:self-start">
             <div className="space-y-5">
               <div className="space-y-3">
                 <p className="text-brand text-sm font-semibold tracking-[0.16em] uppercase">
@@ -149,6 +214,9 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
                 <p className="text-sm leading-6 text-ink-muted">
                   {getOrderOperationalStageDescription(order.operationalStage)}
                 </p>
+                <p className="text-xs leading-5 text-ink-muted">
+                  Order placed {new Date(order.placedAt ?? order.createdAt).toLocaleString()}
+                </p>
               </div>
 
               <div className="border-border space-y-3 border-y py-5 text-sm">
@@ -174,11 +242,13 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
                     {formatPrice(order.taxAmount, order.currencyCode)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between gap-3 text-base">
-                  <span className="text-foreground font-medium">Total</span>
-                  <span className="text-foreground text-xl font-semibold">
-                    {formatPrice(order.totalAmount, order.currencyCode)}
-                  </span>
+                <div className="rounded-[1.25rem] bg-brand-soft px-4 py-3">
+                  <div className="flex items-center justify-between gap-3 text-base">
+                    <span className="text-foreground font-medium">Total</span>
+                    <span className="text-foreground text-xl font-semibold">
+                      {formatPrice(order.totalAmount, order.currencyCode)}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -207,7 +277,7 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
                   </div>
                 ) : (
                   <p className="text-ink-muted mt-2">
-                    No shipping address was saved for this order.
+                    This older order does not include a saved shipping address.
                   </p>
                 )}
               </section>
@@ -262,22 +332,22 @@ export function OrderDetailView({ order, notice, error }: OrderDetailViewProps) 
                           : "Pay now"
                       }
                       pendingLabel="Redirecting to Stripe..."
-                      className="bg-brand inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                      className="bg-brand inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold text-white transition hover:bg-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-60"
                     />
                   </form>
                 ) : null}
 
                 <Link
                   href="/orders"
-                  className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium"
+                  className="border-border bg-panel-muted text-foreground inline-flex min-h-11 items-center justify-center rounded-full border px-5 text-sm font-medium transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 >
                   View all orders
                 </Link>
                 <Link
-                  href="/"
-                  className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
+                  href="/products"
+                  className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white transition hover:bg-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
                 >
-                  Continue browsing
+                  Continue shopping
                 </Link>
               </div>
             </div>

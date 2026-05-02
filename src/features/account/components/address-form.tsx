@@ -10,7 +10,7 @@ type AddressFormProps = {
 };
 
 const inputClass =
-  "border-border bg-white text-foreground min-h-12 w-full rounded-2xl border px-4 text-sm outline-none transition focus:border-brand";
+  "border-border bg-white text-foreground min-h-12 w-full rounded-2xl border px-4 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20";
 
 const optionalValue = (value: string | null | undefined) => value ?? "";
 
@@ -19,6 +19,7 @@ export function AddressForm({ address, mode }: AddressFormProps) {
 
   return (
     <form
+      id={isEdit ? undefined : "address-form"}
       action={isEdit ? updateAddressAction : createAddressAction}
       className="space-y-5"
     >
@@ -33,6 +34,7 @@ export function AddressForm({ address, mode }: AddressFormProps) {
             name="label"
             type="text"
             maxLength={80}
+            placeholder="Home, work, or another label"
             defaultValue={optionalValue(address?.label)}
             className={inputClass}
           />
@@ -154,14 +156,19 @@ export function AddressForm({ address, mode }: AddressFormProps) {
           type="checkbox"
           defaultChecked={!isEdit || address?.isDefault}
           disabled={isEdit && address?.isDefault}
-          className="mt-1 size-4 rounded border-border"
+          className="mt-1 size-4 rounded border-border accent-brand"
         />
-        <span>Use as my default shipping address</span>
+        <span>
+          Use as my default shipping address
+          <span className="text-ink-muted block">
+            Checkout preselects your default address when available.
+          </span>
+        </span>
       </label>
 
       <button
         type="submit"
-        className="bg-brand inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white"
+        className="bg-brand inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-semibold text-white transition hover:bg-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:w-auto"
       >
         {isEdit ? "Save changes" : "Add address"}
       </button>

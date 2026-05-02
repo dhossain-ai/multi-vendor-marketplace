@@ -36,7 +36,7 @@ export function AddressListView({
         {!error && notice ? <AuthMessage tone="success" message={notice} /> : null}
       </div>
 
-      <section className="border-border bg-panel rounded-[2rem] border p-6 shadow-[var(--shadow-panel)]">
+      <section className="border-border bg-panel rounded-[2rem] border p-5 shadow-[var(--shadow-panel)] sm:p-6">
         <div className="mb-6 space-y-2">
           <h2 className="text-foreground text-2xl font-semibold tracking-tight">
             Add a new address
@@ -68,9 +68,15 @@ export function AddressListView({
             <p className="text-ink-muted mx-auto mt-3 max-w-2xl text-sm leading-7">
               Use the form above to save an address. Checkout will automatically preselect your first saved address.
             </p>
+            <a
+              href="#address-form"
+              className="bg-brand mt-6 inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold text-white transition hover:bg-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              Add address
+            </a>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-2">
             {addresses.map((address) => (
               <AddressCard key={address.id} address={address} />
             ))}

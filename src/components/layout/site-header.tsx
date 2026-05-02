@@ -32,7 +32,7 @@ function HeaderSearch() {
     <form
       action="/products"
       method="GET"
-      className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_4.75rem] items-center rounded-full border border-border bg-white p-1 shadow-sm sm:grid-cols-[minmax(0,1fr)_5.5rem]"
+      className="grid w-full min-w-0 max-w-full grid-cols-[minmax(0,1fr)_3.25rem] items-center overflow-hidden rounded-full border border-border bg-white p-1 shadow-sm sm:grid-cols-[minmax(0,1fr)_5.5rem]"
     >
       <label htmlFor="site-product-search" className="sr-only">
         Search products
@@ -42,13 +42,14 @@ function HeaderSearch() {
         name="q"
         type="search"
         placeholder="Search products"
-        className="h-10 min-w-0 flex-1 rounded-full bg-transparent px-4 text-sm text-foreground placeholder:text-ink-muted focus:outline-none"
+        className="h-10 w-full min-w-0 rounded-full bg-transparent px-4 text-sm text-foreground placeholder:text-ink-muted focus:outline-none"
       />
       <button
         type="submit"
-        className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-foreground px-3 text-sm font-semibold text-white transition hover:bg-brand sm:px-4"
+        className="inline-flex h-10 min-w-0 shrink-0 items-center justify-center rounded-full bg-foreground px-3 text-sm font-semibold text-white transition hover:bg-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:px-4"
       >
-        Search
+        <span className="sm:hidden">Go</span>
+        <span className="hidden sm:inline">Search</span>
       </button>
     </form>
   );

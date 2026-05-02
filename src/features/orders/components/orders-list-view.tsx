@@ -61,9 +61,9 @@ export function OrdersListView({ orders, notice }: OrdersListViewProps) {
             <Link
               key={order.id}
               href={`/orders/${order.id}`}
-              className="border-border bg-panel block rounded-[1.75rem] border p-6 shadow-[var(--shadow-panel)] transition hover:border-foreground/25"
+              className="border-border bg-panel block rounded-[1.75rem] border p-5 shadow-[var(--shadow-panel)] transition hover:border-foreground/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand sm:p-6"
             >
-              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-2">
                   <p className="text-brand text-sm font-semibold tracking-[0.12em] uppercase">
                     {order.orderNumber}
@@ -79,16 +79,21 @@ export function OrdersListView({ orders, notice }: OrdersListViewProps) {
                       label={getCustomerPaymentStatusLabel(order.paymentStatus)}
                     />
                     <span className="text-ink-muted">
-                      {new Date(order.placedAt ?? order.createdAt).toLocaleString()}
+                      Placed {new Date(order.placedAt ?? order.createdAt).toLocaleString()}
                     </span>
                   </div>
                 </div>
 
-                <div className="text-left md:text-right">
-                  <p className="text-ink-muted text-sm">Order total</p>
-                  <p className="text-foreground mt-1 text-2xl font-semibold">
-                    {formatPrice(order.totalAmount, order.currencyCode)}
-                  </p>
+                <div className="flex flex-col gap-3 md:items-end">
+                  <div className="text-left md:text-right">
+                    <p className="text-ink-muted text-sm">Order total</p>
+                    <p className="text-foreground mt-1 text-2xl font-semibold">
+                      {formatPrice(order.totalAmount, order.currencyCode)}
+                    </p>
+                  </div>
+                  <span className="border-border bg-panel-muted text-foreground inline-flex min-h-10 items-center justify-center rounded-full border px-4 text-sm font-medium">
+                    View order
+                  </span>
                 </div>
               </div>
             </Link>

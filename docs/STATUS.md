@@ -2,7 +2,7 @@
 
 ## Current Phase
 
-Phase 17B - Product Discovery UI Polish completed.
+Phase 17C - Customer Commerce UI Polish completed.
 
 ---
 
@@ -130,12 +130,19 @@ The repository now behaves like a much more operational marketplace product acro
   - product image fallbacks now render as polished category-aware product visuals
   - product detail now has a larger gallery, stronger purchase panel, seller trust block, product details, and related products presentation
   - product visibility rules and add-to-cart server behavior remain unchanged
+- customer commerce UI polish completed:
+  - cart now has stronger item cards, product visuals, availability badges, coupon/summary hierarchy, checkout CTA, and empty cart recovery
+  - checkout now has clearer item review, shipping address, order summary, blocked-state, savings, and secure payment presentation
+  - checkout success/cancel pages now communicate payment confirmation and recovery paths more clearly
+  - account, profile, and address book views now feel more like customer account management surfaces
+  - order history/detail now have stronger tracking, snapshot, shipping, totals, and retry payment presentation
+  - checkout/payment/order logic, ownership checks, and historical snapshots remain unchanged
 
 ---
 
 ## In Progress
 
-- preparing Phase 17C
+- preparing Phase 17D
 
 ---
 
@@ -177,13 +184,13 @@ The repository now behaves like a much more operational marketplace product acro
 
 ## Current Priority
 
-Move into Phase 17C - Cart, Checkout, Account, and Order UI Polish.
+Move into Phase 17D - Seller/Admin Workspace UI Polish.
 
 ---
 
 ## Immediate Focus
 
-Polish cart, checkout, account, and order presentation without changing checkout, payment, seller approval, or admin behavior.
+Polish seller and admin workspace presentation without changing seller approval, seller ownership, fulfillment, admin role checks, or moderation behavior.
 
 ---
 
@@ -200,7 +207,7 @@ Polish cart, checkout, account, and order presentation without changing checkout
 
 ## Readiness Assessment
 
-The project is ready to move into Phase 17C once:
+The project is ready to move into Phase 17D once:
 
-- the cart, checkout, account, and order polish scope is defined
+- the seller/admin workspace polish scope is defined
 - docs continue to be updated alongside implementation
