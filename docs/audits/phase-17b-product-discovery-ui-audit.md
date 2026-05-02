@@ -1,4 +1,4 @@
-# Phase 17B - Product Discovery UI Audit
+# Phase 17B — Product Discovery UI Audit
 
 ## 1. Purpose
 
@@ -85,13 +85,12 @@ Phase 17B must not weaken these rules to make browsing pages look fuller.
 
 ## 11. Fixes applied
 
-To be completed after implementation:
-
-- Product listing hierarchy, toolbar, active filters, pagination, and no-results recovery polish
-- Product card visual, metadata, availability, CTA, and focus-state polish
-- Product visual fallback polish
-- Product detail page gallery, purchase panel, seller block, description, and related-products polish
-- Responsive/mobile pass
+- Reworked `/products` into a fuller browsing page with a stronger heading, search/sort toolbar, department rail, active filters, clear reset actions, result range copy, improved pagination, and stronger empty-state recovery.
+- Improved product cards with a more commerce-ready image area, price/category overlay, seller label, availability badge, trimmed description, clearer "View details" CTA, and visible hover/focus states.
+- Polished product visual fallbacks so missing imagery renders as a branded, category-aware product tile instead of a flat or broken image area.
+- Refined product detail presentation with a larger gallery, stronger title/price hierarchy, category and seller context, clearer purchase panel, description/details sections, and related products.
+- Updated shared catalog empty state copy and actions for search recovery, browsing all products, and returning home.
+- Checked mobile, tablet, and desktop screenshots for listing and detail layouts; adjusted the product detail breadcrumb to avoid mobile clipping.
 
 ## 12. Remaining follow-ups
 
